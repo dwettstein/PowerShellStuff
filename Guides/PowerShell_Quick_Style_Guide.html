@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+    <html>
+    <head>
+        <meta http-equiv="Content-type" content="text/html;charset=UTF-8">
+        <title>PowerShell Quick Style Guide</title>
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/katex.min.css" integrity="sha384-9eLZqc9ds8eNjO3TmqPeYcDj8n+Qfa4nuSiGYa6DjLNcv9BtN69ZIulL9+8CqC9Y" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/markdown.css">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/highlight.css">
+        <link href="https://cdn.jsdelivr.net/npm/katex-copytex@latest/dist/katex-copytex.min.css" rel="stylesheet" type="text/css">
+        <style>
+.task-list-item { list-style-type: none; } .task-list-item-checkbox { margin-left: -20px; vertical-align: middle; }
+</style>
+        <style>
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe WPC', 'Segoe UI', 'Ubuntu', 'Droid Sans', sans-serif;
+                font-size: 14px;
+                line-height: 1.6;
+            }
+        </style>
+        
+        <script src="https://cdn.jsdelivr.net/npm/katex-copytex@latest/dist/katex-copytex.min.js"></script>
+    </head>
+    <body>
+        <h1 id="powershell-quick-style-guide">PowerShell Quick Style Guide</h1>
+<p>This guide is intended to be a short overview of <a href="https://poshcode.gitbooks.io/powershell-practice-and-style/">The PowerShell Best Practices and Style Guide</a>.</p>
+<p>Author: David Wettstein</p>
+<p>This work is licensed under a <a href="http://creativecommons.org/licenses/by-sa/4.0/">Creative Commons Attribution-ShareAlike 4.0 International License</a>. All attributions and credits for <a href="https://poshcode.gitbooks.io/powershell-practice-and-style/">The PowerShell Best Practices and Style Guide</a> go to Don Jones, Matt Penny, Carlos Perez, Joel Bennett and the PowerShell Community.</p>
+<p>If you rather search a cheat sheet, I recommend the PDF from Warren Frame: <a href="powershell-cheat-sheet.pdf">PowerShell Cheat Sheet</a>
+<br/>(Source: <a href="http://ramblingcookiemonster.github.io/images/Cheat-Sheets/powershell-cheat-sheet.pdf">PowerShell Cheat Sheet</a>, all credits go to <a href="http://ramblingcookiemonster.github.io/">Warren Frame</a>.)</p>
+<h2 id="table-of-contents">Table of Contents</h2>
+<p>Style Guide:</p>
+<ul>
+<li><a href="#Code-Layout-and-Formatting">Code Layout and Formatting</a></li>
+<li><a href="#Function-Structure">Function Structure</a></li>
+<li><a href="#Documentation-and-Comments">Documentation and Comments</a></li>
+<li><a href="#Naming-Conventions">Naming Conventions</a></li>
+</ul>
+<h1 id="style-guide">Style Guide</h1>
+<h2 id="code-layout-and-formatting">Code Layout and Formatting</h2>
+<ul>
+<li>Capitalization Conventions
+<ul>
+<li>Use <em>PascalCase</em> or <em>camelCase</em> for all public identifiers: module names, function or cmdlet names, class, enum, and attribute names, public fields or properties, global variables and constants, parameters etc.<pre><code class="language-powershell"><div>    [String] <span class="hljs-variable">$MyVariable</span> = <span class="hljs-string">"A typed variable."</span>
+</div></code></pre>
+</li>
+<li>PowerShell language keywords are written in <em>lowercase</em> (e.g. <code>if</code>, <code>foreach</code>), as well as operators such as <code>-eq</code> and <code>-match</code>.<pre><code class="language-powershell"><div>    <span class="hljs-keyword">if</span> (<span class="hljs-variable">$MyVariable</span> <span class="hljs-nomarkup">-eq</span> <span class="hljs-string">"AnyValue"</span>) {
+        <span class="hljs-comment"># ...</span>
+</div></code></pre>
+</li>
+<li>Keywords in comment-based help are written in <em>UPPERCASE</em> (e.g. <code>.SYNOPSIS</code>).<pre><code class="language-powershell"><div>    <span class="hljs-comment">&lt;#
+    <span class="hljs-doctag">.SYNOPSIS</span>
+        A short description...
+    #&gt;</span>
+</div></code></pre>
+</li>
+<li>Function names should follow PowerShell's <em>Verb-Noun</em> naming conventions, using <em>PascalCase</em> within both Verb and Noun (list allowed verbs with the cmdlet <code>Get-Verb</code>).<pre><code class="language-powershell"><div><span class="hljs-keyword">function</span> Invoke-HttpRequest {
+    <span class="hljs-comment"># ...</span>
+</div></code></pre>
+</li>
+</ul>
+</li>
+<li>Start all scripts or functions with <code>[CmdletBinding()]</code>.<pre><code class="language-powershell"><div>    <span class="hljs-keyword">function</span> Invoke-HttpRequest {
+        [CmdletBinding()]
+        <span class="hljs-keyword">param</span>(
+            <span class="hljs-comment"># ...</span>
+</div></code></pre>
+</li>
+<li>Follow the <em>One True Brace Style</em> (1TBS or OTBS)
+<ul>
+<li>Open braces always go on the same line, closing braces on a new line!</li>
+</ul>
+<pre><code class="language-powershell"><div><span class="hljs-keyword">function</span> Invoke-HttpRequest {
+    <span class="hljs-comment"># ...</span>
+    <span class="hljs-keyword">end</span> {
+        <span class="hljs-keyword">if</span> (<span class="hljs-variable">$MyVariable</span> <span class="hljs-nomarkup">-eq</span> <span class="hljs-string">"AnyValue"</span>) {
+            <span class="hljs-comment"># ...</span>
+        } <span class="hljs-keyword">else</span> {
+            <span class="hljs-comment"># ...</span>
+        }
+    }
+}
+</div></code></pre>
+</li>
+<li>Indentation and line handling
+<ul>
+<li>Use four spaces per indentation level (and never tabs!).</li>
+<li>Lines should not have trailing whitespace.</li>
+<li>Limit lines to 115 characters when possible, but avoid backticks.</li>
+<li>Surround function and class definitions with two blank lines (similar to Python).</li>
+<li>Method definitions within a class are surrounded by a single blank line (similar to Python).</li>
+<li>End each file with a single blank line.</li>
+<li>I recommend using <a href="https://editorconfig.org/">EditorConfig</a> plugin to automatically set indentation levels and trim trailing whitespaces. Example config (create new file <code>.editorconfig</code> in root folder):<pre><code class="language-text"><div>root = true
+
+[*]
+indent_style = space
+indent_size = 4
+charset = utf-8
+trim_trailing_whitespace = true
+insert_final_newline = true
+</div></code></pre>
+</li>
+</ul>
+</li>
+<li>Put spaces around keywords, operators and special characters<pre><code class="language-powershell"><div><span class="hljs-comment"># Bad</span>
+<span class="hljs-keyword">if</span>(<span class="hljs-variable">$MyVariable</span><span class="hljs-nomarkup">-eq</span><span class="hljs-string">"AnyValue"</span>){
+    <span class="hljs-variable">$Index</span>=<span class="hljs-variable">$MyVariable</span>.Length+<span class="hljs-number">1</span>
+}
+
+<span class="hljs-comment"># Good</span>
+<span class="hljs-keyword">if</span> (<span class="hljs-variable">$MyVariable</span> <span class="hljs-nomarkup">-eq</span> <span class="hljs-string">"AnyValue"</span>) {
+    <span class="hljs-variable">$Index</span> = <span class="hljs-variable">$MyVariable</span>.Length + <span class="hljs-number">1</span>
+}
+</div></code></pre>
+</li>
+<li>Avoid using semicolons <code>;</code> as line terminators
+<ul>
+<li>PowerShell will not complain about extra semicolons, but they are unnecessary.</li>
+<li>When declaring hashtables, which extend past one line, put each element on it's own line.</li>
+</ul>
+</li>
+</ul>
+<p>Read the full page <a href="https://poshcode.gitbooks.io/powershell-practice-and-style/Style-Guide/Code-Layout-and-Formatting.html">Code Layout and Formatting</a> for more information.</p>
+<h2 id="function-structure">Function Structure</h2>
+<ul>
+<li>
+<p>When declaring simple functions leave a space between the function name and the parameters.</p>
+</li>
+<li>
+<p>For advanced functions follow PowerShell's <em>Verb-Noun</em> naming conventions as mentioned in section <a href="#Code-Layout-and-Formatting">Code Layout and Formatting</a>.</p>
+</li>
+<li>
+<p>Avoid using the <code>return</code> keyword in your functions. Just place the object variable on its own.</p>
+<pre><code class="language-powershell"><div><span class="hljs-keyword">function</span> MyAddition (<span class="hljs-variable">$Number1</span>, <span class="hljs-variable">$Number2</span>) {
+    <span class="hljs-variable">$Result</span> = <span class="hljs-variable">$Number1</span> + <span class="hljs-variable">$Number2</span>
+    <span class="hljs-variable">$Result</span>
+}
+</div></code></pre>
+</li>
+<li>
+<p>When using blocks, return objects inside the <code>process</code> block and not in <code>begin</code> or <code>end</code>.</p>
+</li>
+<li>
+<p>When using parameters from pipeline use at least a <code>process</code> block.</p>
+</li>
+<li>
+<p>Specify an <code>OutputType</code> attribute if the advanced function returns an object or collection of objects.</p>
+<pre><code class="language-powershell"><div><span class="hljs-keyword">function</span> Invoke-HttpRequest {
+    [CmdletBinding()]
+    [OutputType([PSObject])]
+    <span class="hljs-keyword">param</span>(
+        <span class="hljs-comment"># ...</span>
+</div></code></pre>
+</li>
+<li>
+<p>For validating function or script parameters, use validation attributes (e.g. <code>ValidateNotNullOrEmpty</code> or <code>ValidatePattern</code>)</p>
+<pre><code class="language-powershell"><div><span class="hljs-keyword">function</span> Invoke-HttpRequest {
+    [CmdletBinding()]
+    <span class="hljs-keyword">param</span> (
+        [Parameter(Mandatory=<span class="hljs-literal">$true</span>, ValueFromPipeline=<span class="hljs-literal">$true</span>, Position=<span class="hljs-number">0</span>)]
+        [ValidatePattern(<span class="hljs-string">"^http(s)?.*"</span>)]
+        [String] <span class="hljs-variable">$Url</span>
+    )
+    <span class="hljs-comment"># ...</span>
+</div></code></pre>
+</li>
+</ul>
+<p>Read the full page <a href="https://poshcode.gitbooks.io/powershell-practice-and-style/Style-Guide/Function-Structure.html">Function Structure</a> for more information.</p>
+<h2 id="documentation-and-comments">Documentation and Comments</h2>
+<ul>
+<li>Indent comments to the same level as the corresponding code.</li>
+<li>Each comment line should start with a # and a single space.</li>
+<li>Keep comments up-to-date when code changes.</li>
+<li>Write comments in English and as complete sentences.</li>
+<li>Inline comments should be separated with two spaces.<pre><code class="language-powershell"><div><span class="hljs-variable">$MyVariable</span> = <span class="hljs-literal">$null</span>  <span class="hljs-comment"># Declare variable</span>
+</div></code></pre>
+</li>
+<li>Comments should serve to your reasoning and decision-making, not attempt to explain what a command does.<pre><code class="language-powershell"><div><span class="hljs-comment"># Bad</span>
+<span class="hljs-comment"># Decrease length by one</span>
+<span class="hljs-variable">$LastIndex</span> = <span class="hljs-variable">$MyVariable</span>.Length - <span class="hljs-number">1</span>
+
+<span class="hljs-comment"># Good</span>
+<span class="hljs-comment"># Indices usually start at 0, thus subtract one to access the last char.</span>
+<span class="hljs-variable">$LastIndex</span> = <span class="hljs-variable">$MyVariable</span>.Length - <span class="hljs-number">1</span>
+</div></code></pre>
+</li>
+<li>When documenting functions, place the comment inside the function at the top, instead of above.</li>
+<li>Provide usage examples when documenting functions (<code>.EXAMPLE</code>)</li>
+</ul>
+<p>Read the full page <a href="https://poshcode.gitbooks.io/powershell-practice-and-style/Style-Guide/Documentation-and-Comments.html">Documentation and Comments</a> for more information.</p>
+<h2 id="naming-conventions">Naming Conventions</h2>
+<ul>
+<li>Use the full name of each command instead of aliases or short forms.</li>
+<li>Additionally, use full parameter names.<pre><code class="language-powershell"><div><span class="hljs-comment"># Bad</span>
+gps Explorer
+
+<span class="hljs-comment"># Good</span>
+<span class="hljs-built_in">Get-Process</span> -Name Explorer
+</div></code></pre>
+</li>
+<li>Use full, explicit paths when possible (avoid <code>..</code> or <code>.</code>).<pre><code class="language-powershell"><div><span class="hljs-comment"># Bad</span>
+<span class="hljs-variable">$Result</span> = &amp; <span class="hljs-string">".\Invoke-AnotherScript.ps1"</span> -Param1 <span class="hljs-string">"Value"</span>
+
+<span class="hljs-comment"># Good</span>
+[string] <span class="hljs-variable">$ScriptPath</span> = <span class="hljs-built_in">Split-Path</span> -Parent <span class="hljs-variable">$MyInvocation</span>.MyCommand.Definition
+<span class="hljs-variable">$Result</span> = &amp; <span class="hljs-string">"<span class="hljs-variable">$ScriptPath</span>\Invoke-AnotherScript.ps1"</span> -Param1 <span class="hljs-string">"Value"</span>
+</div></code></pre>
+</li>
+<li>Avoid using <code>~</code>, instead use <code>$env:USERPROFILE</code>.</li>
+</ul>
+<p>Read the full page <a href="https://poshcode.gitbooks.io/powershell-practice-and-style/Style-Guide/Naming-Conventions.html">Naming Conventions</a> for more information.</p>
+
+    </body>
+    </html>
