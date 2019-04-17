@@ -2,9 +2,9 @@
 
 This guide is intended to be a short overview of [The PowerShell Best Practices and Style Guide](https://poshcode.gitbooks.io/powershell-practice-and-style/).
 
-Author: David Wettstein
+Author(s): David Wettstein
 
-This work is licensed under a [Creative Commons Attribution-ShareAlike 4.0 International License](http://creativecommons.org/licenses/by-sa/4.0/). All attributions and credits for [The PowerShell Best Practices and Style Guide](https://poshcode.gitbooks.io/powershell-practice-and-style/) go to Don Jones, Matt Penny, Carlos Perez, Joel Bennett and the PowerShell Community.
+This work is licensed under the [Creative Commons Attribution-ShareAlike 4.0 International License](https://creativecommons.org/licenses/by-sa/4.0/). All attributions and credits for [The PowerShell Best Practices and Style Guide](https://poshcode.gitbooks.io/powershell-practice-and-style/) go to Don Jones, Matt Penny, Carlos Perez, Joel Bennett and the PowerShell Community.
 
 If you rather search a cheat sheet, I recommend the PDF from Warren Frame: [PowerShell Cheat Sheet](powershell-cheat-sheet.pdf)
 <br/>(Source: [PowerShell Cheat Sheet](http://ramblingcookiemonster.github.io/images/Cheat-Sheets/powershell-cheat-sheet.pdf), all credits go to [Warren Frame](http://ramblingcookiemonster.github.io/).)
@@ -12,11 +12,13 @@ If you rather search a cheat sheet, I recommend the PDF from Warren Frame: [Powe
 
 ## Table of Contents
 
-Style Guide:
-  * [Code Layout and Formatting](#Code-Layout-and-Formatting)
-  * [Function Structure](#Function-Structure)
-  * [Documentation and Comments](#Documentation-and-Comments)
-  * [Naming Conventions](#Naming-Conventions)
+- [PowerShell Quick Style Guide](#powershell-quick-style-guide)
+  - [Table of Contents](#table-of-contents)
+- [Style Guide](#style-guide)
+  - [Code Layout and Formatting](#code-layout-and-formatting)
+  - [Function Structure](#function-structure)
+  - [Documentation and Comments](#documentation-and-comments)
+  - [Naming Conventions](#naming-conventions)
 
 
 # Style Guide
