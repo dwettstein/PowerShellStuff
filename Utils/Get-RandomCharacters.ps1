@@ -32,7 +32,7 @@
 #>
 [CmdletBinding()]
 [OutputType([String])]
-Param (
+param (
     [Parameter(Mandatory=$false, ValueFromPipeline=$true, Position=0)]
     [Int] $Length = 12
     ,

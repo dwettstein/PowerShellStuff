@@ -30,7 +30,7 @@
 #>
 [CmdletBinding()]
 [OutputType([Hashtable])]
-Param (
+param (
     [ValidateSet('GET', 'POST', 'PUT', 'PATCH', 'UPDATE', 'DELETE', IgnoreCase=$true)]  # See also -Method here: https://technet.microsoft.com/en-us/library/hh849901%28v=wps.620%29.aspx
     [Parameter(Mandatory=$false, Position=0)]
     [String] $Method = "GET"

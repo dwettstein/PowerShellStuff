@@ -31,7 +31,7 @@
 #>
 [CmdletBinding()]
 [OutputType([SecureString])]
-Param (
+param (
     [Parameter(Mandatory=$true, ValueFromPipeline=$true, Position=0)]
     [String] $String  # secure string or plain text (not recommended)
     ,

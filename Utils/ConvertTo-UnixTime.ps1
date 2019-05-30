@@ -28,7 +28,7 @@
 #>
 [CmdletBinding()]
 [OutputType([Double])]
-Param (
+param (
     [Parameter(Mandatory=$false, ValueFromPipeline=$true, Position=0)]
     [DateTime] $DateTime = (Get-Date).ToUniversalTime()  # Use current date as default value.
     ,

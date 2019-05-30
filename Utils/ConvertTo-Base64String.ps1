@@ -28,7 +28,7 @@
 #>
 [CmdletBinding()]
 [OutputType([String])]
-Param (
+param (
     [Parameter(Mandatory=$true, Position=0)]
     [String] $String
 )

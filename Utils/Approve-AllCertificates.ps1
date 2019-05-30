@@ -30,7 +30,7 @@
 #>
 [CmdletBinding()]
 #[OutputType([Int])]
-Param (
+param (
 )
 
 $ErrorActionPreference = 'Stop'
