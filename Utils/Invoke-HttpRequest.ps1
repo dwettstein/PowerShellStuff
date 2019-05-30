@@ -31,13 +31,13 @@
 [CmdletBinding()]
 [OutputType([Hashtable])]
 param (
-    [ValidateSet('GET', 'POST', 'PUT', 'PATCH', 'UPDATE', 'DELETE', IgnoreCase=$true)]  # See also -Method here: https://technet.microsoft.com/en-us/library/hh849901%28v=wps.620%29.aspx
-    [Parameter(Mandatory=$false, Position=0)]
-    [String] $Method = "GET"
-    ,
     [ValidatePattern('^(http[s]?)(:\/\/)([\S]+)$')]
-    [Parameter(Mandatory=$true, ValueFromPipeline=$true, Position=1)]
+    [Parameter(Mandatory=$true, ValueFromPipeline=$true, Position=0)]
     [String] $Uri
+    ,
+    [ValidateSet('GET', 'POST', 'PUT', 'PATCH', 'UPDATE', 'DELETE', IgnoreCase=$true)]  # See also -Method here: https://technet.microsoft.com/en-us/library/hh849901%28v=wps.620%29.aspx
+    [Parameter(Mandatory=$false, Position=1)]
+    [String] $Method = "GET"
     ,
     [Parameter(Mandatory=$false, Position=2)]
     [Hashtable] $Headers = @{}
