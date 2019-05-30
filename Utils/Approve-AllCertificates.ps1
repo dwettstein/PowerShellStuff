@@ -46,7 +46,13 @@ public class ServerCertificate {
     }
 }
 '@
-Add-Type -TypeDefinition $CSSource
+
+if (-not ([System.Management.Automation.PSTypeName]'ServerCertificate').Type) {
+    Add-Type -TypeDefinition $CSSource
+}
 
 # Ignore self-signed SSL certificates.
 [ServerCertificate]::approveAllCertificates()
+
+# Allow all security protocols.
+[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]'Ssl3,Tls,Tls11,Tls12'

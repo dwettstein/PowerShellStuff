@@ -47,9 +47,6 @@ param (
     ,
     [Parameter(Mandatory=$false, Position=4)]
     [Switch] $AcceptAllCertificates = $false
-    ,
-    [Parameter(Mandatory=$false, Position=5)]
-    [Switch] $EnableAllSecurityProtocols = $false
 )
 
 $ErrorActionPreference = "Stop"
@@ -103,9 +100,13 @@ public class ServerCertificate {
     }
 }
 '@
-    Add-Type -TypeDefinition $CSSource
+    if (-not ([System.Management.Automation.PSTypeName]'ServerCertificate').Type) {
+        Add-Type -TypeDefinition $CSSource
+    }
     # Ignore self-signed SSL certificates.
     [ServerCertificate]::approveAllCertificates()
+    # Allow all security protocols.
+    [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]'Ssl3,Tls,Tls11,Tls12'
 }
 
 $StartDate = [DateTime]::Now
@@ -133,10 +134,6 @@ try {
 
     if ($AcceptAllCertificates) {
         Approve-AllCertificates
-    }
-
-    if ($EnableAllSecurityProtocols) {
-        [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]'Ssl3,Tls,Tls11,Tls12'
     }
 
     $Request = [Net.HttpWebRequest]::Create("$Uri")

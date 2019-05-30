@@ -81,14 +81,8 @@ $OutputMessage = ""
 
 Write-Verbose "$($FILE_NAME): CALL."
 
-#===============================================================================
-# Main
-#===============================================================================
-#trap { Write-Error $_; exit 1; break; }
-
-try {
-    if ($AcceptAllCertificates) {
-        $CSSource = @'
+function Approve-AllCertificates {
+    $CSSource = @'
 using System.Net;
 
 public class ServerCertificate {
@@ -97,12 +91,23 @@ public class ServerCertificate {
     }
 }
 '@
+    if (-not ([System.Management.Automation.PSTypeName]'ServerCertificate').Type) {
         Add-Type -TypeDefinition $CSSource
+    }
+    # Ignore self-signed SSL certificates.
+    [ServerCertificate]::approveAllCertificates()
+    # Allow all security protocols.
+    [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]'Ssl3,Tls,Tls11,Tls12'
+}
 
-        # Ignore self-signed SSL certificates.
-        [ServerCertificate]::approveAllCertificates()
+#===============================================================================
+# Main
+#===============================================================================
+#trap { Write-Error $_; exit 1; break; }
 
-        [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]'Ssl3,Tls,Tls11,Tls12'
+try {
+    if ($AcceptAllCertificates) {
+        Approve-AllCertificates
     }
 
     if ([String]::IsNullOrEmpty($SessionToken)) {
