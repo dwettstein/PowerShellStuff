@@ -23,8 +23,7 @@
     .\ConvertTo-Base64String.ps1 -String "username:password"
 
 .EXAMPLE
-    [String] $FILE_DIR = Split-Path -Parent $MyInvocation.MyCommand.Definition
-    $StringInBase64 = & "$FILE_DIR\Utils\ConvertTo-Base64String.ps1" -String "username:password"
+    $StringInBase64 = & "$PSScriptRoot\Utils\ConvertTo-Base64String.ps1" -String "username:password"
 #>
 [CmdletBinding()]
 [OutputType([String])]

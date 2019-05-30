@@ -23,8 +23,7 @@
     .\ConvertTo-UnixTime.ps1 -WithMilliseconds
 
 .EXAMPLE
-    [String] $FILE_DIR = Split-Path -Parent $MyInvocation.MyCommand.Definition
-    $UnixTimeInMs = & "$FILE_DIR\Utils\ConvertTo-UnixTime.ps1" -DateTime $DateTime -WithMilliseconds
+    $UnixTimeInMs = & "$PSScriptRoot\Utils\ConvertTo-UnixTime.ps1" -DateTime $DateTime -WithMilliseconds
 #>
 [CmdletBinding()]
 [OutputType([Double])]

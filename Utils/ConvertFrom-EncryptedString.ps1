@@ -26,8 +26,7 @@
     .\ConvertFrom-EncryptedString.ps1 -String "Encrypted String" -Key "changeme0123456789"
 
 .EXAMPLE
-    [String] $FILE_DIR = Split-Path -Parent $MyInvocation.MyCommand.Definition
-    $PlainTextString = & "$FILE_DIR\Utils\ConvertFrom-EncryptedString.ps1" -string "Encrypted String" -key "changeme0123456789"
+    $PlainTextString = & "$PSScriptRoot\Utils\ConvertFrom-EncryptedString.ps1" -string "Encrypted String" -key "changeme0123456789"
 #>
 [CmdletBinding()]
 [OutputType([SecureString])]

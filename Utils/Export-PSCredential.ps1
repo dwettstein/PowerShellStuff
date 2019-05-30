@@ -33,8 +33,7 @@
     .\Export-PSCredential.ps1 -Server '{{server}}' -Username '{{username}}' -Password '{{password}}'
 
 .EXAMPLE
-    [String] $FILE_DIR = Split-Path -Parent $MyInvocation.MyCommand.Definition
-    $Result = & "$FILE_DIR\Utils\Export-PSCredential.ps1" -Server '{{server}}' -Username '{{username}}' -Password '{{password}}'
+    $Result = & "$PSScriptRoot\Utils\Export-PSCredential.ps1" -Server '{{server}}' -Username '{{username}}' -Password '{{password}}'
 #>
 [CmdletBinding()]
 [OutputType([String])]

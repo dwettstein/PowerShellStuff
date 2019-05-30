@@ -23,8 +23,7 @@
     .\ConvertFrom-Base64String.ps1 -String "dXNlcm5hbWU6cGFzc3dvcmQ="
 
 .EXAMPLE
-    [String] $FILE_DIR = Split-Path -Parent $MyInvocation.MyCommand.Definition
-    $String = & "$FILE_DIR\Utils\ConvertFrom-Base64String.ps1" -String "dXNlcm5hbWU6cGFzc3dvcmQ="
+    $String = & "$PSScriptRoot\Utils\ConvertFrom-Base64String.ps1" -String "dXNlcm5hbWU6cGFzc3dvcmQ="
 #>
 [CmdletBinding()]
 [OutputType([String])]

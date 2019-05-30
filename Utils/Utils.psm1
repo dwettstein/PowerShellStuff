@@ -30,7 +30,11 @@ $ErrorActionPreference = 'Stop'
 $WarningPreference = 'SilentlyContinue'
 
 [String] $FILE_NAME = $MyInvocation.MyCommand.Name
-[String] $FILE_DIR = Split-Path -Parent $MyInvocation.MyCommand.Definition
+if ($PSVersionTable.PSVersion.Major -lt 3) {
+    [String] $FILE_DIR = Split-Path -Parent $MyInvocation.MyCommand.Definition
+} else {
+    [String] $FILE_DIR = $PSScriptRoot
+}
 
 $ChildItems = Get-ChildItem -Path "$FILE_DIR\*.ps1"
 

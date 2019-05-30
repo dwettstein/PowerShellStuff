@@ -27,8 +27,7 @@
     .\Get-RandomCharacters.ps1 -Length 32
 
 .EXAMPLE
-    [String] $FILE_DIR = Split-Path -Parent $MyInvocation.MyCommand.Definition
-    $RandomString = & "$FILE_DIR\Utils\Get-RandomCharacters.ps1" -Length 32 -Characters "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+    $RandomString = & "$PSScriptRoot\Utils\Get-RandomCharacters.ps1" -Length 32 -Characters "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 #>
 [CmdletBinding()]
 [OutputType([String])]

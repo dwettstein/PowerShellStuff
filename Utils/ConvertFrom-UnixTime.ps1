@@ -23,8 +23,7 @@
     .\ConvertFrom-UnixTime.ps1 -UnixTimestamp 1502798835021
 
 .EXAMPLE
-    [String] $FILE_DIR = Split-Path -Parent $MyInvocation.MyCommand.Definition
-    $DateTime = & "$FILE_DIR\Utils\ConvertFrom-UnixTime.ps1" -UnixTimestamp 1502798835021 -ToUniversalTime
+    $DateTime = & "$PSScriptRoot\Utils\ConvertFrom-UnixTime.ps1" -UnixTimestamp 1502798835021 -ToUniversalTime
 #>
 [CmdletBinding()]
 [OutputType([DateTime])]

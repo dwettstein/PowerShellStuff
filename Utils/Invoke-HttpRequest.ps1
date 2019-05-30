@@ -109,7 +109,11 @@ public class ServerCertificate {
 $StartDate = [DateTime]::Now
 
 [String] $FILE_NAME = $MyInvocation.MyCommand.Name
-[String] $FILE_DIR = Split-Path -Parent $MyInvocation.MyCommand.Definition
+if ($PSVersionTable.PSVersion.Major -lt 3) {
+    [String] $FILE_DIR = Split-Path -Parent $MyInvocation.MyCommand.Definition
+} else {
+    [String] $FILE_DIR = $PSScriptRoot
+}
 
 $ExitCode = 0
 $ErrorOut = ""

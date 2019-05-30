@@ -25,8 +25,7 @@
     .\Approve-AllCertificates.ps1
 
 .EXAMPLE
-    [String] $FILE_DIR = Split-Path -Parent $MyInvocation.MyCommand.Definition
-    $null = & "$FILE_DIR\Utils\Approve-AllCertificates.ps1"
+    $null = & "$PSScriptRoot\Utils\Approve-AllCertificates.ps1"
 #>
 [CmdletBinding()]
 #[OutputType([Int])]
