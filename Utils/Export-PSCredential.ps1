@@ -1,9 +1,9 @@
 <#
 .SYNOPSIS
-    Generate a PSCredential with given username and password and export it under the given path (default is "$HOME\.pscredentials"). The input "server" and the current logged-in user will be used as file name: {{server}}-${env:USERNAME}.xml
+    Generate a PSCredential either with given username and password, or with Get-Credential and export it under the given path (default is "$HOME\.pscredentials"). The input "server" and the current logged-in user will be used as file name: {{server}}-${env:USERNAME}.xml
 
 .DESCRIPTION
-    Generate a PSCredential with given username and password and export it under the given path (default is "$HOME\.pscredentials"). The input "server" and the current logged-in user will be used as file name: {{server}}-${env:USERNAME}.xml
+    Generate a PSCredential either with given username and password, or with Get-Credential and export it under the given path (default is "$HOME\.pscredentials"). The input "server" and the current logged-in user will be used as file name: {{server}}-${env:USERNAME}.xml
 
     Info: For importing the credential under the Local System Account, run this script as Scheduled Task with the account "SYSTEM" once.
     Program: powershell.exe
@@ -42,11 +42,11 @@ Param (
     [Parameter(Mandatory=$true, Position=0)]
     [String] $Server
     ,
-    [Parameter(Mandatory=$true, Position=1)]
-    [String] $Username
+    [Parameter(Mandatory=$false, Position=1)]
+    [String] $Username = $null
     ,
-    [Parameter(Mandatory=$true, Position=2)]
-    [String] $Password
+    [Parameter(Mandatory=$false, Position=2)]
+    [String] $Password = $null
     ,
     [Parameter(Mandatory=$false, Position=3)]
     [String] $Path = "$HOME\.pscredentials"  # $HOME for Local System Account: C:\Windows\System32\config\systemprofile
@@ -58,7 +58,15 @@ $WarningPreference = 'SilentlyContinue'
 $FileName = "$Server-${env:USERNAME}.xml"
 $OutputMessage = ""
 try {
-    $PSCredential = New-Object System.Management.Automation.PSCredential ($Username, (ConvertTo-SecureString -AsPlainText -Force $Password))
+    if ([String]::IsNullOrEmpty($Username)) {
+        $Username = "${env:USERNAME}"
+    }
+    if ([String]::IsNullOrEmpty($Password)) {
+        $PSCredential = Get-Credential -Message $Server -UserName $Username
+    } else {
+        $PSCredential = New-Object System.Management.Automation.PSCredential ($Username, (ConvertTo-SecureString -AsPlainText -Force $Password))
+    }
+
     if (-not (Test-Path $Path)) {
         $null = New-Item -ItemType Directory -Path $Path
     }
