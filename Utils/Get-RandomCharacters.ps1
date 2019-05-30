@@ -39,12 +39,14 @@ param (
     [String] $Characters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 )
 
-$ErrorActionPreference = 'Stop'
-$WarningPreference = 'SilentlyContinue'
+$ErrorActionPreference = "Stop"
+$WarningPreference = "SilentlyContinue"
+# Use comma as output field separator (special variable $OFS).
+# $private:OFS = ","
 
 # Get an array of random numbers.
 $Randoms = 1..$Length | ForEach-Object { Get-Random -Maximum $Characters.Length }
-# Use empty string as output field separator (special variable $ofs).
+# Use empty string as output field separator (special variable $OFS).
 $private:OFS = ""
 # Generate a string with the characters corresponding to the numbers.
 [String] $Characters[$Randoms]

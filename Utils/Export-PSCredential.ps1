@@ -51,8 +51,10 @@ param (
     [String] $Path = "$HOME\.pscredentials"  # $HOME for Local System Account: C:\Windows\System32\config\systemprofile
 )
 
-$ErrorActionPreference = 'Stop'
-$WarningPreference = 'SilentlyContinue'
+$ErrorActionPreference = "Stop"
+$WarningPreference = "SilentlyContinue"
+# Use comma as output field separator (special variable $OFS).
+$private:OFS = ","
 
 $FileName = "$Server-${env:USERNAME}.xml"
 $OutputMessage = ""

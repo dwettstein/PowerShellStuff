@@ -38,8 +38,10 @@ param (
     [String] $Key = $null  # secure string or plain text (not recommended)
 )
 
-$ErrorActionPreference = 'Stop'
-$WarningPreference = 'SilentlyContinue'
+$ErrorActionPreference = "Stop"
+$WarningPreference = "SilentlyContinue"
+# Use comma as output field separator (special variable $OFS).
+$private:OFS = ","
 
 function Get-PlainText($Text, $KeyInBytes = $null) {
     # If text is given as SecureString string, convert it to plain text.

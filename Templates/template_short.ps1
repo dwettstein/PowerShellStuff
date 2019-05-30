@@ -32,8 +32,10 @@ param (
     [Int] $Param2
 )
 
-$ErrorActionPreference = 'Stop'
-$WarningPreference = 'SilentlyContinue'
+$ErrorActionPreference = "Stop"
+$WarningPreference = "SilentlyContinue"
+# Use comma as output field separator (special variable $OFS).
+$private:OFS = ","
 
 #===============================================================================
 # Initialization and Functions

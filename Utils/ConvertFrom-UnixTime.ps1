@@ -35,8 +35,10 @@ param (
     [Switch] $ToUniversalTime = $false
 )
 
-$ErrorActionPreference = 'Stop'
-$WarningPreference = 'SilentlyContinue'
+$ErrorActionPreference = "Stop"
+$WarningPreference = "SilentlyContinue"
+# Use comma as output field separator (special variable $OFS).
+$private:OFS = ","
 
 $DateTime = $null
 if ($UnixTimestamp.ToString().Length -eq 13) {

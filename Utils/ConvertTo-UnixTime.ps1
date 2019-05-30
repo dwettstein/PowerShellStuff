@@ -35,8 +35,10 @@ param (
     [Switch] $WithMilliseconds = $false
 )
 
-$ErrorActionPreference = 'Stop'
-$WarningPreference = 'SilentlyContinue'
+$ErrorActionPreference = "Stop"
+$WarningPreference = "SilentlyContinue"
+# Use comma as output field separator (special variable $OFS).
+$private:OFS = ","
 
 if ($WithMilliseconds) {
     [System.Math]::Floor((New-TimeSpan -Start ([DateTime]::ParseExact("19700101", "yyyyMMdd", $null)) -End $DateTime).TotalMilliseconds)

@@ -32,8 +32,10 @@ param (
     [String] $String
 )
 
-$ErrorActionPreference = 'Stop'
-$WarningPreference = 'SilentlyContinue'
+$ErrorActionPreference = "Stop"
+$WarningPreference = "SilentlyContinue"
+# Use comma as output field separator (special variable $OFS).
+$private:OFS = ","
 
 $StringInBytes = [System.Convert]::FromBase64String($String)
 $StringPlainText = [System.Text.Encoding]::UTF8.GetString($StringInBytes, 0, $StringInBytes.length)

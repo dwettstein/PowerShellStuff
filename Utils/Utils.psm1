@@ -26,8 +26,10 @@
 .LINK
     https://github.com/dwettstein/PowerShell
 #>
-$ErrorActionPreference = 'Stop'
-$WarningPreference = 'SilentlyContinue'
+$ErrorActionPreference = "Stop"
+$WarningPreference = "SilentlyContinue"
+# Use comma as output field separator (special variable $OFS).
+$private:OFS = ","
 
 [String] $FILE_NAME = $MyInvocation.MyCommand.Name
 if ($PSVersionTable.PSVersion.Major -lt 3) {
