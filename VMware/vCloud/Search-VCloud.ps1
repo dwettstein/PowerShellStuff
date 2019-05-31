@@ -1,11 +1,11 @@
 <#
 .SYNOPSIS
-    Wrapper cmdlet for directly invoking any vCloud API request using the provided session token or an existing PSCredential for authentication.
+    Query objects of a certain type in a vCloud server.
 
 .DESCRIPTION
-    Wrapper cmdlet for directly invoking any vCloud API request using the provided session token or an existing PSCredential for authentication.
+    Query objects of a certain type in a vCloud server.
 
-    File-Name:  Invoke-VCloudRequest.ps1
+    File-Name:  Search-VCloud.ps1
     Author:     David Wettstein
     Version:    v1.0.0
 
@@ -20,26 +20,22 @@
     https://github.com/dwettstein/PowerShell
 
 .EXAMPLE
-    [Xml] $Result = & ".\Invoke-VCloudRequest.ps1" "vcloud.local" "/admin/orgs/query" -SessionToken $VCloudToken
-
-.EXAMPLE
-    [Xml] $Result = & "$PSScriptRoot\Invoke-VCloudRequest.ps1" -Server "vcloud.local" -Endpoint "/admin/orgs/query" -Method "GET" -SessionToken $VCloudToken -AcceptAllCertificates
+    Example of how to use this cmdlet
 #>
 [CmdletBinding()]
-[OutputType([String])]
+[OutputType([Array])]
 param (
     [Parameter(Mandatory=$true, Position=0)]
     [String] $Server
     ,
     [Parameter(Mandatory=$true, Position=1)]
-    [String] $Endpoint
+    [String] $Type
     ,
-    [ValidateSet('GET', 'POST', 'PUT', 'PATCH', 'UPDATE', 'DELETE', IgnoreCase=$true)]  # See also -Method here: https://technet.microsoft.com/en-us/library/hh849901%28v=wps.620%29.aspx
-    [Parameter(Mandatory=$false, Position=2)]
-    [String] $Method = "GET"
+    [Parameter(Mandatory=$true, Position=2)]
+    [String] $ResultType
     ,
     [Parameter(Mandatory=$false, Position=3)]
-    [String] $Body = $null
+    [String] $Filter = $null
     ,
     [Parameter(Mandatory=$false, Position=4)]
     [String] $SessionToken = $null
@@ -81,59 +77,29 @@ $OutputMessage = ""
 
 Write-Verbose "$($FILE_NAME): CALL."
 
-function Approve-AllCertificates {
-    $CSSource = @'
-using System.Net;
-
-public class ServerCertificate {
-    public static void approveAllCertificates() {
-        ServicePointManager.ServerCertificateValidationCallback = delegate { return true; };
-    }
-}
-'@
-    if (-not ([System.Management.Automation.PSTypeName]'ServerCertificate').Type) {
-        Add-Type -TypeDefinition $CSSource
-    }
-    # Ignore self-signed SSL certificates.
-    [ServerCertificate]::approveAllCertificates()
-    # Allow all security protocols.
-    [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]'Ssl3,Tls,Tls11,Tls12'
-}
-
 #===============================================================================
 # Main
 #===============================================================================
 #trap { Write-Error $_; exit 1; break; }
 
 try {
-    if ($AcceptAllCertificates) {
-        Approve-AllCertificates
-    }
-
-    if ([String]::IsNullOrEmpty($SessionToken)) {
-        if ($AcceptAllCertificates) {
-            $SessionToken = & "$FILE_DIR\Connect-VCloud.ps1" -Server $Server -AcceptAllCertificates
-        } else {
-            $SessionToken = & "$FILE_DIR\Connect-VCloud.ps1" -Server $Server
+    $Results = @()
+    $Page = 1
+    do {
+        $Endpoint = "/query?type=$Type"
+        if (-not [String]::IsNullOrEmpty($Filter)) {
+            $Endpoint += "&filter=$Filter"
         }
-    }
-
-    $BaseUrl = "https://$Server"
-    $EndpointUrl = "$BaseUrl/api$endpoint"
-
-    $Headers = @{
-        "x-vcloud-authorization" = "$SessionToken"
-        "Accept" = "application/*+xml;version=31.0"
-        "Content-Type" = "application/*+xml"
-    }
-
-    if ($Body) {
-        $Response = Invoke-WebRequest -Method $Method -Headers $Headers -Uri $EndpointUrl -Body $Body
-    } else {
-        $Response = Invoke-WebRequest -Method $Method -Headers $Headers -Uri $EndpointUrl
-    }
-
-    $OutputMessage = $Response
+        $Endpoint += "&page=$Page"
+        if ($AcceptAllCertificates) {
+            [Xml] $Response = & "$FILE_DIR\Invoke-VCloudRequest.ps1" -Server $Server -Method "GET" -Endpoint $Endpoint -SessionToken $SessionToken -AcceptAllCertificates
+        } else {
+            [Xml] $Response = & "$FILE_DIR\Invoke-VCloudRequest.ps1" -Server $Server -Method "GET" -Endpoint $Endpoint -SessionToken $SessionToken
+        }
+        $Results += $Response.QueryResultRecords."$ResultType"
+        $Page++
+    } while ($Response.QueryResultRecords.Link.rel -contains "nextPage")
+    $OutputMessage = $Results
 } catch {
     # Error in $_ or $Error[0] variable.
     Write-Warning "Exception occurred at line $($_.InvocationInfo.ScriptLineNumber): $($_.Exception.ToString())" -WarningAction Continue
@@ -144,7 +110,12 @@ try {
     Write-Verbose ("$($FILE_NAME): ExitCode: {0}. Execution time: {1} ms. Started: {2}." -f $ExitCode, ($EndDate - $StartDate).TotalMilliseconds, $StartDate.ToString('yyyy-MM-dd HH:mm:ss.fffzzz'))
 
     if ($ExitCode -eq 0) {
-        "$OutputMessage"  # Write OutputMessage to output stream.
+        if ($OutputMessage.Length -le 1) {
+            # See here: http://stackoverflow.com/questions/18476634/powershell-doesnt-return-an-empty-array-as-an-array
+            ,$OutputMessage  # Write OutputMessage to output stream.
+        } else {
+            $OutputMessage  # Write OutputMessage to output stream.
+        }
     } else {
         Write-Error "$ErrorOut"  # Use Write-Error only here.
     }

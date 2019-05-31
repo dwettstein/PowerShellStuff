@@ -77,23 +77,15 @@ Write-Verbose "$($FILE_NAME): CALL."
 #trap { Write-Error $_; exit 1; break; }
 
 try {
-    $OrgVdcEdgeGateways = @()
-    $Page = 1
-    do {
-        $Endpoint = "/query?type=edgeGateway"
-        if (-not [String]::IsNullOrEmpty($OrgVdc)) {
-            $Endpoint += "&filter=(vdc==$OrgVdc)"
-        }
-        $Endpoint += "&page=$Page"
-        if ($AcceptAllCertificates) {
-            [Xml] $Response = & "$FILE_DIR\Invoke-VCloudRequest.ps1" -Server $Server -Method "GET" -Endpoint $Endpoint -SessionToken $SessionToken -AcceptAllCertificates
-        } else {
-            [Xml] $Response = & "$FILE_DIR\Invoke-VCloudRequest.ps1" -Server $Server -Method "GET" -Endpoint $Endpoint -SessionToken $SessionToken
-        }
-        $OrgVdcEdgeGateways += $Response.QueryResultRecords.AdminVdcRecord
-        $Page++
-    } while ($Response.QueryResultRecords.Link.rel -contains "nextPage")
-    $OutputMessage = $OrgVdcEdgeGateways
+    $Filter = $null
+    if (-not [String]::IsNullOrEmpty($OrgVdc)) {
+        $Filter = "(vdc==$OrgVdc)"
+    }
+    if ($AcceptAllCertificates) {
+        $OutputMessage = & "$FILE_DIR\Search-VCloud.ps1" -Server $Server -Type "edgeGateway" -ResultType "EdgeGatewayRecord" -Filter $Filter -SessionToken $SessionToken -AcceptAllCertificates
+    } else {
+        $OutputMessage = & "$FILE_DIR\Search-VCloud.ps1" -Server $Server -Type "edgeGateway" -ResultType "EdgeGatewayRecord" -Filter $Filter -SessionToken $SessionToken
+    }
 } catch {
     # Error in $_ or $Error[0] variable.
     Write-Warning "Exception occurred at line $($_.InvocationInfo.ScriptLineNumber): $($_.Exception.ToString())" -WarningAction Continue

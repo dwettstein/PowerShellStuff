@@ -1,11 +1,11 @@
 <#
 .SYNOPSIS
-    Get all OrgVdcs of a vCloud server.
+    Get all VMs of a vCloud server.
 
 .DESCRIPTION
-    Get all OrgVdcs of a vCloud server.
+    Get all VMs of a vCloud server.
 
-    File-Name:  Get-VCloudOrgVdcs.ps1
+    File-Name:  Get-VCloudOrgVdcVms.ps1
     Author:     David Wettstein
     Version:    v1.0.0
 
@@ -29,7 +29,7 @@ param (
     [String] $Server
     ,
     [Parameter(Mandatory=$false, Position=1)]
-    [String] $Org = $null
+    [String] $OrgVdc = $null
     ,
     [Parameter(Mandatory=$false, Position=2)]
     [String] $SessionToken = $null
@@ -78,13 +78,13 @@ Write-Verbose "$($FILE_NAME): CALL."
 
 try {
     $Filter = $null
-    if (-not [String]::IsNullOrEmpty($Org)) {
-        $Filter = "(org==$Org)"
+    if (-not [String]::IsNullOrEmpty($OrgVdc)) {
+        $Filter = "(vdc==$OrgVdc)"
     }
     if ($AcceptAllCertificates) {
-        $OutputMessage = & "$FILE_DIR\Search-VCloud.ps1" -Server $Server -Type "adminOrgVdc" -ResultType "AdminVdcRecord" -Filter $Filter -SessionToken $SessionToken -AcceptAllCertificates
+        $OutputMessage = & "$FILE_DIR\Search-VCloud.ps1" -Server $Server -Type "adminVM" -ResultType "AdminVmRecord" -Filter $Filter -SessionToken $SessionToken -AcceptAllCertificates
     } else {
-        $OutputMessage = & "$FILE_DIR\Search-VCloud.ps1" -Server $Server -Type "adminOrgVdc" -ResultType "AdminVdcRecord" -Filter $Filter -SessionToken $SessionToken
+        $OutputMessage = & "$FILE_DIR\Search-VCloud.ps1" -Server $Server -Type "adminVM" -ResultType "AdminVmRecord" -Filter $Filter -SessionToken $SessionToken
     }
 } catch {
     # Error in $_ or $Error[0] variable.

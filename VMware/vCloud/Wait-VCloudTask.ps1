@@ -1,11 +1,11 @@
 <#
 .SYNOPSIS
-    Wrapper cmdlet for directly invoking any vCloud API request using the provided session token or an existing PSCredential for authentication.
+    Wait until a task of a vCloud server has been completed (either successfully or not).
 
 .DESCRIPTION
-    Wrapper cmdlet for directly invoking any vCloud API request using the provided session token or an existing PSCredential for authentication.
+    Wait until a task of a vCloud server has been completed (either successfully or not).
 
-    File-Name:  Invoke-VCloudRequest.ps1
+    File-Name:  Wait-VCloudTask.ps1
     Author:     David Wettstein
     Version:    v1.0.0
 
@@ -20,10 +20,7 @@
     https://github.com/dwettstein/PowerShell
 
 .EXAMPLE
-    [Xml] $Result = & ".\Invoke-VCloudRequest.ps1" "vcloud.local" "/admin/orgs/query" -SessionToken $VCloudToken
-
-.EXAMPLE
-    [Xml] $Result = & "$PSScriptRoot\Invoke-VCloudRequest.ps1" -Server "vcloud.local" -Endpoint "/admin/orgs/query" -Method "GET" -SessionToken $VCloudToken -AcceptAllCertificates
+    Example of how to use this cmdlet
 #>
 [CmdletBinding()]
 [OutputType([String])]
@@ -32,19 +29,15 @@ param (
     [String] $Server
     ,
     [Parameter(Mandatory=$true, Position=1)]
-    [String] $Endpoint
+    [String] $Task
     ,
-    [ValidateSet('GET', 'POST', 'PUT', 'PATCH', 'UPDATE', 'DELETE', IgnoreCase=$true)]  # See also -Method here: https://technet.microsoft.com/en-us/library/hh849901%28v=wps.620%29.aspx
     [Parameter(Mandatory=$false, Position=2)]
-    [String] $Method = "GET"
+    [Int] $SleepInSec = 5
     ,
     [Parameter(Mandatory=$false, Position=3)]
-    [String] $Body = $null
-    ,
-    [Parameter(Mandatory=$false, Position=4)]
     [String] $SessionToken = $null
     ,
-    [Parameter(Mandatory=$false, Position=5)]
+    [Parameter(Mandatory=$false, Position=4)]
     [Switch] $AcceptAllCertificates = $false
 )
 
@@ -81,59 +74,26 @@ $OutputMessage = ""
 
 Write-Verbose "$($FILE_NAME): CALL."
 
-function Approve-AllCertificates {
-    $CSSource = @'
-using System.Net;
-
-public class ServerCertificate {
-    public static void approveAllCertificates() {
-        ServicePointManager.ServerCertificateValidationCallback = delegate { return true; };
-    }
-}
-'@
-    if (-not ([System.Management.Automation.PSTypeName]'ServerCertificate').Type) {
-        Add-Type -TypeDefinition $CSSource
-    }
-    # Ignore self-signed SSL certificates.
-    [ServerCertificate]::approveAllCertificates()
-    # Allow all security protocols.
-    [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]'Ssl3,Tls,Tls11,Tls12'
-}
-
 #===============================================================================
 # Main
 #===============================================================================
 #trap { Write-Error $_; exit 1; break; }
 
+$StatusRunning = @('queued', 'preRunning', 'running')
+$StatusCompleted = @('success', 'error', 'canceled', 'aborted')
+
 try {
-    if ($AcceptAllCertificates) {
-        Approve-AllCertificates
-    }
-
-    if ([String]::IsNullOrEmpty($SessionToken)) {
+    $TaskId = & "$FILE_DIR\Split-VCloudId.ps1" -UrnOrHref $Task
+    do {
+        $null = Start-Sleep -Seconds $SleepInSec
         if ($AcceptAllCertificates) {
-            $SessionToken = & "$FILE_DIR\Connect-VCloud.ps1" -Server $Server -AcceptAllCertificates
+            [Xml] $TaskResponse = Invoke-VCloudRequest -Server $VCloud -Endpoint "/task/$TaskId" -SessionToken $SessionToken -AcceptAllCertificates
         } else {
-            $SessionToken = & "$FILE_DIR\Connect-VCloud.ps1" -Server $Server
+            [Xml] $TaskResponse = Invoke-VCloudRequest -Server $VCloud -Endpoint "/task/$TaskId" -SessionToken $SessionToken
         }
-    }
-
-    $BaseUrl = "https://$Server"
-    $EndpointUrl = "$BaseUrl/api$endpoint"
-
-    $Headers = @{
-        "x-vcloud-authorization" = "$SessionToken"
-        "Accept" = "application/*+xml;version=31.0"
-        "Content-Type" = "application/*+xml"
-    }
-
-    if ($Body) {
-        $Response = Invoke-WebRequest -Method $Method -Headers $Headers -Uri $EndpointUrl -Body $Body
-    } else {
-        $Response = Invoke-WebRequest -Method $Method -Headers $Headers -Uri $EndpointUrl
-    }
-
-    $OutputMessage = $Response
+        $TaskStatus = $TaskResponse.Task.status
+    } while ($TaskStatus -in $StatusRunning)
+    $OutputMessage = $TaskResponse.Task
 } catch {
     # Error in $_ or $Error[0] variable.
     Write-Warning "Exception occurred at line $($_.InvocationInfo.ScriptLineNumber): $($_.Exception.ToString())" -WarningAction Continue
@@ -144,7 +104,7 @@ try {
     Write-Verbose ("$($FILE_NAME): ExitCode: {0}. Execution time: {1} ms. Started: {2}." -f $ExitCode, ($EndDate - $StartDate).TotalMilliseconds, $StartDate.ToString('yyyy-MM-dd HH:mm:ss.fffzzz'))
 
     if ($ExitCode -eq 0) {
-        "$OutputMessage"  # Write OutputMessage to output stream.
+        $OutputMessage  # Write OutputMessage to output stream.
     } else {
         Write-Error "$ErrorOut"  # Use Write-Error only here.
     }

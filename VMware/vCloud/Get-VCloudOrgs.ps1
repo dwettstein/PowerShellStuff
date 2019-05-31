@@ -29,9 +29,12 @@ param (
     [String] $Server
     ,
     [Parameter(Mandatory=$false, Position=1)]
-    [String] $SessionToken = $null
+    [String] $OrgName = $null
     ,
     [Parameter(Mandatory=$false, Position=2)]
+    [String] $SessionToken = $null
+    ,
+    [Parameter(Mandatory=$false, Position=3)]
     [Switch] $AcceptAllCertificates = $false
 )
 
@@ -74,18 +77,15 @@ Write-Verbose "$($FILE_NAME): CALL."
 #trap { Write-Error $_; exit 1; break; }
 
 try {
-    $Orgs = @()
-    $Page = 1
-    do {
-        if ($AcceptAllCertificates) {
-            [Xml] $Response = & "$FILE_DIR\Invoke-VCloudRequest.ps1" -Server $Server -Method "GET" -Endpoint "/admin/orgs/query?page=$Page" -SessionToken $SessionToken -AcceptAllCertificates
-        } else {
-            [Xml] $Response = & "$FILE_DIR\Invoke-VCloudRequest.ps1" -Server $Server -Method "GET" -Endpoint "/admin/orgs/query?page=$Page" -SessionToken $SessionToken
-        }
-        $Orgs += $Response.QueryResultRecords.OrgRecord
-        $Page++
-    } while ($Response.QueryResultRecords.Link.rel -contains "nextPage")
-    $OutputMessage = $Orgs
+    $Filter = $null
+    if (-not [String]::IsNullOrEmpty($OrgName)) {
+        $Filter = "(name==$OrgName)"
+    }
+    if ($AcceptAllCertificates) {
+        $OutputMessage = & "$FILE_DIR\Search-VCloud.ps1" -Server $Server -Type "organization" -ResultType "OrgRecord" -Filter $Filter -SessionToken $SessionToken -AcceptAllCertificates
+    } else {
+        $OutputMessage = & "$FILE_DIR\Search-VCloud.ps1" -Server $Server -Type "organization" -ResultType "OrgRecord" -Filter $Filter -SessionToken $SessionToken
+    }
 } catch {
     # Error in $_ or $Error[0] variable.
     Write-Warning "Exception occurred at line $($_.InvocationInfo.ScriptLineNumber): $($_.Exception.ToString())" -WarningAction Continue
