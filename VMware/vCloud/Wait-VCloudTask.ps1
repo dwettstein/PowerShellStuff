@@ -87,9 +87,9 @@ try {
     do {
         $null = Start-Sleep -Seconds $SleepInSec
         if ($AcceptAllCertificates) {
-            [Xml] $TaskResponse = Invoke-VCloudRequest -Server $VCloud -Endpoint "/task/$TaskId" -SessionToken $SessionToken -AcceptAllCertificates
+            [Xml] $TaskResponse = Invoke-VCloudRequest -Server $Server -Endpoint "/task/$TaskId" -SessionToken $SessionToken -AcceptAllCertificates
         } else {
-            [Xml] $TaskResponse = Invoke-VCloudRequest -Server $VCloud -Endpoint "/task/$TaskId" -SessionToken $SessionToken
+            [Xml] $TaskResponse = Invoke-VCloudRequest -Server $Server -Endpoint "/task/$TaskId" -SessionToken $SessionToken
         }
         $TaskStatus = $TaskResponse.Task.status
     } while ($TaskStatus -in $StatusRunning)
