@@ -35,9 +35,12 @@ param (
     [Int] $SleepInSec = 5
     ,
     [Parameter(Mandatory=$false, Position=3)]
-    [String] $SessionToken = $null
+    [Int] $TimeoutInSec = 3600  # 60min
     ,
     [Parameter(Mandatory=$false, Position=4)]
+    [String] $SessionToken = $null
+    ,
+    [Parameter(Mandatory=$false, Position=5)]
     [Switch] $AcceptAllCertificates = $false
 )
 
@@ -85,6 +88,10 @@ $StatusCompleted = @('success', 'error', 'canceled', 'aborted')
 try {
     $TaskId = & "$FILE_DIR\Split-VCloudId.ps1" -UrnOrHref $Task
     do {
+        $CurrentDate = [DateTime]::Now
+        if ($TimeoutInSec -and ($CurrentDate -gt $StartDate.AddSeconds($TimeoutInSec))) {
+            throw "Timeout while waiting for task '$Task' to complete, current status is '$TaskStatus'."
+        }
         $null = Start-Sleep -Seconds $SleepInSec
         if ($AcceptAllCertificates) {
             [Xml] $TaskResponse = Invoke-VCloudRequest -Server $Server -Endpoint "/task/$TaskId" -SessionToken $SessionToken -AcceptAllCertificates
