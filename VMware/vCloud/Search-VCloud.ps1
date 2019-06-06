@@ -20,7 +20,13 @@
     https://github.com/dwettstein/PowerShell
 
 .EXAMPLE
-    Example of how to use this cmdlet
+    $Orgs = & ".\Search-VCloud.ps1" -Server $VCloud -Type "organization" -ResultType "OrgRecord"
+
+.EXAMPLE
+    $OrgVdcNetworks = Search-VCloud -Server $VCloud -Type "orgVdcNetwork" -ResultType "OrgVdcNetworkRecord" -Filter "(vdc==$OrgVdcId)"
+
+.EXAMPLE
+    $OrgVdcVApps = Search-VCloud -Server $VCloud -Type "adminVApp" -ResultType "AdminVAppRecord" -Filter "(vdc==$OrgVdcId)"
 #>
 [CmdletBinding()]
 [OutputType([Array])]
@@ -35,7 +41,7 @@ param (
     [String] $ResultType
     ,
     [Parameter(Mandatory=$false, Position=3)]
-    [String] $Filter = $null
+    [String] $Filter = $null  # e.g. (org==foo;vdc==bar)
     ,
     [Parameter(Mandatory=$false, Position=4)]
     [String] $SessionToken = $null
@@ -96,8 +102,10 @@ try {
         } else {
             [Xml] $Response = & "$FILE_DIR\Invoke-VCloudRequest.ps1" -Server $Server -Method "GET" -Endpoint $Endpoint -SessionToken $SessionToken
         }
-        $Results += $Response.QueryResultRecords."$ResultType"
-        $Page++
+        if ($Response.QueryResultRecords.total -gt 0) {
+            $Results += $Response.QueryResultRecords."$ResultType"
+            $Page++
+        }
     } while ($Response.QueryResultRecords.Link.rel -contains "nextPage")
     $OutputMessage = $Results
 } catch {
