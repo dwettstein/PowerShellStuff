@@ -15,39 +15,33 @@
     A manual export could be done with:
     Get-Credential "${env:USERNAME}" | Export-Clixml "$HOME\.pscredentials\$Server-${env:USERNAME}.xml"
 
-    File-Name:  Export-PSCredential.ps1
+    File-Name:  Import-PSCredential.ps1
     Author:     David Wettstein
     Version:    v1.0.0
 
     Changelog:
-                v1.0.0, 2018-08-01, David Wettstein: First implementation.
+                v1.0.0, 2019-07-26, David Wettstein: First implementation.
 
 .NOTES
-    Copyright (c) 2018 David Wettstein,
+    Copyright (c) 2019 David Wettstein,
     licensed under the MIT License (https://dwettstein.mit-license.org/)
 
 .LINK
     https://github.com/dwettstein/PowerShell
 
 .EXAMPLE
-    .\Export-PSCredential.ps1 -Server '{{server}}' -Username '{{username}}' -Password '{{password}}'
+    .\Import-PSCredential.ps1 -Server '{{server}}'
 
 .EXAMPLE
-    $Result = & "$PSScriptRoot\Utils\Export-PSCredential.ps1" -Server '{{server}}' -Username '{{username}}' -Password '{{password}}'
+    $Cred = & "$PSScriptRoot\Utils\Import-PSCredential.ps1" -Server '{{server}}'
 #>
 [CmdletBinding()]
-[OutputType([String])]
+[OutputType([PSCredential])]
 param (
     [Parameter(Mandatory=$true, Position=0)]
     [String] $Server
     ,
     [Parameter(Mandatory=$false, Position=1)]
-    [String] $Username = $null
-    ,
-    [Parameter(Mandatory=$false, Position=2)]
-    [String] $Password = $null
-    ,
-    [Parameter(Mandatory=$false, Position=3)]
     [String] $Path = "$HOME\.pscredentials"  # $HOME for Local System Account: C:\Windows\System32\config\systemprofile
 )
 
@@ -58,26 +52,26 @@ $private:OFS = ","
 
 $FileName = "$Server-${env:USERNAME}.xml"
 $CredPath = ($Path + "\" + $FileName)
-$OutputMessage = ""
+$PSCredential = $null
 try {
-    if ([String]::IsNullOrEmpty($Username)) {
-        $Username = "${env:USERNAME}"
-    }
-    if ([String]::IsNullOrEmpty($Password)) {
-        $PSCredential = Get-Credential -Message $Server -UserName $Username
+    if (Test-Path $CredPath) {
+        $PSCredential = Import-Clixml -Path $CredPath
+        Write-Verbose "PSCredential imported from: $CredPath"
     } else {
-        $PSCredential = New-Object System.Management.Automation.PSCredential ($Username, (ConvertTo-SecureString -AsPlainText -Force $Password))
+        Write-Warning "No file found at path '$CredPath'."
+        # Prompt for credentials, if no file found.
+        $PSCredential = Get-Credential -Message $Server -UserName ${env:USERNAME}
+        $DoSave = Read-Host -Prompt "Save credential at '$CredPath'? [Y/n] "
+        if (-not $DoSave -or $DoSave -match "^[yY]{1}(es)?$") {
+            if (-not (Test-Path $Path)) {
+                $null = New-Item -ItemType Directory -Path $Path
+            }
+            $null = Export-Clixml -Path $CredPath -InputObject $PSCredential
+            Write-Verbose "PSCredential exported to: $CredPath"
+        }
     }
-
-    if (-not (Test-Path $Path)) {
-        $null = New-Item -ItemType Directory -Path $Path
-    }
-    $null = Export-Clixml -Path $CredPath -InputObject $PSCredential
-    $OutputMessage = "PSCredential exported to: $CredPath"
 } catch {
-    $OutputMessage = "Failed to export PSCredential. Error: $($_.Exception.ToString())"
-    Write-Error $OutputMessage
+    Write-Error "Failed to import PSCredential. Error: $($_.Exception.ToString())"
     exit 1
 }
-Write-Verbose $OutputMessage
-$OutputMessage
+$PSCredential
