@@ -4,19 +4,22 @@
         1. Try with username and password, if provided
         2. Try with PSCredential file $Server-${env:USERNAME}.xml in folder $HOME\.pscredentials\
         3. If nothing provided from above, try with Windows SSPI authentication
+        4. Get credentials from user with a prompt.
 
 .DESCRIPTION
     Login to a vCenter server using the following order and return a PowerCLI connection:
         1. Try with username and password, if provided
         2. Try with PSCredential file $Server-${env:USERNAME}.xml in folder $HOME\.pscredentials\
         3. If nothing provided from above, try with Windows SSPI authentication
+        4. Get credentials from user with a prompt.
 
     File-Name:  Connect-VCenter.ps1
     Author:     David Wettstein
-    Version:    v1.0.0
+    Version:    v1.1.0
 
     Changelog:
                 v1.0.0, 2019-03-10, David Wettstein: First implementation.
+                v1.1.0, 2019-07-26, David Wettstein: Prompt for credentials and ask to save them.
 
 .NOTES
     Copyright (c) 2019 David Wettstein,
@@ -86,6 +89,8 @@ Write-Verbose "$($FILE_NAME): CALL."
 
 try {
     $Cred = $null
+    # $HOME for Local System Account: C:\Windows\System32\config\systemprofile
+    $CredPath = "$HOME\.pscredentials\$Server-${env:USERNAME}.xml"
     if (-not [String]::IsNullOrEmpty($Username) -and -not [String]::IsNullOrEmpty($Password)) {
         # If username is given as SecureString string, convert it to plain text.
         try {
@@ -104,8 +109,8 @@ try {
             $PasswordSecureString = ConvertTo-SecureString -AsPlainText -Force $Password
         }
         $Cred = New-Object System.Management.Automation.PSCredential ($Username, $PasswordSecureString)
-    } elseif (Test-Path "$HOME\.pscredentials\$Server-${env:USERNAME}.xml") {  # $HOME for Local System Account: C:\Windows\System32\config\systemprofile
-        $Cred = Import-Clixml -Path "$HOME\.pscredentials\$Server-${env:USERNAME}.xml"
+    } elseif (Test-Path $CredPath) {
+        $Cred = Import-Clixml -Path $CredPath
     }
 
     $VCenterConnection = $null
@@ -116,8 +121,14 @@ try {
             $VCenterConnection = Connect-VIServer -Server $Server -WarningAction SilentlyContinue
         }
     } catch {
-        Write-Warning "No credentials were given and Windows SSPI authentication failed. Please use the input parameters or a PSCredential xml file with name '$Server-${env:USERNAME}.xml' in folder '$HOME\.pscredentials\'."
-        throw $_
+        Write-Warning "No credentials were given and Windows SSPI authentication failed. Please use the input parameters or a PSCredential xml file at path '$CredPath'."
+        $Cred = Get-Credential -Message $Server -UserName ${env:USERNAME}
+        $DoSave = Read-Host -Prompt "Save credential at '$CredPath'? [Y/n] "
+        if (-not $DoSave -or $DoSave -match "^[yY]{1}(es)?$") {
+            $null = Export-Clixml -Path $CredPath -InputObject $Cred
+            Write-Verbose "PSCredential exported to: $CredPath"
+        }
+        $VCenterConnection = Connect-VIServer -Server $Server -Credential $Cred -WarningAction SilentlyContinue
     }
 
     $OutputMessage = $VCenterConnection
