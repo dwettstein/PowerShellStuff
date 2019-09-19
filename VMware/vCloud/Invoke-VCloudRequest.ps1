@@ -46,6 +46,9 @@ param (
     ,
     [Parameter(Mandatory=$false, Position=5)]
     [Switch] $AcceptAllCertificates = $false
+    ,
+    [Parameter(Mandatory=$false, Position=5)]
+    [String] $APIVersion = "31.0"
 )
 
 $ErrorActionPreference = "Stop"
@@ -123,7 +126,7 @@ try {
 
     $Headers = @{
         "x-vcloud-authorization" = "$SessionToken"
-        "Accept" = "application/*+xml;version=31.0"
+        "Accept" = "application/*+xml;version=$APIVersion"
         "Content-Type" = "application/*+xml"
     }
 

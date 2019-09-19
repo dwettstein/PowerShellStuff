@@ -123,10 +123,12 @@ try {
     } catch {
         Write-Warning "No credentials were given and Windows SSPI authentication failed. Please use the input parameters or a PSCredential xml file at path '$CredPath'."
         $Cred = Get-Credential -Message $Server -UserName ${env:USERNAME}
-        $DoSave = Read-Host -Prompt "Save credential at '$CredPath'? [Y/n] "
-        if (-not $DoSave -or $DoSave -match "^[yY]{1}(es)?$") {
-            $null = Export-Clixml -Path $CredPath -InputObject $Cred
-            Write-Verbose "PSCredential exported to: $CredPath"
+        if ($Cred -and -not [String]::IsNullOrEmpty($Cred.GetNetworkCredential().Password)) {
+            $DoSave = Read-Host -Prompt "Save credential at '$CredPath'? [Y/n] "
+            if (-not $DoSave -or $DoSave -match "^[yY]{1}(es)?$") {
+                $null = Export-Clixml -Path $CredPath -InputObject $Cred
+                Write-Verbose "PSCredential exported to: $CredPath"
+            }
         }
         $VCenterConnection = Connect-VIServer -Server $Server -Credential $Cred -WarningAction SilentlyContinue
     }

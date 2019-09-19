@@ -49,6 +49,9 @@ param (
     ,
     [Parameter(Mandatory=$false, Position=4)]
     [Switch] $AcceptAllCertificates = $false
+    ,
+    [Parameter(Mandatory=$false, Position=5)]
+    [String] $APIVersion = "31.0"
 )
 
 $ErrorActionPreference = "Stop"
@@ -139,10 +142,12 @@ try {
     } else {
         Write-Warning "No credentials were given. Please use the input parameters or a PSCredential xml file at path '$CredPath'."
         $Cred = Get-Credential -Message $Server -UserName ${env:USERNAME}
-        $DoSave = Read-Host -Prompt "Save credential at '$CredPath'? [Y/n] "
-        if (-not $DoSave -or $DoSave -match "^[yY]{1}(es)?$") {
-            $null = Export-Clixml -Path $CredPath -InputObject $Cred
-            Write-Verbose "PSCredential exported to: $CredPath"
+        if ($Cred -and -not [String]::IsNullOrEmpty($Cred.GetNetworkCredential().Password)) {
+            $DoSave = Read-Host -Prompt "Save credential at '$CredPath'? [Y/n] "
+            if (-not $DoSave -or $DoSave -match "^[yY]{1}(es)?$") {
+                $null = Export-Clixml -Path $CredPath -InputObject $Cred
+                Write-Verbose "PSCredential exported to: $CredPath"
+            }
         }
     }
 
@@ -155,7 +160,7 @@ try {
 
     $Headers = @{
         "Authorization" = "Basic $CredStringInBase64"
-        "Accept" = "application/*+xml;version=31.0"
+        "Accept" = "application/*+xml;version=$APIVersion"
     }
 
     $Response = Invoke-WebRequest -Method Post -Headers $Headers -Uri $EndpointUrl
