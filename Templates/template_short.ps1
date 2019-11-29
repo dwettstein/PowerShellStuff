@@ -25,10 +25,10 @@
 [CmdletBinding()]
 [OutputType([String])]
 param (
-    [Parameter(Mandatory=$true, Position=0)]
+    [Parameter(Mandatory = $true, Position = 0)]
     [String] $Param1
     ,
-    [Parameter(Mandatory=$false, Position=1)]
+    [Parameter(Mandatory = $false, Position = 1)]
     [Int] $Param2
 )
 
@@ -43,7 +43,7 @@ $private:OFS = ","
 # Make sure the necessary modules are loaded.
 $Modules = @()
 foreach ($Module in $Modules) {
-    if (Get-Module | Where-Object {$_.Name -eq $Module}) {
+    if (Get-Module | Where-Object { $_.Name -eq $Module }) {
         # Module already imported. Do nothing.
     } else {
         Import-Module $Module
@@ -72,7 +72,7 @@ Write-Verbose "$($FILE_NAME): CALL."
 
 try {
     # Do whatever you have to...
-    $ResultObj = @{"key" = "value"}  # Build your result object (hashtable)
+    $ResultObj = @{ "key" = "value" }  # Build your result object (hashtable)
 
     # Return the result object as a JSON string. The parameter depth is needed to convert all child objects.
     $OutputMessage = ConvertTo-Json $ResultObj -Depth 10 -Compress

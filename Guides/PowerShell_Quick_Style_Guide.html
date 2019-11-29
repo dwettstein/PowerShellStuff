@@ -1,9 +1,9 @@
 <!DOCTYPE html>
     <html>
     <head>
-        <meta http-equiv="Content-type" content="text/html;charset=UTF-8">
+        <meta charset="UTF-8">
         <title>PowerShell Quick Style Guide</title>
-        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/katex.min.css" integrity="sha384-9eLZqc9ds8eNjO3TmqPeYcDj8n+Qfa4nuSiGYa6DjLNcv9BtN69ZIulL9+8CqC9Y" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.10.2/dist/katex.min.css" integrity="sha384-yFRtMMDnQtDRO8rLpMIKrtPCD5jdktao2TV19YiZYWMDkUR5GQZR/NOVTdquEx1j" crossorigin="anonymous">
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/markdown.css">
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/highlight.css">
         <link href="https://cdn.jsdelivr.net/npm/katex-copytex@latest/dist/katex-copytex.min.css" rel="stylesheet" type="text/css">
@@ -20,7 +20,7 @@
         
         <script src="https://cdn.jsdelivr.net/npm/katex-copytex@latest/dist/katex-copytex.min.js"></script>
     </head>
-    <body>
+    <body class="vscode-light">
         <h1 id="powershell-quick-style-guide">PowerShell Quick Style Guide</h1>
 <p>This guide is intended to be a short overview of <a href="https://poshcode.gitbooks.io/powershell-practice-and-style/">The PowerShell Best Practices and Style Guide</a>.</p>
 <p>Author(s): David Wettstein</p>
@@ -69,19 +69,22 @@
 </li>
 <li>Start all scripts or functions with <code>[CmdletBinding()]</code>.<pre><code class="language-powershell"><div>    <span class="hljs-keyword">function</span> Invoke-HttpRequest {
         [CmdletBinding()]
-        <span class="hljs-keyword">param</span>(
+        <span class="hljs-keyword">param</span> (
             <span class="hljs-comment"># ...</span>
 </div></code></pre>
 </li>
-<li>Follow the <em>One True Brace Style</em> (1TBS or OTBS)
+<li>Follow either the <em>Stroustrup</em> or the <em>One True Brace Style (1TBS or OTBS)</em> brace style
 <ul>
-<li>Open braces always go on the same line, closing braces on a new line!</li>
+<li>Write the opening brace always on the same line and the closing brace on a new line!</li>
 </ul>
 <pre><code class="language-powershell"><div><span class="hljs-keyword">function</span> Invoke-HttpRequest {
     <span class="hljs-comment"># ...</span>
     <span class="hljs-keyword">end</span> {
         <span class="hljs-keyword">if</span> (<span class="hljs-variable">$MyVariable</span> <span class="hljs-nomarkup">-eq</span> <span class="hljs-string">"AnyValue"</span>) {
-            <span class="hljs-comment"># ...</span>
+            <span class="hljs-comment"># either Stroustrup:</span>
+        }
+        <span class="hljs-keyword">elseif</span> {
+            <span class="hljs-comment"># or 1TBS:</span>
         } <span class="hljs-keyword">else</span> {
             <span class="hljs-comment"># ...</span>
         }
@@ -164,7 +167,7 @@ insert_final_newline = true
 <pre><code class="language-powershell"><div><span class="hljs-keyword">function</span> Invoke-HttpRequest {
     [CmdletBinding()]
     <span class="hljs-keyword">param</span> (
-        [Parameter(Mandatory=<span class="hljs-literal">$true</span>, ValueFromPipeline=<span class="hljs-literal">$true</span>, Position=<span class="hljs-number">0</span>)]
+        [Parameter(Mandatory = <span class="hljs-literal">$true</span>, ValueFromPipeline = <span class="hljs-literal">$true</span>, Position = <span class="hljs-number">0</span>)]
         [ValidatePattern(<span class="hljs-string">"^http(s)?.*"</span>)]
         [String] <span class="hljs-variable">$Url</span>
     )

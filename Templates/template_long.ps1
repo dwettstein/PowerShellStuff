@@ -29,11 +29,11 @@
 [OutputType([String])]
 param (
     # Param1 help description
-    [Parameter(Mandatory=$true, ValueFromPipeline=$true, Position=0)]
+    [Parameter(Mandatory = $true, ValueFromPipeline = $true, Position = 0)]
     [String] $Param1
     ,
     # Param2 help description
-    [Parameter(Mandatory=$false, ValueFromPipeline=$true, Position=1)]
+    [Parameter(Mandatory = $false, ValueFromPipeline = $true, Position = 1)]
     [Int] $Param2
 )
 
@@ -49,7 +49,7 @@ begin {
     # Make sure the necessary modules are loaded.
     $Modules = @()
     foreach ($Module in $Modules) {
-        if (Get-Module | Where-Object {$_.Name -eq $Module}) {
+        if (Get-Module | Where-Object { $_.Name -eq $Module }) {
             # Module already imported. Do nothing.
         } else {
             Import-Module $Module
@@ -91,7 +91,7 @@ process {
 
     try {
         # Do whatever you have to...
-        $ResultObj = @{"key" = "value"}  # Build your result object (hashtable)
+        $ResultObj = @{ "key" = "value" }  # Build your result object (hashtable)
 
         # Return the result object as a JSON string. The parameter depth is needed to convert all child objects.
         $OutputMessage = ConvertTo-Json $ResultObj -Depth 10 -Compress

@@ -52,17 +52,20 @@ If you rather search a cheat sheet, I recommend the PDF from Warren Frame: [Powe
     ```powershell
         function Invoke-HttpRequest {
             [CmdletBinding()]
-            param(
+            param (
                 # ...
     ```
-- Follow the _One True Brace Style_ (1TBS or OTBS)
-    - Open braces always go on the same line, closing braces on a new line!
+- Follow either the _Stroustrup_ or the _One True Brace Style (1TBS or OTBS)_ brace style
+    - Write the opening brace always on the same line and the closing brace on a new line!
     ```powershell
     function Invoke-HttpRequest {
         # ...
         end {
             if ($MyVariable -eq "AnyValue") {
-                # ...
+                # either Stroustrup:
+            }
+            elseif {
+                # or 1TBS:
             } else {
                 # ...
             }
@@ -133,7 +136,7 @@ Read the full page [Code Layout and Formatting](https://poshcode.gitbooks.io/pow
     function Invoke-HttpRequest {
         [CmdletBinding()]
         param (
-            [Parameter(Mandatory=$true, ValueFromPipeline=$true, Position=0)]
+            [Parameter(Mandatory = $true, ValueFromPipeline = $true, Position = 0)]
             [ValidatePattern("^http(s)?.*")]
             [String] $Url
         )
