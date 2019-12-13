@@ -187,7 +187,7 @@ end {
 
     if ($ExitCode -eq 0) {
         Log Output "$OutputMessage"
-        "$OutputMessage"  # Write OutputMessage to output stream.
+        $OutputMessage  # Write OutputMessage to output stream.
         # Delete log file if no error.
         #Remove-Item $logFileName;
     } else {

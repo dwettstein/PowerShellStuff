@@ -109,7 +109,7 @@ end {
     Write-Verbose ("$($FILE_NAME): ExitCode: {0}. Execution time: {1} ms. Started: {2}." -f $ExitCode, ($EndDate - $StartDate).TotalMilliseconds, $StartDate.ToString('yyyy-MM-dd HH:mm:ss.fffzzz'))
 
     if ($ExitCode -eq 0) {
-        "$OutputMessage"  # Write OutputMessage to output stream.
+        $OutputMessage  # Write OutputMessage to output stream.
     } else {
         Write-Error "$ErrorOut"  # Use Write-Error only here.
     }
