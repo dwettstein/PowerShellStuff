@@ -35,22 +35,22 @@
 [CmdletBinding()]
 [OutputType([String])]
 param (
-    [Parameter(Mandatory=$true, Position=0)]
+    [Parameter(Mandatory = $true, Position = 0)]
     [String] $Server
     ,
-    [Parameter(Mandatory=$false, Position=1)]
+    [Parameter(Mandatory = $false, Position = 1)]
     [String] $Organization = "system"
     ,
-    [Parameter(Mandatory=$false, Position=2)]
+    [Parameter(Mandatory = $false, Position = 2)]
     [String] $Username  # secure string or plain text (not recommended)
     ,
-    [Parameter(Mandatory=$false, Position=3)]
+    [Parameter(Mandatory = $false, Position = 3)]
     [String] $Password  # secure string or plain text (not recommended)
     ,
-    [Parameter(Mandatory=$false, Position=4)]
+    [Parameter(Mandatory = $false, Position = 4)]
     [Switch] $AcceptAllCertificates = $false
     ,
-    [Parameter(Mandatory=$false, Position=5)]
+    [Parameter(Mandatory = $false, Position = 5)]
     [String] $APIVersion = "31.0"
 )
 
@@ -65,7 +65,7 @@ $private:OFS = ","
 # Make sure the necessary modules are loaded.
 $Modules = @()
 foreach ($Module in $Modules) {
-    if (Get-Module | Where-Object {$_.Name -eq $Module}) {
+    if (Get-Module | Where-Object { $_.Name -eq $Module }) {
         # Module already imported. Do nothing.
     } else {
         Import-Module $Module
@@ -83,7 +83,7 @@ if ($PSVersionTable.PSVersion.Major -lt 3) {
 
 $ExitCode = 0
 $ErrorOut = ""
-$OutputMessage = ""
+$ScriptOut = ""
 
 Write-Verbose "$($FILE_NAME): CALL."
 
@@ -140,7 +140,7 @@ try {
     } elseif (Test-Path $CredPath) {
         $Cred = Import-Clixml -Path $CredPath
     } else {
-        Write-Warning "No credentials were given. Please use the input parameters or a PSCredential xml file at path '$CredPath'."
+        Write-Verbose "No credentials found. Please use the input parameters or a PSCredential xml file at path '$CredPath'."
         $Cred = Get-Credential -Message $Server -UserName ${env:USERNAME}
         if ($Cred -and -not [String]::IsNullOrEmpty($Cred.GetNetworkCredential().Password)) {
             $DoSave = Read-Host -Prompt "Save credential at '$CredPath'? [Y/n] "
@@ -165,7 +165,7 @@ try {
 
     $Response = Invoke-WebRequest -Method Post -Headers $Headers -Uri $EndpointUrl
 
-    $OutputMessage = $Response.Headers.'x-vcloud-authorization'
+    $ScriptOut = $Response.Headers.'x-vcloud-authorization'
 } catch {
     # Error in $_ or $Error[0] variable.
     Write-Warning "Exception occurred at line $($_.InvocationInfo.ScriptLineNumber): $($_.Exception.ToString())" -WarningAction Continue
@@ -176,7 +176,7 @@ try {
     Write-Verbose ("$($FILE_NAME): ExitCode: {0}. Execution time: {1} ms. Started: {2}." -f $ExitCode, ($EndDate - $StartDate).TotalMilliseconds, $StartDate.ToString('yyyy-MM-dd HH:mm:ss.fffzzz'))
 
     if ($ExitCode -eq 0) {
-        "$OutputMessage"  # Write OutputMessage to output stream.
+        $ScriptOut  # Write ScriptOut to output stream.
     } else {
         Write-Error "$ErrorOut"  # Use Write-Error only here.
     }

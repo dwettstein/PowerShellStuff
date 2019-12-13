@@ -25,16 +25,16 @@
 [CmdletBinding()]
 [OutputType([Array])]
 param (
-    [Parameter(Mandatory=$true, Position=0)]
+    [Parameter(Mandatory = $true, Position = 0)]
     [String] $Server
     ,
-    [Parameter(Mandatory=$false, Position=1)]
+    [Parameter(Mandatory = $false, Position = 1)]
     [String] $OrgName = $null
     ,
-    [Parameter(Mandatory=$false, Position=2)]
+    [Parameter(Mandatory = $false, Position = 2)]
     [String] $SessionToken = $null
     ,
-    [Parameter(Mandatory=$false, Position=3)]
+    [Parameter(Mandatory = $false, Position = 3)]
     [Switch] $AcceptAllCertificates = $false
 )
 
@@ -49,7 +49,7 @@ $private:OFS = ","
 # Make sure the necessary modules are loaded.
 $Modules = @()
 foreach ($Module in $Modules) {
-    if (Get-Module | Where-Object {$_.Name -eq $Module}) {
+    if (Get-Module | Where-Object { $_.Name -eq $Module }) {
         # Module already imported. Do nothing.
     } else {
         Import-Module $Module
@@ -67,7 +67,7 @@ if ($PSVersionTable.PSVersion.Major -lt 3) {
 
 $ExitCode = 0
 $ErrorOut = ""
-$OutputMessage = ""
+$ScriptOut = ""
 
 Write-Verbose "$($FILE_NAME): CALL."
 
@@ -82,9 +82,9 @@ try {
         $Filter = "(name==$OrgName)"
     }
     if ($AcceptAllCertificates) {
-        $OutputMessage = & "$FILE_DIR\Search-VCloud.ps1" -Server $Server -Type "organization" -ResultType "OrgRecord" -Filter $Filter -SessionToken $SessionToken -AcceptAllCertificates
+        $ScriptOut = & "$FILE_DIR\Search-VCloud.ps1" -Server $Server -Type "organization" -ResultType "OrgRecord" -Filter $Filter -SessionToken $SessionToken -AcceptAllCertificates
     } else {
-        $OutputMessage = & "$FILE_DIR\Search-VCloud.ps1" -Server $Server -Type "organization" -ResultType "OrgRecord" -Filter $Filter -SessionToken $SessionToken
+        $ScriptOut = & "$FILE_DIR\Search-VCloud.ps1" -Server $Server -Type "organization" -ResultType "OrgRecord" -Filter $Filter -SessionToken $SessionToken
     }
 } catch {
     # Error in $_ or $Error[0] variable.
@@ -96,7 +96,7 @@ try {
     Write-Verbose ("$($FILE_NAME): ExitCode: {0}. Execution time: {1} ms. Started: {2}." -f $ExitCode, ($EndDate - $StartDate).TotalMilliseconds, $StartDate.ToString('yyyy-MM-dd HH:mm:ss.fffzzz'))
 
     if ($ExitCode -eq 0) {
-        $OutputMessage  # Write OutputMessage to output stream.
+        $ScriptOut  # Write ScriptOut to output stream.
     } else {
         Write-Error "$ErrorOut"  # Use Write-Error only here.
     }

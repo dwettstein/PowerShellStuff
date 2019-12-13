@@ -28,10 +28,10 @@
 [CmdletBinding()]
 [OutputType([DateTime])]
 param (
-    [Parameter(Mandatory=$true, ValueFromPipeline=$true, Position=0)]
+    [Parameter(Mandatory = $true, ValueFromPipeline = $true, Position = 0)]
     [Double] $UnixTimestamp
     ,
-    [Parameter(Mandatory=$false, Position=1)]
+    [Parameter(Mandatory = $false, Position = 1)]
     [Switch] $ToUniversalTime = $false
 )
 

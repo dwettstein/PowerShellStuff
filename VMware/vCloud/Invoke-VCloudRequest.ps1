@@ -28,26 +28,26 @@
 [CmdletBinding()]
 [OutputType([String])]
 param (
-    [Parameter(Mandatory=$true, Position=0)]
+    [Parameter(Mandatory = $true, Position = 0)]
     [String] $Server
     ,
-    [Parameter(Mandatory=$true, Position=1)]
+    [Parameter(Mandatory = $true, Position = 1)]
     [String] $Endpoint
     ,
-    [ValidateSet('GET', 'POST', 'PUT', 'PATCH', 'UPDATE', 'DELETE', IgnoreCase=$true)]  # See also -Method here: https://technet.microsoft.com/en-us/library/hh849901%28v=wps.620%29.aspx
-    [Parameter(Mandatory=$false, Position=2)]
+    [ValidateSet('GET', 'POST', 'PUT', 'PATCH', 'UPDATE', 'DELETE', IgnoreCase = $true)]  # See also -Method here: https://technet.microsoft.com/en-us/library/hh849901%28v=wps.620%29.aspx
+    [Parameter(Mandatory = $false, Position = 2)]
     [String] $Method = "GET"
     ,
-    [Parameter(Mandatory=$false, Position=3)]
+    [Parameter(Mandatory = $false, Position = 3)]
     [String] $Body = $null
     ,
-    [Parameter(Mandatory=$false, Position=4)]
+    [Parameter(Mandatory = $false, Position = 4)]
     [String] $SessionToken = $null
     ,
-    [Parameter(Mandatory=$false, Position=5)]
+    [Parameter(Mandatory = $false, Position = 5)]
     [Switch] $AcceptAllCertificates = $false
     ,
-    [Parameter(Mandatory=$false, Position=5)]
+    [Parameter(Mandatory = $false, Position = 5)]
     [String] $APIVersion = "31.0"
 )
 
@@ -62,7 +62,7 @@ $private:OFS = ","
 # Make sure the necessary modules are loaded.
 $Modules = @()
 foreach ($Module in $Modules) {
-    if (Get-Module | Where-Object {$_.Name -eq $Module}) {
+    if (Get-Module | Where-Object { $_.Name -eq $Module }) {
         # Module already imported. Do nothing.
     } else {
         Import-Module $Module
@@ -80,7 +80,7 @@ if ($PSVersionTable.PSVersion.Major -lt 3) {
 
 $ExitCode = 0
 $ErrorOut = ""
-$OutputMessage = ""
+$ScriptOut = ""
 
 Write-Verbose "$($FILE_NAME): CALL."
 
@@ -136,7 +136,7 @@ try {
         $Response = Invoke-WebRequest -Method $Method -Headers $Headers -Uri $EndpointUrl
     }
 
-    $OutputMessage = $Response
+    $ScriptOut = "$Response"
 } catch {
     # Error in $_ or $Error[0] variable.
     Write-Warning "Exception occurred at line $($_.InvocationInfo.ScriptLineNumber): $($_.Exception.ToString())" -WarningAction Continue
@@ -147,7 +147,7 @@ try {
     Write-Verbose ("$($FILE_NAME): ExitCode: {0}. Execution time: {1} ms. Started: {2}." -f $ExitCode, ($EndDate - $StartDate).TotalMilliseconds, $StartDate.ToString('yyyy-MM-dd HH:mm:ss.fffzzz'))
 
     if ($ExitCode -eq 0) {
-        "$OutputMessage"  # Write OutputMessage to output stream.
+        $ScriptOut  # Write ScriptOut to output stream.
     } else {
         Write-Error "$ErrorOut"  # Use Write-Error only here.
     }

@@ -32,10 +32,10 @@
 [CmdletBinding()]
 [OutputType([String])]
 param (
-    [Parameter(Mandatory=$false, ValueFromPipeline=$true, Position=0)]
+    [Parameter(Mandatory = $false, ValueFromPipeline = $true, Position = 0)]
     [Int] $Length = 12
     ,
-    [Parameter(Mandatory=$false, Position=1)]
+    [Parameter(Mandatory = $false, Position = 1)]
     [String] $Characters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 )
 

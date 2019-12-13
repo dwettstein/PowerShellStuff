@@ -38,10 +38,10 @@
 [CmdletBinding()]
 [OutputType([PSCredential])]
 param (
-    [Parameter(Mandatory=$true, Position=0)]
+    [Parameter(Mandatory = $true, Position = 0)]
     [String] $Server
     ,
-    [Parameter(Mandatory=$false, Position=1)]
+    [Parameter(Mandatory = $false, Position = 1)]
     [String] $Path = "$HOME\.pscredentials"  # $HOME for Local System Account: C:\Windows\System32\config\systemprofile
 )
 
@@ -58,7 +58,7 @@ try {
         $PSCredential = Import-Clixml -Path $CredPath
         Write-Verbose "PSCredential imported from: $CredPath"
     } else {
-        Write-Warning "No file found at path '$CredPath'."
+        Write-Verbose "No file found at path '$CredPath'."
         # Prompt for credentials, if no file found.
         $PSCredential = Get-Credential -Message $Server -UserName ${env:USERNAME}
         $DoSave = Read-Host -Prompt "Save credential at '$CredPath'? [Y/n] "

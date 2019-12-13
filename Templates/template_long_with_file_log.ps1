@@ -70,7 +70,7 @@ begin {
 
     $ExitCode = 0
     $ErrorOut = ""
-    $OutputMessage = ""
+    $ScriptOut = ""
 
     #------------------------------------------------------------
     # Variables used for Log function.
@@ -171,7 +171,7 @@ process {
         $ResultObj = @{ "key" = "value" }  # Build your result object (hashtable)
 
         # Return the result object as a JSON string. The parameter depth is needed to convert all child objects.
-        $OutputMessage = ConvertTo-Json $ResultObj -Depth 10 -Compress
+        $ScriptOut = ConvertTo-Json $ResultObj -Depth 10 -Compress
     } catch {
         # Error in $_ or $Error[0] variable.
         Log Warning "Exception occurred at line $($_.InvocationInfo.ScriptLineNumber): $($_.Exception.ToString())"
@@ -186,8 +186,8 @@ end {
     Log Verbose ("$($FILE_NAME): ExitCode: {0}. Execution time: {1} ms. Started: {2}." -f $ExitCode, ($EndDate - $StartDate).TotalMilliseconds, $StartDate.ToString('yyyy-MM-dd HH:mm:ss.fffzzz'))
 
     if ($ExitCode -eq 0) {
-        Log Output "$OutputMessage"
-        $OutputMessage  # Write OutputMessage to output stream.
+        Log Output "$ScriptOut"
+        $ScriptOut  # Write ScriptOut to output stream.
         # Delete log file if no error.
         #Remove-Item $logFileName;
     } else {

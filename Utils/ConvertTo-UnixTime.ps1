@@ -28,10 +28,10 @@
 [CmdletBinding()]
 [OutputType([Double])]
 param (
-    [Parameter(Mandatory=$false, ValueFromPipeline=$true, Position=0)]
+    [Parameter(Mandatory = $false, ValueFromPipeline = $true, Position = 0)]
     [DateTime] $DateTime = (Get-Date).ToUniversalTime()  # Use current date as default value.
     ,
-    [Parameter(Mandatory=$false, Position=1)]
+    [Parameter(Mandatory = $false, Position = 1)]
     [Switch] $WithMilliseconds = $false
 )
 

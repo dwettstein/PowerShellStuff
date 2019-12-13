@@ -38,16 +38,16 @@
 [CmdletBinding()]
 [OutputType([String])]
 param (
-    [Parameter(Mandatory=$true, Position=0)]
+    [Parameter(Mandatory = $true, Position = 0)]
     [String] $Server
     ,
-    [Parameter(Mandatory=$false, Position=1)]
+    [Parameter(Mandatory = $false, Position = 1)]
     [String] $Username = $null
     ,
-    [Parameter(Mandatory=$false, Position=2)]
+    [Parameter(Mandatory = $false, Position = 2)]
     [String] $Password = $null
     ,
-    [Parameter(Mandatory=$false, Position=3)]
+    [Parameter(Mandatory = $false, Position = 3)]
     [String] $Path = "$HOME\.pscredentials"  # $HOME for Local System Account: C:\Windows\System32\config\systemprofile
 )
 
@@ -58,7 +58,7 @@ $private:OFS = ","
 
 $FileName = "$Server-${env:USERNAME}.xml"
 $CredPath = ($Path + "\" + $FileName)
-$OutputMessage = ""
+$ScriptOut = ""
 try {
     if ([String]::IsNullOrEmpty($Username)) {
         $Username = "${env:USERNAME}"
@@ -73,11 +73,9 @@ try {
         $null = New-Item -ItemType Directory -Path $Path
     }
     $null = Export-Clixml -Path $CredPath -InputObject $PSCredential
-    $OutputMessage = "PSCredential exported to: $CredPath"
+    $ScriptOut = "PSCredential exported to: $CredPath"
 } catch {
-    $OutputMessage = "Failed to export PSCredential. Error: $($_.Exception.ToString())"
-    Write-Error $OutputMessage
+    Write-Error "Failed to export PSCredential. Error: $($_.Exception.ToString())"
     exit 1
 }
-Write-Verbose $OutputMessage
-$OutputMessage
+$ScriptOut

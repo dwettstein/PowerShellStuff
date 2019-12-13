@@ -18,54 +18,57 @@
 [CmdletBinding()]
 [OutputType([PSObject])]
 param (
-    [Parameter(Mandatory=$true, Position=0)]
+    [Parameter(Mandatory = $true, Position = 0)]
     [String] $Server
     ,
-    [Parameter(Mandatory=$true, Position=1)]
+    [Parameter(Mandatory = $true, Position = 1)]
     [ValidatePattern("^edge-\d+$")]
     [String] $EdgeId
     ,
-    [Parameter(Mandatory=$true, Position=2)]
+    [Parameter(Mandatory = $true, Position = 2)]
     [ValidatePattern("^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$")]
     [String] $MacAddress
     ,
-    [Parameter(Mandatory=$true, Position=3)]
+    [Parameter(Mandatory = $true, Position = 3)]
     [String] $Hostname
     ,
-    [Parameter(Mandatory=$true, Position=4)]
+    [Parameter(Mandatory = $true, Position = 4)]
     [ValidatePattern("^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$")]
     [String] $IpAddress
     ,
-    [Parameter(Mandatory=$true, Position=5)]
+    [Parameter(Mandatory = $true, Position = 5)]
     [ValidatePattern("^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$")]
     [String] $SubnetMask
     ,
-    [Parameter(Mandatory=$false, Position=6)]
+    [Parameter(Mandatory = $false, Position = 6)]
     [ValidatePattern("^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$")]
     [String] $DefaultGateway
     ,
-    [Parameter(Mandatory=$false, Position=7)]
+    [Parameter(Mandatory = $false, Position = 7)]
     [String] $DomainName
     ,
-    [Parameter(Mandatory=$false, Position=8)]
+    [Parameter(Mandatory = $false, Position = 8)]
     [Int] $LeaseTime = 86400
     ,
-    [Parameter(Mandatory=$false, Position=9)]
+    [Parameter(Mandatory = $false, Position = 9)]
     [String] $PrimaryNameServer
     ,
-    [Parameter(Mandatory=$false, Position=10)]
+    [Parameter(Mandatory = $false, Position = 10)]
     [String] $SecondaryNameServer
     ,
-    [Parameter(Mandatory=$false, Position=11)]
+    [Parameter(Mandatory = $false, Position = 11)]
     [String] $DhcpOptionNextServer
     ,
-    [Parameter(Mandatory=$false, Position=12)]
+    [Parameter(Mandatory = $false, Position = 12)]
     [String] $DhcpOptionTFTPServer
     ,
-    [Parameter(Mandatory=$false, Position=13)]
+    [Parameter(Mandatory = $false, Position = 13)]
     [String] $DhcpOptionBootfile
     ,
-    [Parameter(Mandatory=$false, Position=14)]
+    [Parameter(Mandatory = $false, Position = 14)]
+    [Switch] $AsObj
+    ,
+    [Parameter(Mandatory = $false, Position = 15)]
     [PSObject] $NsxConnection
 )
 
@@ -82,7 +85,7 @@ $Modules = @(
     "VMware.VimAutomation.Core", "PowerNSX"
 )
 foreach ($Module in $Modules) {
-    if (Get-Module | Where-Object {$_.Name -eq $Module}) {
+    if (Get-Module | Where-Object { $_.Name -eq $Module }) {
         # Module already imported. Do nothing.
     } else {
         Import-Module $Module
@@ -100,7 +103,7 @@ if ($PSVersionTable.PSVersion.Major -lt 3) {
 
 $ExitCode = 0
 $ErrorOut = ""
-$OutputMessage = ""
+$ScriptOut = ""
 
 Write-Verbose "$($FILE_NAME): CALL."
 
@@ -190,7 +193,12 @@ try {
         throw "Failed to invoke $($Uri): $($Response.StatusCode) - $($Response.Content)"
     }
 
-    $OutputMessage = $Response.Content
+    if ($AsObj) {
+        [Xml] $ResponseXml = $Response.Content
+        $ScriptOut = $ResponseXml
+    } else {
+        $ScriptOut = $Response.Content
+    }
 } catch {
     # Error in $_ or $Error[0] variable.
     Write-Warning "Exception occurred at line $($_.InvocationInfo.ScriptLineNumber): $($_.Exception.ToString())" -WarningAction Continue
@@ -201,7 +209,7 @@ try {
     Write-Verbose ("$($FILE_NAME): ExitCode: {0}. Execution time: {1} ms. Started: {2}." -f $ExitCode, ($EndDate - $StartDate).TotalMilliseconds, $StartDate.ToString('yyyy-MM-dd HH:mm:ss.fffzzz'))
 
     if ($ExitCode -eq 0) {
-        $OutputMessage  # Write OutputMessage to output stream.
+        $ScriptOut  # Write ScriptOut to output stream.
     } else {
         Write-Error "$ErrorOut"  # Use Write-Error only here.
     }

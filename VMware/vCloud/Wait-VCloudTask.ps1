@@ -73,7 +73,7 @@ if ($PSVersionTable.PSVersion.Major -lt 3) {
 
 $ExitCode = 0
 $ErrorOut = ""
-$OutputMessage = ""
+$ScriptOut = ""
 
 Write-Verbose "$($FILE_NAME): CALL."
 
@@ -100,7 +100,7 @@ try {
         }
         $TaskStatus = $TaskResponse.Task.status
     } while ($TaskStatus -in $StatusRunning)
-    $OutputMessage = $TaskResponse.Task
+    $ScriptOut = $TaskResponse.Task
 } catch {
     # Error in $_ or $Error[0] variable.
     Write-Warning "Exception occurred at line $($_.InvocationInfo.ScriptLineNumber): $($_.Exception.ToString())" -WarningAction Continue
@@ -111,7 +111,7 @@ try {
     Write-Verbose ("$($FILE_NAME): ExitCode: {0}. Execution time: {1} ms. Started: {2}." -f $ExitCode, ($EndDate - $StartDate).TotalMilliseconds, $StartDate.ToString('yyyy-MM-dd HH:mm:ss.fffzzz'))
 
     if ($ExitCode -eq 0) {
-        $OutputMessage  # Write OutputMessage to output stream.
+        $ScriptOut  # Write ScriptOut to output stream.
     } else {
         Write-Error "$ErrorOut"  # Use Write-Error only here.
     }

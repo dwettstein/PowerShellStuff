@@ -25,19 +25,19 @@
 [CmdletBinding()]
 [OutputType([Array])]
 param (
-    [Parameter(Mandatory=$true, Position=0)]
+    [Parameter(Mandatory = $true, Position = 0)]
     [String] $Server
     ,
-    [Parameter(Mandatory=$false, Position=1)]
+    [Parameter(Mandatory = $false, Position = 1)]
     [String] $VApp = $null
     ,
-    [Parameter(Mandatory=$false, Position=1)]
+    [Parameter(Mandatory = $false, Position = 1)]
     [String] $OrgVdcNetworks = $null
     ,
-    [Parameter(Mandatory=$false, Position=2)]
+    [Parameter(Mandatory = $false, Position = 2)]
     [String] $SessionToken = $null
     ,
-    [Parameter(Mandatory=$false, Position=3)]
+    [Parameter(Mandatory = $false, Position = 3)]
     [Switch] $AcceptAllCertificates = $false
 )
 
@@ -52,7 +52,7 @@ $private:OFS = ","
 # Make sure the necessary modules are loaded.
 $Modules = @()
 foreach ($Module in $Modules) {
-    if (Get-Module | Where-Object {$_.Name -eq $Module}) {
+    if (Get-Module | Where-Object { $_.Name -eq $Module }) {
         # Module already imported. Do nothing.
     } else {
         Import-Module $Module
@@ -70,7 +70,7 @@ if ($PSVersionTable.PSVersion.Major -lt 3) {
 
 $ExitCode = 0
 $ErrorOut = ""
-$OutputMessage = ""
+$ScriptOut = ""
 
 Write-Verbose "$($FILE_NAME): CALL."
 
@@ -90,7 +90,7 @@ try {
         $VAppNetworks = & "$FILE_DIR\Search-VCloud.ps1" -Server $Server -Type "adminVAppNetwork" -ResultType "AdminVAppNetworkRecord" -Filter $Filter -SessionToken $SessionToken
     }
 
-    $OutputMessage = @()
+    $ScriptOut = @()
     if ($OrgVdcNetworks) {
         foreach ($VAppNetwork in $VAppNetworks) {
             if ($VAppNetwork.name -eq "none") {
@@ -99,11 +99,11 @@ try {
                 Write-Verbose "VApp network '$($VAppNetwork.name)' also in OrgVdcNetworks."
                 continue
             } else {
-                $OutputMessage += $VAppNetwork
+                $ScriptOut += $VAppNetwork
             }
         }
     } else {
-        $OutputMessage = $VAppNetworks
+        $ScriptOut = $VAppNetworks
     }
 } catch {
     # Error in $_ or $Error[0] variable.
@@ -115,11 +115,11 @@ try {
     Write-Verbose ("$($FILE_NAME): ExitCode: {0}. Execution time: {1} ms. Started: {2}." -f $ExitCode, ($EndDate - $StartDate).TotalMilliseconds, $StartDate.ToString('yyyy-MM-dd HH:mm:ss.fffzzz'))
 
     if ($ExitCode -eq 0) {
-        if ($OutputMessage.Length -le 1) {
+        if ($ScriptOut.Length -le 1) {
             # See here: http://stackoverflow.com/questions/18476634/powershell-doesnt-return-an-empty-array-as-an-array
-            ,$OutputMessage  # Write OutputMessage to output stream.
+            , $ScriptOut  # Write ScriptOut to output stream.
         } else {
-            $OutputMessage  # Write OutputMessage to output stream.
+            $ScriptOut  # Write ScriptOut to output stream.
         }
     } else {
         Write-Error "$ErrorOut"  # Use Write-Error only here.

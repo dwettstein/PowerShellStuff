@@ -31,10 +31,10 @@
 [CmdletBinding()]
 [OutputType([SecureString])]
 param (
-    [Parameter(Mandatory=$true, ValueFromPipeline=$true, Position=0)]
+    [Parameter(Mandatory = $true, ValueFromPipeline = $true, Position = 0)]
     [String] $String  # secure string or plain text (not recommended)
     ,
-    [Parameter(Mandatory=$false, Position=1)]
+    [Parameter(Mandatory = $false, Position = 1)]
     [String] $Key = $null  # secure string or plain text (not recommended)
 )
 

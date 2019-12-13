@@ -70,7 +70,7 @@ begin {
 
     $ExitCode = 0
     $ErrorOut = ""
-    $OutputMessage = ""
+    $ScriptOut = ""
 
     #===============================================================================
     # Functions
@@ -94,7 +94,7 @@ process {
         $ResultObj = @{ "key" = "value" }  # Build your result object (hashtable)
 
         # Return the result object as a JSON string. The parameter depth is needed to convert all child objects.
-        $OutputMessage = ConvertTo-Json $ResultObj -Depth 10 -Compress
+        $ScriptOut = ConvertTo-Json $ResultObj -Depth 10 -Compress
     } catch {
         # Error in $_ or $Error[0] variable.
         Write-Warning "Exception occurred at line $($_.InvocationInfo.ScriptLineNumber): $($_.Exception.ToString())" -WarningAction Continue
@@ -109,7 +109,7 @@ end {
     Write-Verbose ("$($FILE_NAME): ExitCode: {0}. Execution time: {1} ms. Started: {2}." -f $ExitCode, ($EndDate - $StartDate).TotalMilliseconds, $StartDate.ToString('yyyy-MM-dd HH:mm:ss.fffzzz'))
 
     if ($ExitCode -eq 0) {
-        $OutputMessage  # Write OutputMessage to output stream.
+        $ScriptOut  # Write ScriptOut to output stream.
     } else {
         Write-Error "$ErrorOut"  # Use Write-Error only here.
     }
