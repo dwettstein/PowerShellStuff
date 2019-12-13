@@ -1,22 +1,23 @@
 <#
 .SYNOPSIS
     Login to a NSX-V server using the following order and return a PowerNSX connection:
-        1. Try with username and password, if provided
-        2. Try with PSCredential file $Server-${env:USERNAME}.xml in folder $HOME\.pscredentials\
+        1. Try with username and password, if provided.
+        2. Try with PSCredential file $Server-$Username.xml in folder $HOME\.pscredentials\.
         3. Get credentials from user with a prompt.
 
 .DESCRIPTION
     Login to a NSX-V server using the following order and return a PowerNSX connection:
-        1. Try with username and password, if provided
-        2. Try with PSCredential file $Server-${env:USERNAME}.xml in folder $HOME\.pscredentials\
+        1. Try with username and password, if provided.
+        2. Try with PSCredential file $Server-$Username.xml in folder $HOME\.pscredentials\.
         3. Get credentials from user with a prompt.
 
     File-Name:  Connect-Nsx.ps1
     Author:     David Wettstein
-    Version:    v1.0.0
+    Version:    v1.0.1
 
     Changelog:
                 v1.0.0, 2019-08-23, David Wettstein: First implementation.
+                v1.0.1, 2019-12-13, David Wettstein: Improve credential handling.
 
 .NOTES
     Copyright (c) 2019 David Wettstein,
@@ -38,10 +39,10 @@ param (
     [String] $Server
     ,
     [Parameter(Mandatory = $false, Position = 1)]
-    [String] $Username  # secure string or plain text (not recommended)
+    [String] $Username = "${env:USERNAME}"  # secure string or plain text (not recommended)
     ,
     [Parameter(Mandatory = $false, Position = 2)]
-    [String] $Password  # secure string or plain text (not recommended)
+    [String] $Password = $null  # secure string or plain text (not recommended)
 )
 
 $ErrorActionPreference = "Stop"
@@ -85,10 +86,9 @@ Write-Verbose "$($FILE_NAME): CALL."
 #trap { Write-Error $_; exit 1; break; }
 
 try {
-    $Cred = $null
-    # $HOME for Local System Account: C:\Windows\System32\config\systemprofile
-    $CredPath = "$HOME\.pscredentials\$Server-${env:USERNAME}.xml"
-    if (-not [String]::IsNullOrEmpty($Username) -and -not [String]::IsNullOrEmpty($Password)) {
+    if ([String]::IsNullOrEmpty($Username)) {
+        $Username = "${env:USERNAME}"
+    } else {
         # If username is given as SecureString string, convert it to plain text.
         try {
             $UsernameSecureString = ConvertTo-SecureString -String $Username
@@ -98,6 +98,14 @@ try {
         } catch {
             # Username was already given as plain text.
         }
+    }
+    # $HOME for Local System Account: C:\Windows\System32\config\systemprofile
+    if (-not (Test-Path "$HOME\.pscredentials")) {
+        $null = New-Item -ItemType Directory -Path "$HOME\.pscredentials"
+    }
+    $CredPath = "$HOME\.pscredentials\$Server-$Username.xml"
+    $Cred = $null
+    if (-not [String]::IsNullOrEmpty($Password)) {
         # Convert given password to SecureString obj.
         try {
             $PasswordSecureString = ConvertTo-SecureString -String $Password
@@ -108,21 +116,22 @@ try {
         $Cred = New-Object System.Management.Automation.PSCredential ($Username, $PasswordSecureString)
     } elseif (Test-Path $CredPath) {
         $Cred = Import-Clixml -Path $CredPath
+        Write-Verbose "Credentials imported from: $CredPath"
     } else {
         Write-Verbose "No credentials found. Please use the input parameters or a PSCredential xml file at path '$CredPath'."
-        $Cred = Get-Credential -Message $Server -UserName ${env:USERNAME}
+        $Cred = Get-Credential -Message $Server -UserName $Username
         if ($Cred -and -not [String]::IsNullOrEmpty($Cred.GetNetworkCredential().Password)) {
-            $DoSave = Read-Host -Prompt "Save credential at '$CredPath'? [Y/n] "
+            $DoSave = Read-Host -Prompt "Save credentials at '$CredPath'? [Y/n] "
             if (-not $DoSave -or $DoSave -match "^[yY]{1}(es)?$") {
                 $null = Export-Clixml -Path $CredPath -InputObject $Cred
-                Write-Verbose "PSCredential exported to: $CredPath"
+                Write-Verbose "Credentials exported to: $CredPath"
             }
+        } else {
+            throw "Password was null or empty."
         }
     }
 
-    $NsxConnection = Connect-NsxServer -Server $Server -Credential $Cred -DisableVIAutoConnect -WarningAction SilentlyContinue
-
-    $ScriptOut = $NsxConnection
+    $ScriptOut = Connect-NsxServer -Server $Server -Credential $Cred -DisableVIAutoConnect -WarningAction SilentlyContinue
 } catch {
     # Error in $_ or $Error[0] variable.
     Write-Warning "Exception occurred at line $($_.InvocationInfo.ScriptLineNumber): $($_.Exception.ToString())" -WarningAction Continue

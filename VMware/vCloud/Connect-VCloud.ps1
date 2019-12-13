@@ -1,23 +1,24 @@
 <#
 .SYNOPSIS
     Login to a vCloud server using the following order and return a session token:
-        1. Try with username and password, if provided
-        2. Try with PSCredential file $Server-${env:USERNAME}.xml in folder $HOME\.pscredentials\
+        1. Try with username and password, if provided.
+        2. Try with PSCredential file $Server-$Username.xml in folder $HOME\.pscredentials\.
         3. Get credentials from user with a prompt.
 
 .DESCRIPTION
     Login to a vCloud server using the following order and return a session token:
-        1. Try with username and password, if provided
-        2. Try with PSCredential file $Server-${env:USERNAME}.xml in folder $HOME\.pscredentials\
+        1. Try with username and password, if provided.
+        2. Try with PSCredential file $Server-$Username.xml in folder $HOME\.pscredentials\.
         3. Get credentials from user with a prompt.
 
     File-Name:  Connect-VCloud.ps1
     Author:     David Wettstein
-    Version:    v1.1.0
+    Version:    v1.1.1
 
     Changelog:
                 v1.0.0, 2019-05-30, David Wettstein: First implementation.
                 v1.1.0, 2019-07-26, David Wettstein: Prompt for credentials and ask to save them.
+                v1.1.1, 2019-12-13, David Wettstein: Improve credential handling.
 
 .NOTES
     Copyright (c) 2019 David Wettstein,
@@ -42,10 +43,10 @@ param (
     [String] $Organization = "system"
     ,
     [Parameter(Mandatory = $false, Position = 2)]
-    [String] $Username  # secure string or plain text (not recommended)
+    [String] $Username = "${env:USERNAME}"  # secure string or plain text (not recommended)
     ,
     [Parameter(Mandatory = $false, Position = 3)]
-    [String] $Password  # secure string or plain text (not recommended)
+    [String] $Password = $null  # secure string or plain text (not recommended)
     ,
     [Parameter(Mandatory = $false, Position = 4)]
     [Switch] $AcceptAllCertificates = $false
@@ -116,10 +117,9 @@ try {
         Approve-AllCertificates
     }
 
-    $Cred = $null
-    # $HOME for Local System Account: C:\Windows\System32\config\systemprofile
-    $CredPath = "$HOME\.pscredentials\$Server-${env:USERNAME}.xml"
-    if (-not [String]::IsNullOrEmpty($Username) -and -not [String]::IsNullOrEmpty($Password)) {
+    if ([String]::IsNullOrEmpty($Username)) {
+        $Username = "${env:USERNAME}"
+    } else {
         # If username is given as SecureString string, convert it to plain text.
         try {
             $UsernameSecureString = ConvertTo-SecureString -String $Username
@@ -129,6 +129,14 @@ try {
         } catch {
             # Username was already given as plain text.
         }
+    }
+    # $HOME for Local System Account: C:\Windows\System32\config\systemprofile
+    if (-not (Test-Path "$HOME\.pscredentials")) {
+        $null = New-Item -ItemType Directory -Path "$HOME\.pscredentials"
+    }
+    $CredPath = "$HOME\.pscredentials\$Server-$Username.xml"
+    $Cred = $null
+    if (-not [String]::IsNullOrEmpty($Password)) {
         # Convert given password to SecureString obj.
         try {
             $PasswordSecureString = ConvertTo-SecureString -String $Password
@@ -139,15 +147,18 @@ try {
         $Cred = New-Object System.Management.Automation.PSCredential ($Username, $PasswordSecureString)
     } elseif (Test-Path $CredPath) {
         $Cred = Import-Clixml -Path $CredPath
+        Write-Verbose "Credentials imported from: $CredPath"
     } else {
         Write-Verbose "No credentials found. Please use the input parameters or a PSCredential xml file at path '$CredPath'."
-        $Cred = Get-Credential -Message $Server -UserName ${env:USERNAME}
+        $Cred = Get-Credential -Message $Server -UserName $Username
         if ($Cred -and -not [String]::IsNullOrEmpty($Cred.GetNetworkCredential().Password)) {
-            $DoSave = Read-Host -Prompt "Save credential at '$CredPath'? [Y/n] "
+            $DoSave = Read-Host -Prompt "Save credentials at '$CredPath'? [Y/n] "
             if (-not $DoSave -or $DoSave -match "^[yY]{1}(es)?$") {
                 $null = Export-Clixml -Path $CredPath -InputObject $Cred
-                Write-Verbose "PSCredential exported to: $CredPath"
+                Write-Verbose "Credentials exported to: $CredPath"
             }
+        } else {
+            throw "Password was null or empty."
         }
     }
 

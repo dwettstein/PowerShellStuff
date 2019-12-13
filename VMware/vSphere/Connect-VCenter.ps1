@@ -1,25 +1,26 @@
 <#
 .SYNOPSIS
     Login to a vCenter server using the following order and return a PowerCLI connection:
-        1. Try with username and password, if provided
-        2. Try with PSCredential file $Server-${env:USERNAME}.xml in folder $HOME\.pscredentials\
-        3. If nothing provided from above, try with Windows SSPI authentication
-        4. Get credentials from user with a prompt.
+        1. Try with username and password, if provided.
+        2. Try with PSCredential file $Server-$Username.xml in folder $HOME\.pscredentials\.
+        3. Get credentials from user with a prompt.
+        4. If nothing provided from above, try with Windows SSPI authentication
 
 .DESCRIPTION
     Login to a vCenter server using the following order and return a PowerCLI connection:
-        1. Try with username and password, if provided
-        2. Try with PSCredential file $Server-${env:USERNAME}.xml in folder $HOME\.pscredentials\
-        3. If nothing provided from above, try with Windows SSPI authentication
-        4. Get credentials from user with a prompt.
+        1. Try with username and password, if provided.
+        2. Try with PSCredential file $Server-$Username.xml in folder $HOME\.pscredentials\.
+        3. Get credentials from user with a prompt.
+        4. If nothing provided from above, try with Windows SSPI authentication.
 
     File-Name:  Connect-VCenter.ps1
     Author:     David Wettstein
-    Version:    v1.1.0
+    Version:    v1.1.1
 
     Changelog:
                 v1.0.0, 2019-03-10, David Wettstein: First implementation.
                 v1.1.0, 2019-07-26, David Wettstein: Prompt for credentials and ask to save them.
+                v1.1.1, 2019-12-13, David Wettstein: Improve credential handling.
 
 .NOTES
     Copyright (c) 2019 David Wettstein,
@@ -41,10 +42,10 @@ param (
     [String] $Server
     ,
     [Parameter(Mandatory = $false, Position = 1)]
-    [String] $Username  # secure string or plain text (not recommended)
+    [String] $Username = "${env:USERNAME}"  # secure string or plain text (not recommended)
     ,
     [Parameter(Mandatory = $false, Position = 2)]
-    [String] $Password  # secure string or plain text (not recommended)
+    [String] $Password = $null  # secure string or plain text (not recommended)
 )
 
 $ErrorActionPreference = "Stop"
@@ -88,10 +89,9 @@ Write-Verbose "$($FILE_NAME): CALL."
 #trap { Write-Error $_; exit 1; break; }
 
 try {
-    $Cred = $null
-    # $HOME for Local System Account: C:\Windows\System32\config\systemprofile
-    $CredPath = "$HOME\.pscredentials\$Server-${env:USERNAME}.xml"
-    if (-not [String]::IsNullOrEmpty($Username) -and -not [String]::IsNullOrEmpty($Password)) {
+    if ([String]::IsNullOrEmpty($Username)) {
+        $Username = "${env:USERNAME}"
+    } else {
         # If username is given as SecureString string, convert it to plain text.
         try {
             $UsernameSecureString = ConvertTo-SecureString -String $Username
@@ -101,6 +101,14 @@ try {
         } catch {
             # Username was already given as plain text.
         }
+    }
+    # $HOME for Local System Account: C:\Windows\System32\config\systemprofile
+    if (-not (Test-Path "$HOME\.pscredentials")) {
+        $null = New-Item -ItemType Directory -Path "$HOME\.pscredentials"
+    }
+    $CredPath = "$HOME\.pscredentials\$Server-$Username.xml"
+    $Cred = $null
+    if (-not [String]::IsNullOrEmpty($Password)) {
         # Convert given password to SecureString obj.
         try {
             $PasswordSecureString = ConvertTo-SecureString -String $Password
@@ -111,29 +119,24 @@ try {
         $Cred = New-Object System.Management.Automation.PSCredential ($Username, $PasswordSecureString)
     } elseif (Test-Path $CredPath) {
         $Cred = Import-Clixml -Path $CredPath
-    }
-
-    $VCenterConnection = $null
-    try {
-        if ($Cred) {
-            $VCenterConnection = Connect-VIServer -Server $Server -Credential $Cred
-        } else {
-            $VCenterConnection = Connect-VIServer -Server $Server
-        }
-    } catch {
-        Write-Verbose "No credentials found and Windows SSPI authentication failed. Please use the input parameters or a PSCredential xml file at path '$CredPath'."
-        $Cred = Get-Credential -Message $Server -UserName ${env:USERNAME}
+        Write-Verbose "Credentials imported from: $CredPath"
+    } else {
+        Write-Verbose "No credentials found. Please use the input parameters or a PSCredential xml file at path '$CredPath'."
+        $Cred = Get-Credential -Message $Server -UserName $Username
         if ($Cred -and -not [String]::IsNullOrEmpty($Cred.GetNetworkCredential().Password)) {
-            $DoSave = Read-Host -Prompt "Save credential at '$CredPath'? [Y/n] "
+            $DoSave = Read-Host -Prompt "Save credentials at '$CredPath'? [Y/n] "
             if (-not $DoSave -or $DoSave -match "^[yY]{1}(es)?$") {
                 $null = Export-Clixml -Path $CredPath -InputObject $Cred
-                Write-Verbose "PSCredential exported to: $CredPath"
+                Write-Verbose "Credentials exported to: $CredPath"
             }
         }
-        $VCenterConnection = Connect-VIServer -Server $Server -Credential $Cred
     }
 
-    $ScriptOut = $VCenterConnection
+    if ($Cred -and -not [String]::IsNullOrEmpty($Cred.GetNetworkCredential().Password)) {
+        $ScriptOut = Connect-VIServer -Server $Server -Credential $Cred
+    } else {
+        $ScriptOut = Connect-VIServer -Server $Server
+    }
 } catch {
     # Error in $_ or $Error[0] variable.
     Write-Warning "Exception occurred at line $($_.InvocationInfo.ScriptLineNumber): $($_.Exception.ToString())" -WarningAction Continue
