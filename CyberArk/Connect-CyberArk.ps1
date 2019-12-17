@@ -15,12 +15,13 @@
 
     File-Name:  Connect-CyberArk.ps1
     Author:     David Wettstein
-    Version:    v1.0.1
+    Version:    v1.0.2
 
     Changelog:
                 v0.0.1, 2019-02-26, David Wettstein: First implementation.
                 v1.0.0, 2019-07-26, David Wettstein: Refactor and improve script.
                 v1.0.1, 2019-12-13, David Wettstein: Improve credential handling.
+                v1.0.2, 2019-12-17, David Wettstein: Improve parameter validation.
 
 .NOTES
     Copyright (c) 2019 David Wettstein,
@@ -41,10 +42,12 @@
 [CmdletBinding()]
 [OutputType([String])]
 param (
-    [Parameter(Mandatory = $true, Position = 0)]
+    [Parameter(Mandatory = $true, ValueFromPipeline = $true, Position = 0)]
+    [ValidateNotNullOrEmpty()]
     [String] $Server
     ,
     [Parameter(Mandatory = $false, Position = 1)]
+    [ValidateNotNullOrEmpty()]
     [String] $Username = "${env:USERNAME}"  # secure string or plain text (not recommended)
     ,
     [Parameter(Mandatory = $false, Position = 2)]
@@ -102,6 +105,8 @@ public class ServerCertificate {
     }
     # Ignore self-signed SSL certificates.
     [ServerCertificate]::approveAllCertificates()
+    # Disable certificate revocation check.
+    [System.Net.ServicePointManager]::CheckCertificateRevocationList = $false;
     # Allow all security protocols.
     [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]'Ssl3,Tls,Tls11,Tls12'
 }
@@ -116,18 +121,14 @@ try {
         Approve-AllCertificates
     }
 
-    if ([String]::IsNullOrEmpty($Username)) {
-        $Username = "${env:USERNAME}"
-    } else {
-        # If username is given as SecureString string, convert it to plain text.
-        try {
-            $UsernameSecureString = ConvertTo-SecureString -String $Username
-            $BSTR = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($UsernameSecureString)
-            $Username = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($BSTR)
-            $null = [System.Runtime.InteropServices.Marshal]::ZeroFreeBSTR($BSTR)
-        } catch {
-            # Username was already given as plain text.
-        }
+    # If username is given as SecureString string, convert it to plain text.
+    try {
+        $UsernameSecureString = ConvertTo-SecureString -String $Username
+        $BSTR = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($UsernameSecureString)
+        $Username = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($BSTR)
+        $null = [System.Runtime.InteropServices.Marshal]::ZeroFreeBSTR($BSTR)
+    } catch {
+        # Username was already given as plain text.
     }
     # $HOME for Local System Account: C:\Windows\System32\config\systemprofile
     if (-not (Test-Path "$HOME\.pscredentials")) {
@@ -151,8 +152,8 @@ try {
         Write-Verbose "No credentials found. Please use the input parameters or a PSCredential xml file at path '$CredPath'."
         $Cred = Get-Credential -Message $Server -UserName $Username
         if ($Cred -and -not [String]::IsNullOrEmpty($Cred.GetNetworkCredential().Password)) {
-            $DoSave = Read-Host -Prompt "Save credentials at '$CredPath'? [Y/n] "
-            if (-not $DoSave -or $DoSave -match "^[yY]{1}(es)?$") {
+            $DoSave = Read-Host -Prompt "Save credentials at '$CredPath'? [y/N] "
+            if ($DoSave -match "^[yY]{1}(es)?$") {
                 $null = Export-Clixml -Path $CredPath -InputObject $Cred
                 Write-Verbose "Credentials exported to: $CredPath"
             }

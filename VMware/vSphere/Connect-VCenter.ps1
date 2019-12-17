@@ -15,12 +15,13 @@
 
     File-Name:  Connect-VCenter.ps1
     Author:     David Wettstein
-    Version:    v1.1.1
+    Version:    v1.1.2
 
     Changelog:
                 v1.0.0, 2019-03-10, David Wettstein: First implementation.
                 v1.1.0, 2019-07-26, David Wettstein: Prompt for credentials and ask to save them.
                 v1.1.1, 2019-12-13, David Wettstein: Improve credential handling.
+                v1.1.2, 2019-12-17, David Wettstein: Improve parameter validation.
 
 .NOTES
     Copyright (c) 2019 David Wettstein,
@@ -38,10 +39,12 @@
 [CmdletBinding()]
 [OutputType([PSObject])]
 param (
-    [Parameter(Mandatory = $true, Position = 0)]
+    [Parameter(Mandatory = $true, ValueFromPipeline = $true, Position = 0)]
+    [ValidateNotNullOrEmpty()]
     [String] $Server
     ,
     [Parameter(Mandatory = $false, Position = 1)]
+    [ValidateNotNullOrEmpty()]
     [String] $Username = "${env:USERNAME}"  # secure string or plain text (not recommended)
     ,
     [Parameter(Mandatory = $false, Position = 2)]
@@ -89,18 +92,14 @@ Write-Verbose "$($FILE_NAME): CALL."
 #trap { Write-Error $_; exit 1; break; }
 
 try {
-    if ([String]::IsNullOrEmpty($Username)) {
-        $Username = "${env:USERNAME}"
-    } else {
-        # If username is given as SecureString string, convert it to plain text.
-        try {
-            $UsernameSecureString = ConvertTo-SecureString -String $Username
-            $BSTR = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($UsernameSecureString)
-            $Username = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($BSTR)
-            $null = [System.Runtime.InteropServices.Marshal]::ZeroFreeBSTR($BSTR)
-        } catch {
-            # Username was already given as plain text.
-        }
+    # If username is given as SecureString string, convert it to plain text.
+    try {
+        $UsernameSecureString = ConvertTo-SecureString -String $Username
+        $BSTR = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($UsernameSecureString)
+        $Username = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($BSTR)
+        $null = [System.Runtime.InteropServices.Marshal]::ZeroFreeBSTR($BSTR)
+    } catch {
+        # Username was already given as plain text.
     }
     # $HOME for Local System Account: C:\Windows\System32\config\systemprofile
     if (-not (Test-Path "$HOME\.pscredentials")) {
@@ -124,8 +123,8 @@ try {
         Write-Verbose "No credentials found. Please use the input parameters or a PSCredential xml file at path '$CredPath'."
         $Cred = Get-Credential -Message $Server -UserName $Username
         if ($Cred -and -not [String]::IsNullOrEmpty($Cred.GetNetworkCredential().Password)) {
-            $DoSave = Read-Host -Prompt "Save credentials at '$CredPath'? [Y/n] "
-            if (-not $DoSave -or $DoSave -match "^[yY]{1}(es)?$") {
+            $DoSave = Read-Host -Prompt "Save credentials at '$CredPath'? [y/N] "
+            if ($DoSave -match "^[yY]{1}(es)?$") {
                 $null = Export-Clixml -Path $CredPath -InputObject $Cred
                 Write-Verbose "Credentials exported to: $CredPath"
             }
