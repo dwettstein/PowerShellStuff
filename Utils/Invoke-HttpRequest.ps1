@@ -105,6 +105,8 @@ public class ServerCertificate {
     }
     # Ignore self-signed SSL certificates.
     [ServerCertificate]::approveAllCertificates()
+    # Disable certificate revocation check.
+    [System.Net.ServicePointManager]::CheckCertificateRevocationList = $false;
     # Allow all security protocols.
     [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]'Ssl3,Tls,Tls11,Tls12'
 }

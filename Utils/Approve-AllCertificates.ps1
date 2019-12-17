@@ -9,10 +9,11 @@
 
     File-Name:  Approve-AllCertificates.ps1
     Author:     David Wettstein
-    Version:    v1.0.0
+    Version:    v1.0.1
 
     Changelog:
                 v1.0.0, 2018-08-01, David Wettstein: First implementation.
+                v1.0.1, 2019-12-17, David Wettstein: Disable certificate revocation check.
 
 .NOTES
     Copyright (c) 2018 David Wettstein,
@@ -53,6 +54,9 @@ if (-not ([System.Management.Automation.PSTypeName]'ServerCertificate').Type) {
 
 # Ignore self-signed SSL certificates.
 [ServerCertificate]::approveAllCertificates()
+
+# Disable certificate revocation check.
+[System.Net.ServicePointManager]::CheckCertificateRevocationList = $false;
 
 # Allow all security protocols.
 [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]'Ssl3,Tls,Tls11,Tls12'
