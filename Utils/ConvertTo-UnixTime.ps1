@@ -20,10 +20,10 @@
     https://github.com/dwettstein/PowerShell
 
 .EXAMPLE
-    .\ConvertTo-UnixTime.ps1 -WithMilliseconds
+    .\ConvertTo-UnixTime.ps1 -Milliseconds
 
 .EXAMPLE
-    $UnixTimeInMs = & "$PSScriptRoot\Utils\ConvertTo-UnixTime.ps1" -DateTime $DateTime -WithMilliseconds
+    $UnixTimeInMs = & "$PSScriptRoot\Utils\ConvertTo-UnixTime.ps1" -DateTime $DateTime -Milliseconds
 #>
 [CmdletBinding()]
 [OutputType([Double])]
@@ -33,10 +33,10 @@ param (
     [DateTime] $DateTime = (Get-Date)  # Use current date as default value.
     ,
     [Parameter(Mandatory = $false, Position = 1)]
-    [Switch] $ToUniversalTime = $false
+    [Switch] $UniversalTime = $false
     ,
     [Parameter(Mandatory = $false, Position = 2)]
-    [Switch] $WithMilliseconds = $false
+    [Switch] $Milliseconds = $false
 )
 
 $ErrorActionPreference = "Stop"
@@ -44,11 +44,11 @@ $WarningPreference = "SilentlyContinue"
 # Use comma as output field separator (special variable $OFS).
 $private:OFS = ","
 
-if ($ToUniversalTime) {
+if ($UniversalTime) {
     $DateTime = $DateTime.ToUniversalTime()
 }
 
-if ($WithMilliseconds) {
+if ($Milliseconds) {
     [System.Math]::Floor((New-TimeSpan -Start ([DateTime]::ParseExact("19700101", "yyyyMMdd", $null)) -End $DateTime).TotalMilliseconds)
 } else {
     [System.Math]::Floor((New-TimeSpan -Start ([DateTime]::ParseExact("19700101", "yyyyMMdd", $null)) -End $DateTime).TotalSeconds)

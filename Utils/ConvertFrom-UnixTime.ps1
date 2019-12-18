@@ -23,7 +23,7 @@
     .\ConvertFrom-UnixTime.ps1 -UnixTimestamp 1502798835021
 
 .EXAMPLE
-    $DateTime = & "$PSScriptRoot\Utils\ConvertFrom-UnixTime.ps1" -UnixTimestamp 1502798835021 -ToUniversalTime
+    $DateTime = & "$PSScriptRoot\Utils\ConvertFrom-UnixTime.ps1" -UnixTimestamp 1502798835021 -UniversalTime -Iso8601
 #>
 [CmdletBinding()]
 [OutputType([DateTime])]
@@ -33,10 +33,10 @@ param (
     [Double] $UnixTimestamp
     ,
     [Parameter(Mandatory = $false, Position = 1)]
-    [Switch] $ToUniversalTime = $false
+    [Switch] $UniversalTime = $false
     ,
     [Parameter(Mandatory = $false, Position = 2)]
-    [Switch] $AsIso8601 = $false
+    [Switch] $Iso8601 = $false
 )
 
 $ErrorActionPreference = "Stop"
@@ -51,12 +51,12 @@ if ($UnixTimestamp.ToString().Length -eq 13) {
     $DateTime = [DateTime]::ParseExact("19700101", "yyyyMMdd", $null).AddSeconds($UnixTimestamp)
 }
 
-if ($ToUniversalTime) {
-    $DateTime = $DateTime.ToUniversalTime()
+if ($UniversalTime) {
+    $DateTime = $DateTime.ToLocalTime()
 }
 
-if ($AsIso8601) {
-    $DateTime.ToString("o")
+if ($Iso8601) {
+    $DateTime.ToString("yyyy-MM-ddTHH:mm:ss.fffzzz")
 } else {
     $DateTime
 }
