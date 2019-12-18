@@ -120,7 +120,7 @@ try {
         Write-Verbose "No credentials found. Please use the input parameters or a PSCredential xml file at path '$CredPath'."
         $Cred = Get-Credential -Message $Server -UserName $Username
         if ($Cred -and -not [String]::IsNullOrEmpty($Cred.GetNetworkCredential().Password)) {
-            $DoSave = Read-Host -Prompt "Save credentials at '$CredPath'? [n/N] "
+            $DoSave = Read-Host -Prompt "Save credentials at '$CredPath'? [y/N] "
             if ($DoSave -match "^[yY]{1}(es)?$") {
                 $null = Export-Clixml -Path $CredPath -InputObject $Cred
                 Write-Verbose "Credentials exported to: $CredPath"
