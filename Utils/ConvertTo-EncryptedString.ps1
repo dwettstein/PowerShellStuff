@@ -32,9 +32,11 @@
 [OutputType([SecureString])]
 param (
     [Parameter(Mandatory = $true, ValueFromPipeline = $true, Position = 0)]
+    [ValidateNotNullOrEmpty()]
     [String] $String  # secure string or plain text (not recommended)
     ,
     [Parameter(Mandatory = $false, Position = 1)]
+    [ValidateNotNullOrEmpty()]
     [String] $Key = $null  # secure string or plain text (not recommended)
 )
 

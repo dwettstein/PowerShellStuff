@@ -29,9 +29,13 @@
 [OutputType([Double])]
 param (
     [Parameter(Mandatory = $false, ValueFromPipeline = $true, Position = 0)]
-    [DateTime] $DateTime = (Get-Date).ToUniversalTime()  # Use current date as default value.
+    [ValidateNotNullOrEmpty()]
+    [DateTime] $DateTime = (Get-Date)  # Use current date as default value.
     ,
     [Parameter(Mandatory = $false, Position = 1)]
+    [Switch] $ToUniversalTime = $false
+    ,
+    [Parameter(Mandatory = $false, Position = 2)]
     [Switch] $WithMilliseconds = $false
 )
 
@@ -39,6 +43,10 @@ $ErrorActionPreference = "Stop"
 $WarningPreference = "SilentlyContinue"
 # Use comma as output field separator (special variable $OFS).
 $private:OFS = ","
+
+if ($ToUniversalTime) {
+    $DateTime = $DateTime.ToUniversalTime()
+}
 
 if ($WithMilliseconds) {
     [System.Math]::Floor((New-TimeSpan -Start ([DateTime]::ParseExact("19700101", "yyyyMMdd", $null)) -End $DateTime).TotalMilliseconds)

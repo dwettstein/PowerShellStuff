@@ -33,9 +33,11 @@
 [OutputType([String])]
 param (
     [Parameter(Mandatory = $false, ValueFromPipeline = $true, Position = 0)]
+    [ValidateNotNullOrEmpty()]
     [Int] $Length = 12
     ,
     [Parameter(Mandatory = $false, Position = 1)]
+    [ValidateNotNullOrEmpty()]
     [String] $Characters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 )
 

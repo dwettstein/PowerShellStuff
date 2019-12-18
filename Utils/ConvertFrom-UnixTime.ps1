@@ -29,10 +29,14 @@
 [OutputType([DateTime])]
 param (
     [Parameter(Mandatory = $true, ValueFromPipeline = $true, Position = 0)]
+    [ValidateNotNullOrEmpty()]
     [Double] $UnixTimestamp
     ,
     [Parameter(Mandatory = $false, Position = 1)]
     [Switch] $ToUniversalTime = $false
+    ,
+    [Parameter(Mandatory = $false, Position = 2)]
+    [Switch] $AsIso8601 = $false
 )
 
 $ErrorActionPreference = "Stop"
@@ -48,7 +52,11 @@ if ($UnixTimestamp.ToString().Length -eq 13) {
 }
 
 if ($ToUniversalTime) {
-    $DateTime.ToUniversalTime()
+    $DateTime = $DateTime.ToUniversalTime()
+}
+
+if ($AsIso8601) {
+    $DateTime.ToString("o")
 } else {
     $DateTime
 }
