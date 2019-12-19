@@ -74,10 +74,9 @@ begin {
 
     #------------------------------------------------------------
     # Variables used for Log function.
-    [String]$script:logFileName = $FILE_DIR + "\" + $FILE_NAME + ".log"
-
-    [Boolean]$script:isVerboseGiven = $false
-    [Boolean]$script:isDebugGiven = $false
+    [String] $script:LogFileName = $FILE_DIR + "\" + $FILE_NAME + "_" + (Get-Date -Format "yyyy-MM-dd") + ".log"
+    [Boolean] $script:IsVerboseGiven = $false
+    [Boolean] $script:IsDebugGiven = $false
 
     #===============================================================================
     # Functions
@@ -86,10 +85,10 @@ begin {
     function Set-BoundParams {
         try {
             if ($PSCmdlet.MyInvocation.BoundParameters["Verbose"].IsPresent -eq $true) {
-                $script:isVerboseGiven = $true
+                $script:IsVerboseGiven = $true
             }
             if ($PSCmdlet.MyInvocation.BoundParameters["Debug"].IsPresent -eq $true) {
-                $script:isDebugGiven = $true
+                $script:IsDebugGiven = $true
             }
         } catch {
             #Write-Warning "Exception: $($Error[0])"
@@ -97,67 +96,67 @@ begin {
     }
     Set-BoundParams
 
-    function Log {
+    function Write-Log {
         <#
         .SYNOPSIS
             Logs a given message with defined stream to stream and log-file.
         #>
         param (
-            [Parameter(Mandatory = $true, ValueFromPipeline = $true, Position = 0)]
-            [String] $stream
+            [Parameter(Mandatory = $false, Position = 0)]
+            [String] $Stream
             ,
             [Parameter(Mandatory = $true, ValueFromPipeline = $true, Position = 1)]
-            [String] $message
+            [String] $Message
         )
-        $logDate = "{0:yyyy-MM-dd HH:mm:ss.fffzzz}" -f (Get-Date)
-        switch ($stream) {
+        $LogDate = Get-Date -Format "yyyy-MM-ddTHH:mm:ss.fffzzz"  # ISO8601
+        switch ($Stream) {
             Host {
-                Write-Output "$logDate [HOST] $message" | Out-File -FilePath $logFileName -Append
-                Write-Host $message
+                Write-Output "$LogDate | $FILE_NAME | HOST | $Message" | Out-File -FilePath $LogFileName -Append
+                Write-Host $Message
                 break
             }
             Output {
-                Write-Output "$logDate [OUTPUT] $message" | Out-File -FilePath $logFileName -Append
-                Write-Output $message
+                Write-Output "$LogDate | $FILE_NAME | OUTPUT | $Message" | Out-File -FilePath $LogFileName -Append
+                Write-Output $Message
                 break
             }
             Verbose {
-                if ($isVerboseGiven) {
-                    Write-Output "$logDate [VERBOSE] $message" | Out-File -FilePath $logFileName -Append
+                if ($IsVerboseGiven) {
+                    Write-Output "$LogDate | $FILE_NAME | VERBOSE | $Message" | Out-File -FilePath $LogFileName -Append
                 }
-                Write-Verbose $message
+                Write-Verbose $Message
                 break
             }
             Warning {
-                Write-Output "$logDate [WARNING] $message" | Out-File -FilePath $logFileName -Append -Force
-                Write-Warning $message -WarningAction Continue
+                Write-Output "$LogDate | $FILE_NAME | WARNING | $Message" | Out-File -FilePath $LogFileName -Append -Force
+                Write-Warning $Message -WarningAction Continue
                 break
             }
             Error {
-                Write-Output "$logDate [ERROR] $message" | Out-File -FilePath $logFileName -Append -Force
-                Write-Error $message
+                Write-Output "$LogDate | $FILE_NAME | ERROR | $Message" | Out-File -FilePath $LogFileName -Append -Force
+                Write-Error $Message
                 break
             }
             Debug {
-                if ($isDebugGiven) {
-                    Write-Output "$logDate [DEBUG] $message" | Out-File -FilePath $logFileName -Append -Force
+                if ($IsDebugGiven) {
+                    Write-Output "$LogDate | $FILE_NAME | DEBUG | $Message" | Out-File -FilePath $LogFileName -Append -Force
                 }
-                Write-Debug $message
+                Write-Debug $Message
                 break
             }
             default {
-                Write-Output "$logDate [DEFAULT] $message" | Out-File -FilePath $logFileName -Append
+                Write-Output "$LogDate | $FILE_NAME | DEFAULT | $Message" | Out-File -FilePath $LogFileName -Append
                 break
             }
         }
-        Remove-Variable logDate
-        Remove-Variable stream, message
+        Remove-Variable LogDate
+        Remove-Variable Stream, Message
     }
 
     #===============================================================================
     # Initialization
     #===============================================================================
-    Log Verbose "$($FILE_NAME): CALL."
+    Write-Log Verbose "$($FILE_NAME): CALL."
 }
 
 #===============================================================================
@@ -174,7 +173,7 @@ process {
         $ScriptOut = ConvertTo-Json $ResultObj -Depth 10 -Compress
     } catch {
         # Error in $_ or $Error[0] variable.
-        Log Warning "Exception occurred at line $($_.InvocationInfo.ScriptLineNumber): $($_.Exception.ToString())"
+        Write-Log Warning "Exception occurred at line $($_.InvocationInfo.ScriptLineNumber): $($_.Exception.ToString())"
         $ErrorOut = "$($_.Exception.Message)"
         $ExitCode = 1
     } finally {
@@ -183,15 +182,15 @@ process {
 
 end {
     $EndDate = [DateTime]::Now
-    Log Verbose ("$($FILE_NAME): ExitCode: {0}. Execution time: {1} ms. Started: {2}." -f $ExitCode, ($EndDate - $StartDate).TotalMilliseconds, $StartDate.ToString('yyyy-MM-dd HH:mm:ss.fffzzz'))
+    Write-Log Verbose ("$($FILE_NAME): ExitCode: {0}. Execution time: {1} ms. Started: {2}." -f $ExitCode, ($EndDate - $StartDate).TotalMilliseconds, $StartDate.ToString('yyyy-MM-dd HH:mm:ss.fffzzz'))
 
     if ($ExitCode -eq 0) {
-        Log Output "$ScriptOut"
+        Write-Log Output "$ScriptOut"
         $ScriptOut  # Write ScriptOut to output stream.
         # Delete log file if no error.
         #Remove-Item $logFileName;
     } else {
-        Log Error "$ErrorOut"
+        Write-Log Error "$ErrorOut"
         Write-Error "$ErrorOut"  # Use Write-Error only here.
     }
     exit $ExitCode
