@@ -72,29 +72,9 @@ begin {
     $ErrorOut = ""
     $ScriptOut = ""
 
-    #------------------------------------------------------------
-    # Variables used for Log function.
-    [String] $script:LogFileName = $FILE_DIR + "\" + $FILE_NAME + "_" + (Get-Date -Format "yyyy-MM-dd") + ".log"
-    [Boolean] $script:IsVerboseGiven = $false
-    [Boolean] $script:IsDebugGiven = $false
-
     #===============================================================================
     # Functions
     #===============================================================================
-
-    function Set-BoundParams {
-        try {
-            if ($PSCmdlet.MyInvocation.BoundParameters["Verbose"].IsPresent -eq $true) {
-                $script:IsVerboseGiven = $true
-            }
-            if ($PSCmdlet.MyInvocation.BoundParameters["Debug"].IsPresent -eq $true) {
-                $script:IsDebugGiven = $true
-            }
-        } catch {
-            #Write-Warning "Exception: $($Error[0])"
-        }
-    }
-    Set-BoundParams
 
     function Write-Log {
         <#
@@ -103,52 +83,68 @@ begin {
         #>
         param (
             [Parameter(Mandatory = $false, Position = 0)]
+            [ValidateSet("Host", "Output", "Verbose", "Warning", "Error", "Debug")]
             [String] $Stream
             ,
             [Parameter(Mandatory = $true, ValueFromPipeline = $true, Position = 1)]
             [String] $Message
+            ,
+            [Parameter(Mandatory = $false, Position = 2)]
+            [String] $LogFileRoot
         )
+
+        if ([String]::IsNullOrEmpty($LogFileRoot)) {
+            [String] $LogFileName = $FILE_DIR + "\" + $FILE_NAME + "_" + (Get-Date -Format "yyyy-MM-dd") + ".log"
+        } else {
+            [String] $LogFileName = $LogFileRoot + "\" + $FILE_NAME + "_" + (Get-Date -Format "yyyy-MM-dd") + ".log"
+        }
         $LogDate = Get-Date -Format "yyyy-MM-ddTHH:mm:ss.fffzzz"  # ISO8601
+
+        [Boolean] $IsVerboseGiven = $VerbosePreference -ne "SilentlyContinue"
+        [Boolean] $IsDebugGiven = $DebugPreference -ne "SilentlyContinue"
+
         switch ($Stream) {
             Host {
-                Write-Output "$LogDate | $FILE_NAME | HOST | $Message" | Out-File -FilePath $LogFileName -Append
+                Write-Output "$LogDate | $FILE_NAME | $PID | HOST | $Message" | Out-File -FilePath $LogFileName -Append
                 Write-Host $Message
                 break
             }
             Output {
-                Write-Output "$LogDate | $FILE_NAME | OUTPUT | $Message" | Out-File -FilePath $LogFileName -Append
+                Write-Output "$LogDate | $FILE_NAME | $PID | OUTPUT | $Message" | Out-File -FilePath $LogFileName -Append
                 Write-Output $Message
                 break
             }
             Verbose {
                 if ($IsVerboseGiven) {
-                    Write-Output "$LogDate | $FILE_NAME | VERBOSE | $Message" | Out-File -FilePath $LogFileName -Append
+                    Write-Output "$LogDate | $FILE_NAME | $PID | VERBOSE | $Message" | Out-File -FilePath $LogFileName -Append
                 }
                 Write-Verbose $Message
                 break
             }
             Warning {
-                Write-Output "$LogDate | $FILE_NAME | WARNING | $Message" | Out-File -FilePath $LogFileName -Append -Force
+                Write-Output "$LogDate | $FILE_NAME | $PID | WARNING | $Message" | Out-File -FilePath $LogFileName -Append -Force
                 Write-Warning $Message -WarningAction Continue
                 break
             }
             Error {
-                Write-Output "$LogDate | $FILE_NAME | ERROR | $Message" | Out-File -FilePath $LogFileName -Append -Force
+                Write-Output "$LogDate | $FILE_NAME | $PID | ERROR | $Message" | Out-File -FilePath $LogFileName -Append -Force
                 Write-Error $Message
                 break
             }
             Debug {
                 if ($IsDebugGiven) {
-                    Write-Output "$LogDate | $FILE_NAME | DEBUG | $Message" | Out-File -FilePath $LogFileName -Append -Force
+                    Write-Output "$LogDate | $FILE_NAME | $PID | DEBUG | $Message" | Out-File -FilePath $LogFileName -Append -Force
                 }
                 Write-Debug $Message
                 break
             }
             default {
-                Write-Output "$LogDate | $FILE_NAME | DEFAULT | $Message" | Out-File -FilePath $LogFileName -Append
+                Write-Output "$LogDate | $FILE_NAME | $PID | DEFAULT | $Message" | Out-File -FilePath $LogFileName -Append
                 break
             }
         }
+
+        Remove-Variable IsVerboseGiven, IsDebugGiven
         Remove-Variable LogDate
         Remove-Variable Stream, Message
     }
