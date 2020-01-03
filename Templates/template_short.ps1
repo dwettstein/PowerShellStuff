@@ -53,7 +53,7 @@ foreach ($Module in $Modules) {
 $StartDate = [DateTime]::Now
 
 [String] $FILE_NAME = $MyInvocation.MyCommand.Name
-if ($PSVersionTable.PSVersion.Major -lt 3) {
+if ($PSVersionTable.PSVersion.Major -lt 3 -or [String]::IsNullOrEmpty($PSScriptRoot)) {
     [String] $FILE_DIR = Split-Path -Parent $MyInvocation.MyCommand.Definition
 } else {
     [String] $FILE_DIR = $PSScriptRoot
