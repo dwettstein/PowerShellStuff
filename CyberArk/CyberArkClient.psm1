@@ -12,12 +12,11 @@
         6. Export function as module member
         7. Delete the temporary file
 
-    File-Name:  vCloudCLI.psm1
     Author:     David Wettstein
     Version:    v1.0.0
 
     Changelog:
-                v1.0.0, 2019-05-30, David Wettstein: First implementation.
+                v1.0.0, 2018-08-03, David Wettstein: First implementation.
 
 .NOTES
     Copyright (c) 2018 David Wettstein,
