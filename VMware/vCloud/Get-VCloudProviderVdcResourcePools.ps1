@@ -1,16 +1,16 @@
 <#
 .SYNOPSIS
-    Get all ProviderVdcs of a vCloud server.
+    Get all ResourcePools in a ProviderVdc of a vCloud server.
 
 .DESCRIPTION
-    Get all ProviderVdcs of a vCloud server.
+    Get all ResourcePools in a ProviderVdc of a vCloud server.
 
-    File-Name:  Get-VCloudProviderVdcs.ps1
+    File-Name:  Get-VCloudProviderVdcResourcePools.ps1
     Author:     David Wettstein
     Version:    v1.0.0
 
     Changelog:
-                v1.0.0, 2019-05-30, David Wettstein: First implementation.
+                v1.0.0, 2020-02-09, David Wettstein: First implementation.
 
 .NOTES
     Copyright (c) 2019 David Wettstein,
@@ -28,8 +28,9 @@ param (
     [Parameter(Mandatory = $true, Position = 0)]
     [String] $Server
     ,
-    [Parameter(Mandatory = $false, Position = 1)]
-    [Switch] $IncludeResourcePools = $false
+    [Parameter(Mandatory = $true, Position = 1)]
+    [ValidatePattern('.*[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}.*')]
+    [String] $ProviderVdc = $null
     ,
     [Parameter(Mandatory = $false, Position = 2)]
     [String] $SessionToken = $null
@@ -77,23 +78,13 @@ Write-Verbose "$($FILE_NAME): CALL."
 #trap { Write-Error $_; exit 1; break; }
 
 try {
+    $ProviderVdcId = & "$FILE_DIR\Split-VCloudId.ps1" -UrnOrHref $ProviderVdc
     if ($AcceptAllCertificates) {
-        [Xml] $Response = & "$FILE_DIR\Invoke-VCloudRequest.ps1" -Server $Server -Method "GET" -Endpoint "/admin/extension/providerVdcReferences" -SessionToken $SessionToken -AcceptAllCertificates
+        [Xml] $Response = & "$FILE_DIR\Invoke-VCloudRequest.ps1" -Server $Server -Method "GET" -Endpoint "/admin/extension/providervdc/$ProviderVdcId/resourcePools" -SessionToken $SessionToken -AcceptAllCertificates
     } else {
-        [Xml] $Response = & "$FILE_DIR\Invoke-VCloudRequest.ps1" -Server $Server -Method "GET" -Endpoint "/admin/extension/providerVdcReferences" -SessionToken $SessionToken
+        [Xml] $Response = & "$FILE_DIR\Invoke-VCloudRequest.ps1" -Server $Server -Method "GET" -Endpoint "/admin/extension/providervdc/$ProviderVdcId/resourcePools" -SessionToken $SessionToken
     }
-    $ScriptOut = $Response.VMWProviderVdcReferences.ProviderVdcReference
-
-    if ($IncludeResourcePools) {
-        foreach ($ProviderVdc in $ScriptOut) {
-            if ($AcceptAllCertificates) {
-                $ProviderVdcResourcePools = & "$FILE_DIR\Get-VCloudProviderVdcResourcePools.ps1" -Server $Server -ProviderVdc $ProviderVdc.id -SessionToken $SessionToken -AcceptAllCertificates
-            } else {
-                $ProviderVdcResourcePools = & "$FILE_DIR\Get-VCloudProviderVdcResourcePools.ps1" -Server $Server -ProviderVdc $ProviderVdc.id -SessionToken $SessionToken
-            }
-            Add-Member -InputObject $ProviderVdc -NotePropertyName "resourcePools" -NotePropertyValue $ProviderVdcResourcePools -Force
-        }
-    }
+    $ScriptOut = $Response.VMWProviderVdcResourcePoolSet.VMWProviderVdcResourcePool
 } catch {
     # Error in $_ or $Error[0] variable.
     Write-Warning "Exception occurred at line $($_.InvocationInfo.ScriptLineNumber): $($_.Exception.ToString())" -WarningAction Continue
