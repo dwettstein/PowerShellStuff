@@ -29,10 +29,11 @@ param (
     [String] $Server
     ,
     [Parameter(Mandatory = $false, Position = 1)]
+    [ValidatePattern('.*[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}.*')]
     [String] $VApp = $null
     ,
     [Parameter(Mandatory = $false, Position = 1)]
-    [String] $OrgVdcNetworks = $null
+    $OrgVdcNetworks = $null
     ,
     [Parameter(Mandatory = $false, Position = 2)]
     [String] $SessionToken = $null

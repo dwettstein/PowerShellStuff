@@ -29,6 +29,7 @@ param (
     [String] $Server
     ,
     [Parameter(Mandatory = $false, Position = 1)]
+    [ValidatePattern('.*[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}.*')]
     [String] $Org = $null
     ,
     [Parameter(Mandatory = $false, Position = 2)]
