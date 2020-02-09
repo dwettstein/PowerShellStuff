@@ -29,10 +29,11 @@ param (
     [String] $Server
     ,
     [Parameter(Mandatory = $false, Position = 1)]
+    [ValidatePattern('.*[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}.*')]
     [String] $OrgVdc = $null
     ,
     [Parameter(Mandatory = $false, Position = 2)]
-    [Switch] $ExcludeShared = $false
+    [Switch] $IncludeShared = $false
     ,
     [Parameter(Mandatory = $false, Position = 3)]
     [String] $SessionToken = $null
@@ -91,7 +92,9 @@ try {
     }
 
     $ScriptOut = @()
-    if ($OrgVdc -and $ExcludeShared) {
+    if ($OrgVdc -and $IncludeShared) {
+        $ScriptOut = $OrgVdcNetworks
+    } else {
         foreach ($OrgVdcNetwork in $OrgVdcNetworks) {
             $OrgVdcNetworkOwnerId = & "$FILE_DIR\Split-VCloudId.ps1" -UrnOrHref $OrgVdcNetwork.vdc
             if ($OrgVdcNetwork.isShared -and -not ($OrgVdcNetworkOwnerId -eq $OrgVdc)) {
@@ -101,8 +104,6 @@ try {
                 $ScriptOut += $OrgVdcNetwork
             }
         }
-    } else {
-        $ScriptOut = $OrgVdcNetworks
     }
 } catch {
     # Error in $_ or $Error[0] variable.
