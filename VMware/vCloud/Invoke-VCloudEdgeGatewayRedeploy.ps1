@@ -1,16 +1,16 @@
 <#
 .SYNOPSIS
-    Get all EdgeGateways of a vCloud server.
+    Redeploy the Edge Gateway with given id or href of a vCloud server.
 
 .DESCRIPTION
-    Get all EdgeGateways of a vCloud server.
+    Redeploy the Edge Gateway with given id or href of a vCloud server.
 
-    File-Name:  Get-VCloudOrgVdcEdgeGateways.ps1
+    File-Name:  Invoke-VCloudEdgeGatewayRedeploy.ps1
     Author:     David Wettstein
     Version:    v1.0.0
 
     Changelog:
-                v1.0.0, 2019-05-30, David Wettstein: First implementation.
+                v1.0.0, 2020-02-09, David Wettstein: First implementation.
 
 .NOTES
     Copyright (c) 2019 David Wettstein,
@@ -23,14 +23,14 @@
     Example of how to use this cmdlet
 #>
 [CmdletBinding()]
-[OutputType([Array])]
+[OutputType([PSObject])]
 param (
     [Parameter(Mandatory = $true, Position = 0)]
     [String] $Server
     ,
-    [Parameter(Mandatory = $false, Position = 1)]
+    [Parameter(Mandatory = $true, Position = 1)]
     [ValidatePattern('.*[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}.*')]
-    [String] $OrgVdc = $null
+    [String] $EdgeGateway = $null
     ,
     [Parameter(Mandatory = $false, Position = 2)]
     [String] $SessionToken = $null
@@ -78,15 +78,13 @@ Write-Verbose "$($FILE_NAME): CALL."
 #trap { Write-Error $_; exit 1; break; }
 
 try {
-    $Filter = $null
-    if (-not [String]::IsNullOrEmpty($OrgVdc)) {
-        $Filter = "(vdc==$OrgVdc)"
-    }
+    $EdgeGatewayId = & "$FILE_DIR\Split-VCloudId.ps1" -UrnOrHref $EdgeGateway
     if ($AcceptAllCertificates) {
-        $ScriptOut = & "$FILE_DIR\Search-VCloud.ps1" -Server $Server -Type "edgeGateway" -ResultType "EdgeGatewayRecord" -Filter $Filter -SessionToken $SessionToken -AcceptAllCertificates
+        [Xml] $Response = & "$FILE_DIR\Invoke-VCloudRequest.ps1" -Server $Server -Method "POST" -Endpoint "/admin/edgeGateway/$EdgeGatewayId/action/redeploy" -SessionToken $SessionToken -AcceptAllCertificates
     } else {
-        $ScriptOut = & "$FILE_DIR\Search-VCloud.ps1" -Server $Server -Type "edgeGateway" -ResultType "EdgeGatewayRecord" -Filter $Filter -SessionToken $SessionToken
+        [Xml] $Response = & "$FILE_DIR\Invoke-VCloudRequest.ps1" -Server $Server -Method "POST" -Endpoint "/admin/edgeGateway/$EdgeGatewayId/action/redeploy" -SessionToken $SessionToken
     }
+    $ScriptOut = $Response.Task
 } catch {
     # Error in $_ or $Error[0] variable.
     Write-Warning "Exception occurred at line $($_.InvocationInfo.ScriptLineNumber): $($_.Exception.ToString())" -WarningAction Continue
