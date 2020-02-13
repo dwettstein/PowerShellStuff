@@ -89,9 +89,8 @@ try {
         } else {
             throw "Password was null or empty."
         }
+        $PSCredential
     }
 } catch {
     Write-Error "Failed to import credentials. Error: $($_.Exception.ToString())"
-    exit 1
 }
-$PSCredential

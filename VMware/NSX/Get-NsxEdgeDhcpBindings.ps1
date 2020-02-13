@@ -103,5 +103,5 @@ try {
     } else {
         Write-Error "$ErrorOut"  # Use Write-Error only here.
     }
-    exit $ExitCode
+    # exit $ExitCode
 }

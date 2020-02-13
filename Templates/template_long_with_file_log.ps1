@@ -189,5 +189,5 @@ end {
         Write-Log Error "$ErrorOut"
         Write-Error "$ErrorOut"  # Use Write-Error only here.
     }
-    exit $ExitCode
+    # exit $ExitCode
 }

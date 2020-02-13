@@ -90,8 +90,7 @@ try {
     } else {
         throw "Password was null or empty."
     }
+    $ScriptOut
 } catch {
     Write-Error "Failed to export credentials. Error: $($_.Exception.ToString())"
-    exit 1
 }
-$ScriptOut
