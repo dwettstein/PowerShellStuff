@@ -2,22 +2,25 @@
 .SYNOPSIS
     Login to a vCenter server using the following order and return a PowerCLI connection:
         1. Try with username and password, if provided.
-        2. Try with PSCredential file $Server-$Username.xml in folder $HOME\.pscredentials\.
-        3. Get credentials from user with a prompt.
-        4. If nothing provided from above, try with Windows SSPI authentication
+        2. Try with PSCredential file "$Server-$Username.xml" in given directory (default "$HOME\.pscredentials").
+        3. If interactive, get credentials from user with a prompt.
+        4. If not interactive, try with PSCredential file "$Username.xml".
+        5. If nothing provided from above, try with PowerCLI and Windows SSPI authentication.
 
 .DESCRIPTION
     Login to a vCenter server using the following order and return a PowerCLI connection:
         1. Try with username and password, if provided.
-        2. Try with PSCredential file $Server-$Username.xml in folder $HOME\.pscredentials\.
-        3. Get credentials from user with a prompt.
-        4. If nothing provided from above, try with Windows SSPI authentication.
+        2. Try with PSCredential file "$Server-$Username.xml" in given directory (default "$HOME\.pscredentials").
+        3. If interactive, get credentials from user with a prompt.
+        4. If not interactive, try with PSCredential file "$Username.xml".
+        5. If nothing provided from above, try with PowerCLI and Windows SSPI authentication.
 
     File-Name:  Connect-VCenter.ps1
     Author:     David Wettstein
-    Version:    v1.1.2
+    Version:    v1.1.3
 
     Changelog:
+                v1.1.3, 2020-03-12, David Wettstein: Refactor and improve credential handling.
                 v1.1.2, 2019-12-17, David Wettstein: Improve parameter validation.
                 v1.1.1, 2019-12-13, David Wettstein: Improve credential handling.
                 v1.1.0, 2019-07-26, David Wettstein: Prompt for credentials and ask to save them.
@@ -49,6 +52,13 @@ param (
     ,
     [Parameter(Mandatory = $false, Position = 2)]
     [String] $Password = $null  # secure string or plain text (not recommended)
+    ,
+    [Parameter(Mandatory = $false, Position = 3)]
+    [Switch] $Interactive
+    ,
+    [Parameter(Mandatory = $false, Position = 4)]
+    [ValidateNotNullOrEmpty()]
+    [String] $FileDir = "$HOME\.pscredentials"  # $HOME for Local System Account: C:\Windows\System32\config\systemprofile
 )
 
 $ErrorActionPreference = "Stop"
@@ -101,34 +111,47 @@ try {
     } catch {
         # Username was already given as plain text.
     }
-    # $HOME for Local System Account: C:\Windows\System32\config\systemprofile
-    if (-not (Test-Path "$HOME\.pscredentials")) {
-        $null = New-Item -ItemType Directory -Path "$HOME\.pscredentials"
+    if (-not (Test-Path $FileDir)) {
+        $null = New-Item -ItemType Directory -Path $FileDir
     }
-    $CredPath = "$HOME\.pscredentials\$Server-$Username.xml"
+    $CredPath = ($FileDir + "\" + "$Server-$Username.xml")
+    $UserCredPath = ($FileDir + "\" + "$Username.xml")
     $Cred = $null
     if (-not [String]::IsNullOrEmpty($Password)) {
-        # Convert given password to SecureString obj.
+        # 1. Try with username and password, if provided.
         try {
             $PasswordSecureString = ConvertTo-SecureString -String $Password
-        } catch {
-            # Password was given as plain text, convert it to secure string
+        } catch [System.FormatException] {
+            # Password was likely given as plain text, convert it to SecureString.
             $PasswordSecureString = ConvertTo-SecureString -AsPlainText -Force $Password
         }
         $Cred = New-Object System.Management.Automation.PSCredential ($Username, $PasswordSecureString)
     } elseif (Test-Path $CredPath) {
+        # 2. Try with PSCredential file $Server-$Username.xml.
         $Cred = Import-Clixml -Path $CredPath
         Write-Verbose "Credentials imported from: $CredPath"
-    } else {
-        Write-Verbose "No credentials found. Please use the input parameters or a PSCredential xml file at path '$CredPath'."
+    } elseif ($Interactive) {
+        # 3. If interactive, get credentials from user with a prompt.
+        Write-Verbose "No credentials found at path '$CredPath', get them interactively."
         $Cred = Get-Credential -Message $Server -UserName $Username
         if ($Cred -and -not [String]::IsNullOrEmpty($Cred.GetNetworkCredential().Password)) {
             $DoSave = Read-Host -Prompt "Save credentials at '$CredPath'? [y/N] "
             if ($DoSave -match "^[yY]{1}(es)?$") {
                 $null = Export-Clixml -Path $CredPath -InputObject $Cred
                 Write-Verbose "Credentials exported to: $CredPath"
+            } else {
+                Write-Verbose "Credentials not exported."
             }
+        } else {
+            throw "Password is null or empty."
         }
+    } elseif (Test-Path $UserCredPath) {
+        # 4. If not interactive, try with PSCredential file $Username.xml.
+        $Cred = Import-Clixml -Path $UserCredPath
+        Write-Verbose "Credentials imported from: $UserCredPath"
+    } else {
+        # throw "No credentials found. Please use the input parameters or a PSCredential xml file at path '$CredPath'."
+        # 5. If nothing provided from above, try with PowerCLI and Windows SSPI authentication.
     }
 
     if ($Cred -and -not [String]::IsNullOrEmpty($Cred.GetNetworkCredential().Password)) {
