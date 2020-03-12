@@ -10,13 +10,13 @@
     Version:    v1.1.0
 
     Changelog:
-                v1.0.0, 2016-04-13, David Wettstein: First implementation.
-                v1.0.1, 2016-10-17, David Wettstein: Add minor improvements.
-                v1.0.2, 2018-08-01, David Wettstein: Update code formatting.
                 v1.1.0, 2019-01-10, David Wettstein: Add switch for enabling all security protocols.
+                v1.0.2, 2018-08-01, David Wettstein: Update code formatting.
+                v1.0.1, 2016-10-17, David Wettstein: Add minor improvements.
+                v1.0.0, 2016-04-13, David Wettstein: First implementation.
 
 .NOTES
-    Copyright (c) 2018 David Wettstein,
+    Copyright (c) 2016-2020 David Wettstein,
     licensed under the MIT License (https://dwettstein.mit-license.org/)
 
 .LINK

@@ -12,11 +12,11 @@
     Version:    v1.0.1
 
     Changelog:
-                v1.0.0, 2018-08-01, David Wettstein: First implementation.
                 v1.0.1, 2019-12-17, David Wettstein: Disable certificate revocation check.
+                v1.0.0, 2018-08-01, David Wettstein: First implementation.
 
 .NOTES
-    Copyright (c) 2018 David Wettstein,
+    Copyright (c) 2018-2020 David Wettstein,
     licensed under the MIT License (https://dwettstein.mit-license.org/)
 
 .LINK

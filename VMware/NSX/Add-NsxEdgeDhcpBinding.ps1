@@ -12,6 +12,13 @@
     Changelog:
                 v1.0.0, 2019-08-23, David Wettstein: First implementation.
 
+.NOTES
+    Copyright (c) 2019-2020 David Wettstein,
+    licensed under the MIT License (https://dwettstein.mit-license.org/)
+
+.LINK
+    https://github.com/dwettstein/PowerShell
+
 .EXAMPLE
     Example of how to use this cmdlet
 #>

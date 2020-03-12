@@ -13,7 +13,7 @@
                 v0.0.1, yyyy-mm-dd, David Wettstein: First implementation.
 
 .NOTES
-    Copyright (c) 2019 David Wettstein,
+    Copyright (c) 2018-2020 David Wettstein,
     licensed under the MIT License (https://dwettstein.mit-license.org/)
 
 .LINK

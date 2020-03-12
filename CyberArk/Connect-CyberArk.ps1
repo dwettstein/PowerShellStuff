@@ -18,13 +18,13 @@
     Version:    v1.0.2
 
     Changelog:
-                v0.0.1, 2019-02-26, David Wettstein: First implementation.
-                v1.0.0, 2019-07-26, David Wettstein: Refactor and improve script.
-                v1.0.1, 2019-12-13, David Wettstein: Improve credential handling.
                 v1.0.2, 2019-12-17, David Wettstein: Improve parameter validation.
+                v1.0.1, 2019-12-13, David Wettstein: Improve credential handling.
+                v1.0.0, 2019-07-26, David Wettstein: Refactor and improve script.
+                v0.0.1, 2019-02-26, David Wettstein: First implementation.
 
 .NOTES
-    Copyright (c) 2019 David Wettstein,
+    Copyright (c) 2019-2020 David Wettstein,
     licensed under the MIT License (https://dwettstein.mit-license.org/)
 
 .LINK

@@ -15,7 +15,7 @@
                 v1.0.0, 2019-07-26, David Wettstein: First implementation.
 
 .NOTES
-    Copyright (c) 2019 David Wettstein,
+    Copyright (c) 2019-2020 David Wettstein,
     licensed under the MIT License (https://dwettstein.mit-license.org/)
 
 .LINK

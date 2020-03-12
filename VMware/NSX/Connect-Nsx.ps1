@@ -16,12 +16,12 @@
     Version:    v1.0.2
 
     Changelog:
-                v1.0.0, 2019-08-23, David Wettstein: First implementation.
-                v1.0.1, 2019-12-13, David Wettstein: Improve credential handling.
                 v1.0.2, 2019-12-17, David Wettstein: Improve parameter validation.
+                v1.0.1, 2019-12-13, David Wettstein: Improve credential handling.
+                v1.0.0, 2019-08-23, David Wettstein: First implementation.
 
 .NOTES
-    Copyright (c) 2019 David Wettstein,
+    Copyright (c) 2019-2020 David Wettstein,
     licensed under the MIT License (https://dwettstein.mit-license.org/)
 
 .LINK
