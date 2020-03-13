@@ -55,7 +55,7 @@ param (
     ,
     [Parameter(Mandatory = $false, Position = 4)]
     [ValidateNotNullOrEmpty()]
-    [String] $FileDir = "$HOME\.pscredentials"  # $HOME for Local System Account: C:\Windows\System32\config\systemprofile
+    [String] $PswdDir = "$HOME\.pscredentials"  # $HOME for Local System Account: C:\Windows\System32\config\systemprofile
 )
 
 $ErrorActionPreference = "Stop"
@@ -108,11 +108,11 @@ try {
     } catch {
         # Username was already given as plain text.
     }
-    if (-not (Test-Path $FileDir)) {
-        $null = New-Item -ItemType Directory -Path $FileDir
+    if (-not (Test-Path $PswdDir)) {
+        $null = New-Item -ItemType Directory -Path $PswdDir
     }
-    $CredPath = ($FileDir + "\" + "$Server-$Username.xml")
-    $UserCredPath = ($FileDir + "\" + "$Username.xml")
+    $CredPath = ($PswdDir + "\" + "$Server-$Username.xml")
+    $UserCredPath = ($PswdDir + "\" + "$Username.xml")
     $Cred = $null
     if (-not [String]::IsNullOrEmpty($Password)) {
         # 1. Try with username and password, if provided.
