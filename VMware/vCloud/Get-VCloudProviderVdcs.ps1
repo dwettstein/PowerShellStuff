@@ -32,7 +32,7 @@ param (
     [Switch] $IncludeResourcePools = $false
     ,
     [Parameter(Mandatory = $false, Position = 2)]
-    [String] $SessionToken = $null
+    [String] $AuthorizationToken = $null
     ,
     [Parameter(Mandatory = $false, Position = 3)]
     [Switch] $AcceptAllCertificates = $false
@@ -78,18 +78,18 @@ Write-Verbose "$($FILE_NAME): CALL."
 
 try {
     if ($AcceptAllCertificates) {
-        [Xml] $Response = & "$FILE_DIR\Invoke-VCloudRequest.ps1" -Server $Server -Method "GET" -Endpoint "/admin/extension/providerVdcReferences" -SessionToken $SessionToken -AcceptAllCertificates
+        [Xml] $Response = & "$FILE_DIR\Invoke-VCloudRequest.ps1" -Server $Server -Method "GET" -Endpoint "/api/admin/extension/providerVdcReferences" -AuthorizationToken $AuthorizationToken -AcceptAllCertificates
     } else {
-        [Xml] $Response = & "$FILE_DIR\Invoke-VCloudRequest.ps1" -Server $Server -Method "GET" -Endpoint "/admin/extension/providerVdcReferences" -SessionToken $SessionToken
+        [Xml] $Response = & "$FILE_DIR\Invoke-VCloudRequest.ps1" -Server $Server -Method "GET" -Endpoint "/api/admin/extension/providerVdcReferences" -AuthorizationToken $AuthorizationToken
     }
     $ScriptOut = $Response.VMWProviderVdcReferences.ProviderVdcReference
 
     if ($IncludeResourcePools) {
         foreach ($ProviderVdc in $ScriptOut) {
             if ($AcceptAllCertificates) {
-                $ProviderVdcResourcePools = & "$FILE_DIR\Get-VCloudProviderVdcResourcePools.ps1" -Server $Server -ProviderVdc $ProviderVdc.id -SessionToken $SessionToken -AcceptAllCertificates
+                $ProviderVdcResourcePools = & "$FILE_DIR\Get-VCloudProviderVdcResourcePools.ps1" -Server $Server -ProviderVdc $ProviderVdc.id -AuthorizationToken $AuthorizationToken -AcceptAllCertificates
             } else {
-                $ProviderVdcResourcePools = & "$FILE_DIR\Get-VCloudProviderVdcResourcePools.ps1" -Server $Server -ProviderVdc $ProviderVdc.id -SessionToken $SessionToken
+                $ProviderVdcResourcePools = & "$FILE_DIR\Get-VCloudProviderVdcResourcePools.ps1" -Server $Server -ProviderVdc $ProviderVdc.id -AuthorizationToken $AuthorizationToken
             }
             Add-Member -InputObject $ProviderVdc -NotePropertyName "resourcePools" -NotePropertyValue $ProviderVdcResourcePools -Force
         }

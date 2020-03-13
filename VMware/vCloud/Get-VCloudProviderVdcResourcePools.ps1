@@ -33,7 +33,7 @@ param (
     [String] $ProviderVdc = $null
     ,
     [Parameter(Mandatory = $false, Position = 2)]
-    [String] $SessionToken = $null
+    [String] $AuthorizationToken = $null
     ,
     [Parameter(Mandatory = $false, Position = 3)]
     [Switch] $AcceptAllCertificates = $false
@@ -80,9 +80,9 @@ Write-Verbose "$($FILE_NAME): CALL."
 try {
     $ProviderVdcId = & "$FILE_DIR\Split-VCloudId.ps1" -UrnOrHref $ProviderVdc
     if ($AcceptAllCertificates) {
-        [Xml] $Response = & "$FILE_DIR\Invoke-VCloudRequest.ps1" -Server $Server -Method "GET" -Endpoint "/admin/extension/providervdc/$ProviderVdcId/resourcePools" -SessionToken $SessionToken -AcceptAllCertificates
+        [Xml] $Response = & "$FILE_DIR\Invoke-VCloudRequest.ps1" -Server $Server -Method "GET" -Endpoint "/api/admin/extension/providervdc/$ProviderVdcId/resourcePools" -AuthorizationToken $AuthorizationToken -AcceptAllCertificates
     } else {
-        [Xml] $Response = & "$FILE_DIR\Invoke-VCloudRequest.ps1" -Server $Server -Method "GET" -Endpoint "/admin/extension/providervdc/$ProviderVdcId/resourcePools" -SessionToken $SessionToken
+        [Xml] $Response = & "$FILE_DIR\Invoke-VCloudRequest.ps1" -Server $Server -Method "GET" -Endpoint "/api/admin/extension/providervdc/$ProviderVdcId/resourcePools" -AuthorizationToken $AuthorizationToken
     }
     $ScriptOut = $Response.VMWProviderVdcResourcePoolSet.VMWProviderVdcResourcePool
 } catch {

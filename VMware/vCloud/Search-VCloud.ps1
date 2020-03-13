@@ -44,7 +44,7 @@ param (
     [String] $Filter = $null  # e.g. (org==foo;vdc==bar)
     ,
     [Parameter(Mandatory=$false, Position=4)]
-    [String] $SessionToken = $null
+    [String] $AuthorizationToken = $null
     ,
     [Parameter(Mandatory=$false, Position=5)]
     [Switch] $AcceptAllCertificates = $false
@@ -98,9 +98,9 @@ try {
         }
         $Endpoint += "&page=$Page"
         if ($AcceptAllCertificates) {
-            [Xml] $Response = & "$FILE_DIR\Invoke-VCloudRequest.ps1" -Server $Server -Method "GET" -Endpoint $Endpoint -SessionToken $SessionToken -AcceptAllCertificates
+            [Xml] $Response = & "$FILE_DIR\Invoke-VCloudRequest.ps1" -Server $Server -Method "GET" -Endpoint $Endpoint -AuthorizationToken $AuthorizationToken -AcceptAllCertificates
         } else {
-            [Xml] $Response = & "$FILE_DIR\Invoke-VCloudRequest.ps1" -Server $Server -Method "GET" -Endpoint $Endpoint -SessionToken $SessionToken
+            [Xml] $Response = & "$FILE_DIR\Invoke-VCloudRequest.ps1" -Server $Server -Method "GET" -Endpoint $Endpoint -AuthorizationToken $AuthorizationToken
         }
         if ($Response.QueryResultRecords.total -gt 0) {
             $Results += $Response.QueryResultRecords."$ResultType"

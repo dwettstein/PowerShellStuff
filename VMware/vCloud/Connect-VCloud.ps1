@@ -1,13 +1,13 @@
 <#
 .SYNOPSIS
-    Login to a vCloud server using the following order and return a session token:
+    Login to a vCloud server using the following order and return an authorization token:
         1. Try with username and password, if provided.
         2. Try with PSCredential file "$Server-$Username.xml" in given directory (default "$HOME\.pscredentials").
         3. If interactive, get credentials from user with a prompt.
         4. If not interactive, try with PSCredential file "$Username.xml".
 
 .DESCRIPTION
-    Login to a vCloud server using the following order and return a session token:
+    Login to a vCloud server using the following order and return an authorization token:
         1. Try with username and password, if provided.
         2. Try with PSCredential file "$Server-$Username.xml" in given directory (default "$HOME\.pscredentials").
         3. If interactive, get credentials from user with a prompt.
@@ -32,10 +32,10 @@
     https://github.com/dwettstein/PowerShell
 
 .EXAMPLE
-    $VCloudToken = & ".\Connect-VCloud.ps1" "vcloud.local"
+    $AuthorizationToken = & ".\Connect-VCloud.ps1" "example.com"
 
 .EXAMPLE
-    $VCloudToken = & "$PSScriptRoot\Connect-VCloud.ps1" -Server "vcloud.local" -Organization "system" -Username "user" -Password "changeme" -AcceptAllCertificates
+    $AuthorizationToken = & "$PSScriptRoot\Connect-VCloud.ps1" -Server "example.com" -Organization "system" -Username "user" -Password "changeme" -AcceptAllCertificates
 #>
 [CmdletBinding()]
 [OutputType([String])]

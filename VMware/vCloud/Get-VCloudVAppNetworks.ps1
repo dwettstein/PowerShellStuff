@@ -36,7 +36,7 @@ param (
     $OrgVdcNetworks = $null
     ,
     [Parameter(Mandatory = $false, Position = 2)]
-    [String] $SessionToken = $null
+    [String] $AuthorizationToken = $null
     ,
     [Parameter(Mandatory = $false, Position = 3)]
     [Switch] $AcceptAllCertificates = $false
@@ -86,9 +86,9 @@ try {
         $Filter = "(vApp==$VApp)"
     }
     if ($AcceptAllCertificates) {
-        $VAppNetworks = & "$FILE_DIR\Search-VCloud.ps1" -Server $Server -Type "adminVAppNetwork" -ResultType "AdminVAppNetworkRecord" -Filter $Filter -SessionToken $SessionToken -AcceptAllCertificates
+        $VAppNetworks = & "$FILE_DIR\Search-VCloud.ps1" -Server $Server -Type "adminVAppNetwork" -ResultType "AdminVAppNetworkRecord" -Filter $Filter -AuthorizationToken $AuthorizationToken -AcceptAllCertificates
     } else {
-        $VAppNetworks = & "$FILE_DIR\Search-VCloud.ps1" -Server $Server -Type "adminVAppNetwork" -ResultType "AdminVAppNetworkRecord" -Filter $Filter -SessionToken $SessionToken
+        $VAppNetworks = & "$FILE_DIR\Search-VCloud.ps1" -Server $Server -Type "adminVAppNetwork" -ResultType "AdminVAppNetworkRecord" -Filter $Filter -AuthorizationToken $AuthorizationToken
     }
 
     $ScriptOut = @()

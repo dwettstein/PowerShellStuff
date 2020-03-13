@@ -32,7 +32,7 @@ param (
     [String] $OrgName = $null
     ,
     [Parameter(Mandatory = $false, Position = 2)]
-    [String] $SessionToken = $null
+    [String] $AuthorizationToken = $null
     ,
     [Parameter(Mandatory = $false, Position = 3)]
     [Switch] $AcceptAllCertificates = $false
@@ -82,9 +82,9 @@ try {
         $Filter = "(name==$OrgName)"
     }
     if ($AcceptAllCertificates) {
-        $ScriptOut = & "$FILE_DIR\Search-VCloud.ps1" -Server $Server -Type "organization" -ResultType "OrgRecord" -Filter $Filter -SessionToken $SessionToken -AcceptAllCertificates
+        $ScriptOut = & "$FILE_DIR\Search-VCloud.ps1" -Server $Server -Type "organization" -ResultType "OrgRecord" -Filter $Filter -AuthorizationToken $AuthorizationToken -AcceptAllCertificates
     } else {
-        $ScriptOut = & "$FILE_DIR\Search-VCloud.ps1" -Server $Server -Type "organization" -ResultType "OrgRecord" -Filter $Filter -SessionToken $SessionToken
+        $ScriptOut = & "$FILE_DIR\Search-VCloud.ps1" -Server $Server -Type "organization" -ResultType "OrgRecord" -Filter $Filter -AuthorizationToken $AuthorizationToken
     }
 } catch {
     # Error in $_ or $Error[0] variable.

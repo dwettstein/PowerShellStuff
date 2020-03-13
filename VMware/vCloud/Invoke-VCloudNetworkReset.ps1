@@ -33,7 +33,7 @@ param (
     [String] $Network = $null
     ,
     [Parameter(Mandatory = $false, Position = 2)]
-    [String] $SessionToken = $null
+    [String] $AuthorizationToken = $null
     ,
     [Parameter(Mandatory = $false, Position = 3)]
     [Switch] $AcceptAllCertificates = $false
@@ -80,9 +80,9 @@ Write-Verbose "$($FILE_NAME): CALL."
 try {
     $NetworkId = & "$FILE_DIR\Split-VCloudId.ps1" -UrnOrHref $Network
     if ($AcceptAllCertificates) {
-        [Xml] $Response = & "$FILE_DIR\Invoke-VCloudRequest.ps1" -Server $Server -Method "POST" -Endpoint "/admin/network/$NetworkId/action/reset" -SessionToken $SessionToken -AcceptAllCertificates
+        [Xml] $Response = & "$FILE_DIR\Invoke-VCloudRequest.ps1" -Server $Server -Method "POST" -Endpoint "/api/admin/network/$NetworkId/action/reset" -AuthorizationToken $AuthorizationToken -AcceptAllCertificates
     } else {
-        [Xml] $Response = & "$FILE_DIR\Invoke-VCloudRequest.ps1" -Server $Server -Method "POST" -Endpoint "/admin/network/$NetworkId/action/reset" -SessionToken $SessionToken
+        [Xml] $Response = & "$FILE_DIR\Invoke-VCloudRequest.ps1" -Server $Server -Method "POST" -Endpoint "/api/admin/network/$NetworkId/action/reset" -AuthorizationToken $AuthorizationToken
     }
     $ScriptOut = $Response.Task
 } catch {

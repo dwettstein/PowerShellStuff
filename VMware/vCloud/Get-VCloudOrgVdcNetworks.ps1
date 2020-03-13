@@ -36,7 +36,7 @@ param (
     [Switch] $IncludeShared = $false
     ,
     [Parameter(Mandatory = $false, Position = 3)]
-    [String] $SessionToken = $null
+    [String] $AuthorizationToken = $null
     ,
     [Parameter(Mandatory = $false, Position = 4)]
     [Switch] $AcceptAllCertificates = $false
@@ -86,9 +86,9 @@ try {
         $Filter = "(vdc==$OrgVdc)"
     }
     if ($AcceptAllCertificates) {
-        $OrgVdcNetworks = & "$FILE_DIR\Search-VCloud.ps1" -Server $Server -Type "orgVdcNetwork" -ResultType "OrgVdcNetworkRecord" -Filter $Filter -SessionToken $SessionToken -AcceptAllCertificates
+        $OrgVdcNetworks = & "$FILE_DIR\Search-VCloud.ps1" -Server $Server -Type "orgVdcNetwork" -ResultType "OrgVdcNetworkRecord" -Filter $Filter -AuthorizationToken $AuthorizationToken -AcceptAllCertificates
     } else {
-        $OrgVdcNetworks = & "$FILE_DIR\Search-VCloud.ps1" -Server $Server -Type "orgVdcNetwork" -ResultType "OrgVdcNetworkRecord" -Filter $Filter -SessionToken $SessionToken
+        $OrgVdcNetworks = & "$FILE_DIR\Search-VCloud.ps1" -Server $Server -Type "orgVdcNetwork" -ResultType "OrgVdcNetworkRecord" -Filter $Filter -AuthorizationToken $AuthorizationToken
     }
 
     $ScriptOut = @()

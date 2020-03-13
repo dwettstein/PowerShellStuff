@@ -39,7 +39,7 @@ param (
     [Int] $TimeoutInSec = 3600  # 60min
     ,
     [Parameter(Mandatory=$false, Position=4)]
-    [String] $SessionToken = $null
+    [String] $AuthorizationToken = $null
     ,
     [Parameter(Mandatory=$false, Position=5)]
     [Switch] $AcceptAllCertificates = $false
@@ -95,9 +95,9 @@ try {
         }
         $null = Start-Sleep -Seconds $SleepInSec
         if ($AcceptAllCertificates) {
-            [Xml] $TaskResponse = Invoke-VCloudRequest -Server $Server -Endpoint "/task/$TaskId" -SessionToken $SessionToken -AcceptAllCertificates
+            [Xml] $TaskResponse = Invoke-VCloudRequest -Server $Server -Endpoint "/api/task/$TaskId" -AuthorizationToken $AuthorizationToken -AcceptAllCertificates
         } else {
-            [Xml] $TaskResponse = Invoke-VCloudRequest -Server $Server -Endpoint "/task/$TaskId" -SessionToken $SessionToken
+            [Xml] $TaskResponse = Invoke-VCloudRequest -Server $Server -Endpoint "/api/task/$TaskId" -AuthorizationToken $AuthorizationToken
         }
         $TaskStatus = $TaskResponse.Task.status
     } while ($TaskStatus -in $StatusRunning)

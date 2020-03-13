@@ -29,7 +29,7 @@ param (
     [String] $Server
     ,
     [Parameter(Mandatory = $false, Position = 1)]
-    [String] $SessionToken = $null
+    [String] $AuthorizationToken = $null
     ,
     [Parameter(Mandatory = $false, Position = 2)]
     [Switch] $AcceptAllCertificates = $false
@@ -75,9 +75,9 @@ Write-Verbose "$($FILE_NAME): CALL."
 
 try {
     if ($AcceptAllCertificates) {
-        [Xml] $Response = & "$FILE_DIR\Invoke-VCloudRequest.ps1" -Server $Server -Method "GET" -Endpoint "/admin/extension/datastores" -SessionToken $SessionToken -AcceptAllCertificates
+        [Xml] $Response = & "$FILE_DIR\Invoke-VCloudRequest.ps1" -Server $Server -Method "GET" -Endpoint "/api/admin/extension/datastores" -AuthorizationToken $AuthorizationToken -AcceptAllCertificates
     } else {
-        [Xml] $Response = & "$FILE_DIR\Invoke-VCloudRequest.ps1" -Server $Server -Method "GET" -Endpoint "/admin/extension/datastores" -SessionToken $SessionToken
+        [Xml] $Response = & "$FILE_DIR\Invoke-VCloudRequest.ps1" -Server $Server -Method "GET" -Endpoint "/api/admin/extension/datastores" -AuthorizationToken $AuthorizationToken
     }
     $ScriptOut = $Response.DatastoreReferences.Reference
 } catch {

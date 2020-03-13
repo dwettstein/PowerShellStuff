@@ -1,13 +1,13 @@
 <#
 .SYNOPSIS
-    Login to a CyberArk server using the following order and return a session token:
+    Login to a CyberArk server using the following order and return an authorization token:
         1. Try with username and password, if provided.
         2. Try with PSCredential file "$Server-$Username.xml" in given directory (default "$HOME\.pscredentials").
         3. If interactive, get credentials from user with a prompt.
         4. If not interactive, try with PSCredential file "$Username.xml".
 
 .DESCRIPTION
-    Login to a CyberArk server using the following order and return a session token:
+    Login to a CyberArk server using the following order and return an authorization token:
         1. Try with username and password, if provided.
         2. Try with PSCredential file "$Server-$Username.xml" in given directory (default "$HOME\.pscredentials").
         3. If interactive, get credentials from user with a prompt.
@@ -37,10 +37,10 @@
     https://github.com/pspete/psPAS
 
 .EXAMPLE
-    $CyberArkToken = & ".\Connect-CyberArk.ps1" "cyberark.local"
+    $AuthorizationToken = & ".\Connect-CyberArk.ps1" "example.com"
 
 .EXAMPLE
-    $CyberArkToken = & "$PSScriptRoot\Connect-CyberArk.ps1" -Server "cyberark.local" -Username "user" -Password "changeme" -AcceptAllCertificates
+    $AuthorizationToken = & "$PSScriptRoot\Connect-CyberArk.ps1" -Server "example.com" -Username "user" -Password "changeme" -AcceptAllCertificates
 #>
 [CmdletBinding()]
 [OutputType([String])]
@@ -184,10 +184,6 @@ try {
 
     $BaseUrl = "https://$Server"
     $EndpointUrl = "$BaseUrl/PasswordVault/api/auth/LDAP/Logon"
-
-    $CredString = $Cred.GetNetworkCredential().Username + "@" + $Organization + ":" + $Cred.GetNetworkCredential().Password
-    $CredStringInBytes = [System.Text.Encoding]::UTF8.GetBytes($CredString)
-    $CredStringInBase64 = [System.Convert]::ToBase64String($CredStringInBytes)
 
     $Headers = @{
         "Accept" = "application/json"
