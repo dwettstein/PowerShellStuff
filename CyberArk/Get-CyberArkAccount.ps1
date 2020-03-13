@@ -9,9 +9,10 @@
 
     File-Name:  Get-CyberArkAccount.ps1
     Author:     David Wettstein
-    Version:    v1.0.0
+    Version:    v1.0.1
 
     Changelog:
+                v1.0.1, 2020-03-13, David Wettstein: Change AsObj to AsJson.
                 v1.0.0, 2019-07-26, David Wettstein: First implementation.
 
 .NOTES
@@ -40,7 +41,7 @@ param (
     [String] $Safe
     ,
     [Parameter(Mandatory = $false, Position = 3)]
-    [Switch] $AsObj
+    [Switch] $AsJson
     ,
     [Parameter(Mandatory = $false, Position = 4)]
     [String] $Username = "${env:USERNAME}"  # secure string or plain text (not recommended)
@@ -117,13 +118,13 @@ try {
         Add-Member -InputObject $Account -MemberType NoteProperty -Name "secretValue" -Value $Response.Content.Trim('"') -Force
     }
 
-    if ($AsObj) {
-        $ScriptOut = $Accounts
-    } else {
+    if ($AsJson) {
         # Return the result object as a JSON string. The parameter depth is needed to convert all child objects.
         $OutputJson = ConvertTo-Json $Accounts -Depth 10 -Compress
         # Replace Unicode chars with UTF8
         $ScriptOut = [Regex]::Unescape($OutputJson)
+    } else {
+        $ScriptOut = $Accounts
     }
 } catch {
     # Error in $_ or $Error[0] variable.

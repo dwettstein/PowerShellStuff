@@ -9,9 +9,10 @@
 
     File-Name:  ConvertFrom-Cidr.ps1
     Author:     David Wettstein
-    Version:    v1.0.0
+    Version:    v1.0.1
 
     Changelog:
+                v1.0.1, 2020-03-13, David Wettstein: Change AsObj to AsJson.
                 v1.0.0, 2020-01-03, David Wettstein: First implementation.
 
 .NOTES
@@ -35,7 +36,7 @@ param (
     [String] $CidrAddress
     ,
     [Parameter(Mandatory = $false, Position = 1)]
-    [Switch] $AsObj
+    [Switch] $AsJson
 )
 
 $ErrorActionPreference = "Stop"
@@ -64,8 +65,8 @@ $null = Add-Member -InputObject $ResultObj -MemberType NoteProperty -Name "Netwo
 $null = Add-Member -InputObject $ResultObj -MemberType NoteProperty -Name "GatewayAddress" -Value $GatewayAddress
 $null = Add-Member -InputObject $ResultObj -MemberType NoteProperty -Name "CidrSuffix" -Value $CidrSuffix
 
-if ($AsObj) {
-    $ResultObj
-} else {
+if ($AsJson) {
     ConvertTo-Json $ResultObj -Depth 10 -Compress
+} else {
+    $ResultObj
 }
