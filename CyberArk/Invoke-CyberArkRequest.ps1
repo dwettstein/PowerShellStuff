@@ -49,11 +49,11 @@ param (
     ,
     [Parameter(Mandatory = $false, Position = 4)]
     [ValidateSet('application/*', 'application/json', 'application/xml', 'application/*+xml', 'application/x-www-form-urlencoded', 'multipart/form-data', 'text/plain', 'text/xml', IgnoreCase = $false)]
-    [String] $MediaType = "application/*+xml"
+    [String] $MediaType = "application/json"
     ,
     [Parameter(Mandatory = $false, Position = 5)]
     [ValidateNotNullOrEmpty()]
-    [String] $AuthorizationHeader = "x-vcloud-authorization"
+    [String] $AuthorizationHeader = "Authorization"
     ,
     [Parameter(Mandatory = $false, Position = 6)]
     [ValidateNotNullOrEmpty()]
@@ -65,10 +65,6 @@ param (
     ,
     [Parameter(Mandatory = $false, Position = 8)]
     [Switch] $AcceptAllCertificates = $false
-    ,
-    [Parameter(Mandatory = $false, Position = 9)]
-    [ValidateNotNullOrEmpty()]
-    [String] $APIVersion = "31.0"
 )
 
 $ErrorActionPreference = "Stop"
@@ -139,7 +135,7 @@ try {
     $EndpointUrl = "${BaseUrl}${endpoint}"
 
     $Headers = @{
-        "Accept" = "$MediaType;version=$APIVersion"
+        "Accept" = "$MediaType"
         "Content-Type" = "$MediaType"
         "Cache-Control" = "no-cache"
     }
@@ -147,9 +143,9 @@ try {
     # If no AuthorizationToken is given, try to get it.
     if ([String]::IsNullOrEmpty($AuthorizationToken)) {
         if ($AcceptAllCertificates) {
-            $AuthorizationToken = & "$FILE_DIR\Connect-VCloud.ps1" -Server $Server -AcceptAllCertificates
+            $AuthorizationToken = & "$FILE_DIR\Connect-CyberArk.ps1" -Server $Server -AcceptAllCertificates
         } else {
-            $AuthorizationToken = & "$FILE_DIR\Connect-VCloud.ps1" -Server $Server
+            $AuthorizationToken = & "$FILE_DIR\Connect-CyberArk.ps1" -Server $Server
         }
     }
     # If AuthorizationToken is given as SecureString string, convert it to plain text.
