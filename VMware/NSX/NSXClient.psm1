@@ -4,22 +4,23 @@
 
 .DESCRIPTION
     Export all files within the same folder as module functions using the following procedure:
-        1. Use the file name without extension as function name
-        2. Read the content of the file
-        3. Add function wrapper lines
-        4. Save as temporary file
-        5. Dot-source it
-        6. Export function as module member
-        7. Delete the temporary file
+        1. Use the file name without extension as function name.
+        2. Read the content of the file.
+        3. Add function wrapper lines.
+        4. Save as temporary file in $env:TEMP.
+        5. Dot-source it.
+        6. Export function as module member.
+        7. Delete the temporary file.
 
     Author:     David Wettstein
-    Version:    v1.0.0
+    Version:    v1.0.1
 
     Changelog:
-                v1.0.0, 2020-01-06, David Wettstein: First implementation.
+                v1.0.1, 2020-03-13, David Wettstein: Use $env:TEMP.
+                v1.0.0, 2018-08-03, David Wettstein: First implementation.
 
 .NOTES
-    Copyright (c) 2019-2020 David Wettstein,
+    Copyright (c) 2018-2020 David Wettstein,
     licensed under the MIT License (https://dwettstein.mit-license.org/)
 
 .LINK
@@ -45,7 +46,7 @@ foreach ($Item in $ChildItems) {
         continue
     }
     $ItemContent = Get-Content -Path $Item.FullName
-    $TempFileName = "$FILE_DIR\$FunctionName.temp.ps1"
+    $TempFileName = "$env:TEMP\$FunctionName.tmp.ps1"
     $TempFileContent = ""
     $TempFileContent += "function $FunctionName {`n"
     foreach ($Line in $ItemContent) {
