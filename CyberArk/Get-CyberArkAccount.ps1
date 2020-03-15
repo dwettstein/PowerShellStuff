@@ -9,9 +9,10 @@
 
     File-Name:  Get-CyberArkAccount.ps1
     Author:     David Wettstein
-    Version:    v1.0.1
+    Version:    v1.1.0
 
     Changelog:
+                v1.1.0, 2020-03-15, David Wettstein: Add more switches, use SecureString as default.
                 v1.0.1, 2020-03-13, David Wettstein: Change AsObj to AsJson.
                 v1.0.0, 2019-07-26, David Wettstein: First implementation.
 
@@ -37,19 +38,25 @@ param (
     [Parameter(Mandatory = $true, Position = 0)]
     [String] $Server
     ,
-    [Parameter(Mandatory = $true, Position = 1)]
+    [Parameter(Mandatory = $true, ValueFromPipeline = $true, Position = 1)]
     [String] $Query
     ,
     [Parameter(Mandatory = $false, Position = 2)]
     [String] $Safe
     ,
     [Parameter(Mandatory = $false, Position = 3)]
-    [Switch] $AsJson
+    [Switch] $AsCredential
     ,
     [Parameter(Mandatory = $false, Position = 4)]
-    [String] $AuthorizationToken = $null
+    [Switch] $AsPlainText
     ,
     [Parameter(Mandatory = $false, Position = 5)]
+    [Switch] $AsJson
+    ,
+    [Parameter(Mandatory = $false, Position = 6)]
+    [String] $AuthorizationToken = $null
+    ,
+    [Parameter(Mandatory = $false, Position = 7)]
     [Switch] $AcceptAllCertificates = $false
 )
 
@@ -116,7 +123,16 @@ try {
         } else {
             $Response = & "$FILE_DIR\Invoke-CyberArkRequest.ps1" -Server $Server -Method "GET" -Endpoint $RetrieveEndpoint -AuthorizationToken $AuthorizationToken
         }
-        Add-Member -InputObject $Account -MemberType NoteProperty -Name "secretValue" -Value $Response.Content.Trim('"') -Force
+        $Password = $Response.Content.Trim('"')
+
+        if ($AsPlainText) {
+            Add-Member -InputObject $Account -MemberType NoteProperty -Name "secretValue" -Value $Password -Force
+        } else {
+            if (-not [String]::IsNullOrEmpty($Password)) {
+                $PasswordSecureString = ConvertTo-SecureString -AsPlainText -Force $Password
+            }
+            Add-Member -InputObject $Account -MemberType NoteProperty -Name "secretValue" -Value (ConvertFrom-SecureString $PasswordSecureString) -Force
+        }
     }
 
     if ($AsJson) {
@@ -125,7 +141,21 @@ try {
         # Replace Unicode chars with UTF8
         $ScriptOut = [Regex]::Unescape($OutputJson)
     } else {
-        $ScriptOut = $Accounts
+        if ($AsCredential) {
+            $ScriptOut = @()
+            foreach ($Account in $Accounts) {
+                try {
+                    $PasswordSecureString = ConvertTo-SecureString -String $Account.secretValue
+                } catch [System.FormatException] {
+                    # Password was likely given as plain text, convert it to SecureString.
+                    $PasswordSecureString = ConvertTo-SecureString -AsPlainText -Force $Account.secretValue
+                }
+                $Cred = New-Object System.Management.Automation.PSCredential ($Account.userName, $PasswordSecureString)
+                $ScriptOut += $Cred
+            }
+        } else {
+            $ScriptOut = $Accounts
+        }
     }
 } catch {
     # Error in $_ or $Error[0] variable.
