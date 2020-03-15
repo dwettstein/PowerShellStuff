@@ -29,7 +29,7 @@
     $PlainTextString = & "$PSScriptRoot\Utils\ConvertFrom-EncryptedString.ps1" -string "Encrypted String" -key "changeme0123456789"
 #>
 [CmdletBinding()]
-[OutputType([SecureString])]
+[OutputType([String])]
 param (
     [Parameter(Mandatory = $true, ValueFromPipeline = $true, Position = 0)]
     [ValidateNotNullOrEmpty()]

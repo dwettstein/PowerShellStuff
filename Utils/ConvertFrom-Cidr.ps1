@@ -29,7 +29,7 @@
     $IpAddress = & "$PSScriptRoot\Utils\ConvertFrom-Cidr.ps1" -CidrAddress "192.168.0.100/24"
 #>
 [CmdletBinding()]
-[OutputType([String])]
+[OutputType([PSOBject])]
 param (
     [Parameter(Mandatory = $true, ValueFromPipeline = $true, Position = 0)]
     [ValidatePattern("^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)/([0-9]|[0-2][0-9]|3[0-2])$")]

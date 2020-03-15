@@ -33,7 +33,7 @@
     $Account = & "$PSScriptRoot\Get-CyberArkAccount.ps1" -Server "example.com" -Query "query params" -AsJson
 #>
 [CmdletBinding()]
-[OutputType([String])]
+[OutputType([PSObject])]
 param (
     [Parameter(Mandatory = $true, Position = 0)]
     [String] $Server

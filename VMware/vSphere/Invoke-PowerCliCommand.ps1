@@ -27,7 +27,7 @@
     $Result = & "$PSScriptRoot\Invoke-PowerCliCommand.ps1" -Server "vcenter.vsphere.local" -Command "Get-VM -Name 'vm_name'" -Username "user" -Password "changeme"
 #>
 [CmdletBinding()]
-[OutputType([String])]
+[OutputType([PSObject])]
 param (
     [Parameter(Mandatory = $true, Position = 0)]
     [String] $Server
