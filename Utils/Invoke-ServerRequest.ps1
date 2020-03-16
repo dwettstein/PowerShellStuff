@@ -56,7 +56,6 @@ param (
     [String] $AuthorizationHeader = "Authorization"
     ,
     [Parameter(Mandatory = $false, Position = 6)]
-    [ValidateNotNullOrEmpty()]
     [String] $AuthorizationToken = $null  # secure string or plain text (not recommended)
     ,
     [Parameter(Mandatory = $false, Position = 7)]
