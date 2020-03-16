@@ -7,6 +7,8 @@
 
     Also have a look at https://github.com/pspete/psPAS for more functionality.
 
+    CyberArk API documentation can be found here: https://docs.cyberark.com/
+
     File-Name:  Get-CyberArkAccount.ps1
     Author:     David Wettstein
     Version:    v1.1.0
@@ -26,6 +28,9 @@
 .LINK
     https://github.com/pspete/psPAS
 
+.LINK
+    https://docs.cyberark.com/
+
 .EXAMPLE
     $Account = & ".\Get-CyberArkAccount.ps1" "example.com" "query params"
 
@@ -36,12 +41,15 @@
 [OutputType([PSObject])]
 param (
     [Parameter(Mandatory = $true, Position = 0)]
+    [ValidateNotNullOrEmpty()]
     [String] $Server
     ,
     [Parameter(Mandatory = $true, ValueFromPipeline = $true, Position = 1)]
+    [ValidateNotNullOrEmpty()]
     [String] $Query
     ,
     [Parameter(Mandatory = $false, Position = 2)]
+    [ValidateNotNullOrEmpty()]
     [String] $Safe
     ,
     [Parameter(Mandatory = $false, Position = 3)]
@@ -99,6 +107,8 @@ Write-Verbose "$($FILE_NAME): CALL."
 #trap { Write-Error $_; exit 1; break; }
 
 try {
+    Add-Type -AssemblyName System.Web
+
     $EncodedQuery = [System.Web.HttpUtility]::UrlEncode($Query)
     $QueryEndpoint = "/PasswordVault/api/Accounts?search=$EncodedQuery"
     if ($Safe) {
@@ -119,11 +129,11 @@ try {
     foreach ($Account in $Accounts) {
         $RetrieveEndpoint = "/PasswordVault/api/Accounts/$($Account.id)/Password/Retrieve"
         if ($AcceptAllCertificates) {
-            $Response = & "$FILE_DIR\Invoke-CyberArkRequest.ps1" -Server $Server -Method "GET" -Endpoint $RetrieveEndpoint -AuthorizationToken $AuthorizationToken -AcceptAllCertificates
+            $RetrieveResponse = & "$FILE_DIR\Invoke-CyberArkRequest.ps1" -Server $Server -Method "POST" -Endpoint $RetrieveEndpoint -AuthorizationToken $AuthorizationToken -AcceptAllCertificates
         } else {
-            $Response = & "$FILE_DIR\Invoke-CyberArkRequest.ps1" -Server $Server -Method "GET" -Endpoint $RetrieveEndpoint -AuthorizationToken $AuthorizationToken
+            $RetrieveResponse = & "$FILE_DIR\Invoke-CyberArkRequest.ps1" -Server $Server -Method "POST" -Endpoint $RetrieveEndpoint -AuthorizationToken $AuthorizationToken
         }
-        $Password = $Response.Content.Trim('"')
+        $Password = $RetrieveResponse.Content.Trim('"')
 
         if ($AsPlainText) {
             Add-Member -InputObject $Account -MemberType NoteProperty -Name "secretValue" -Value $Password -Force
