@@ -29,7 +29,7 @@
     [Xml] $Result = & "$PSScriptRoot\Invoke-ServerRequest.ps1" -Server "example.com" -Endpoint "/api/v1/version" -Method "GET" -MediaType "application/*+xml" -AcceptAllCertificates
 #>
 [CmdletBinding()]
-[OutputType([String])]
+[OutputType([Object])]
 param (
     [Parameter(Mandatory = $true, Position = 0)]
     [ValidateNotNullOrEmpty()]
@@ -170,7 +170,7 @@ try {
         $Response = Invoke-WebRequest -Method $Method -Headers $Headers -Uri $EndpointUrl
     }
 
-    $ScriptOut = "$Response"
+    $ScriptOut = $Response
 } catch {
     # Error in $_ or $Error[0] variable.
     Write-Warning "Exception occurred at line $($_.InvocationInfo.ScriptLineNumber): $($_.Exception.ToString())" -WarningAction Continue
