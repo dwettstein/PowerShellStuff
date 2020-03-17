@@ -146,7 +146,7 @@ try {
     $CredPath = ($PswdDir + "\" + "$Server-$Username.xml")
     $UserCredPath = ($PswdDir + "\" + "$Username.xml")
     $Cred = $null
-    if (-not [String]::IsNullOrEmpty($Password)) {
+    if (-not [String]::IsNullOrEmpty($Username) -and -not [String]::IsNullOrEmpty($Password)) {
         # 1. Try with username and password, if provided.
         try {
             $PasswordSecureString = ConvertTo-SecureString -String $Password

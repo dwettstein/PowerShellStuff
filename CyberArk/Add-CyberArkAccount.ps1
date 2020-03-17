@@ -128,7 +128,6 @@ try {
     } catch {
         # Username was already given as plain text.
     }
-
     $Cred = $null
     if (-not [String]::IsNullOrEmpty($Username) -and -not [String]::IsNullOrEmpty($Password)) {
         # 1. Try with username and password, if provided.
@@ -142,14 +141,14 @@ try {
     } elseif ($Interactive) {
         # 2. If interactive, get credentials from user with a prompt.
         $Cred = Get-Credential -Message $Address -UserName $Username
-        if (-not ($Cred -and -not [String]::IsNullOrEmpty($Cred.GetNetworkCredential().Password))) {
+        if (-not $Cred -or [String]::IsNullOrEmpty($Cred.GetNetworkCredential().Password)) {
             throw "Password is null or empty."
         }
     } else {
         throw "No credentials found. Please use the input parameters or interactive mode."
     }
 
-    $AccountName = "$DeviceType-$PlatformId-$Address-$Username"
+    $AccountName = "$DeviceType-$PlatformId-$Address-$($Cred.UserName)"
     Write-Verbose "Account name will be: $AccountName"
 
     $Body = @{
