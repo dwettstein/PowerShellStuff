@@ -106,7 +106,7 @@ try {
     } else {
         $Response = & "$FILE_DIR\Invoke-CyberArkRequest.ps1" -Server $Server -Method "DELETE" -Endpoint $Endpoint -AuthorizationToken $AuthorizationToken
     }
-    if (-not 200 -le $Response.StatusCode -lt 300 -or $Response.StatusCode -ne 204) {
+    if ($Response.StatusCode -lt 200 -or $Response.StatusCode -ge 300) {
         throw "Failed to invoke $($Endpoint): $($Response.StatusCode) - $($Response.Content)"
     }
     Write-Verbose "Account $AccountId successfully deleted: $($Response.StatusCode)"

@@ -87,7 +87,7 @@ try {
 
     $Uri = "/api/4.0/edges/$EdgeId/dhcp/config/bindings"
     $Response = Invoke-NsxWebRequest -method "GET" -URI $Uri -connection $NsxConnection -WarningAction SilentlyContinue
-    if (-not 200 -le $Response.StatusCode -lt 300) {
+    if ($Response.StatusCode -lt 200 -or $Response.StatusCode -ge 300) {
         throw "Failed to invoke $($Uri): $($Response.StatusCode) - $($Response.Content)"
     }
 
