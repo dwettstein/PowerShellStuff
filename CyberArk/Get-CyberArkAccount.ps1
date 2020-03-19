@@ -11,9 +11,10 @@
 
     File-Name:  Get-CyberArkAccount.ps1
     Author:     David Wettstein
-    Version:    v1.1.0
+    Version:    v1.2.0
 
     Changelog:
+                v1.2.0, 2020-03-19, David Wettstein: Implement get account by id.
                 v1.1.0, 2020-03-15, David Wettstein: Add more switches, use SecureString as default.
                 v1.0.1, 2020-03-13, David Wettstein: Change AsObj to AsJson.
                 v1.0.0, 2019-07-26, David Wettstein: First implementation.
@@ -44,7 +45,7 @@ param (
     [ValidateNotNullOrEmpty()]
     [String] $Server
     ,
-    [Parameter(Mandatory = $true, ValueFromPipeline = $true, Position = 1)]
+    [Parameter(Mandatory = $false, ValueFromPipeline = $true, Position = 1)]
     [ValidateNotNullOrEmpty()]
     [String] $Query
     ,
@@ -53,18 +54,22 @@ param (
     [String] $Safe
     ,
     [Parameter(Mandatory = $false, Position = 3)]
-    [Switch] $AsCredential
+    [ValidateNotNullOrEmpty()]
+    $Account  # Account ID or output from Get-CyberArkAccount
     ,
     [Parameter(Mandatory = $false, Position = 4)]
-    [Switch] $AsPlainText
+    [Switch] $AsCredential
     ,
     [Parameter(Mandatory = $false, Position = 5)]
-    [Switch] $AsJson
+    [Switch] $AsPlainText
     ,
     [Parameter(Mandatory = $false, Position = 6)]
-    [String] $AuthorizationToken = $null
+    [Switch] $AsJson
     ,
     [Parameter(Mandatory = $false, Position = 7)]
+    [String] $AuthorizationToken = $null
+    ,
+    [Parameter(Mandatory = $false, Position = 8)]
     [Switch] $AcceptAllCertificates = $false
 )
 
@@ -107,24 +112,40 @@ Write-Verbose "$($FILE_NAME): CALL."
 #trap { Write-Error $_; exit 1; break; }
 
 try {
-    Add-Type -AssemblyName System.Web
-
-    $EncodedQuery = [System.Web.HttpUtility]::UrlEncode($Query)
-    $QueryEndpoint = "/PasswordVault/api/Accounts?search=$EncodedQuery"
-    if ($Safe) {
-        $EncodedSafe = [System.Web.HttpUtility]::UrlEncode("safename eq $Safe")
-        $QueryEndpoint += "&filter=$EncodedSafe"
-    }
-
-    if ($AcceptAllCertificates) {
-        $Response = & "$FILE_DIR\Invoke-CyberArkRequest.ps1" -Server $Server -Method "GET" -Endpoint $QueryEndpoint -AuthorizationToken $AuthorizationToken -AcceptAllCertificates
+    if (-not [String]::IsNullOrEmpty($Account)) {
+        if ($Account.GetType() -eq [String]) {
+            $AccountId = $Account
+        } else {
+            $AccountId = $Account.id
+        }
+        $Endpoint = "/PasswordVault/api/Accounts/$AccountId"
+        if ($AcceptAllCertificates) {
+            $Response = & "$FILE_DIR\Invoke-CyberArkRequest.ps1" -Server $Server -Method "GET" -Endpoint $Endpoint -AuthorizationToken $AuthorizationToken -AcceptAllCertificates
+        } else {
+            $Response = & "$FILE_DIR\Invoke-CyberArkRequest.ps1" -Server $Server -Method "GET" -Endpoint $Endpoint -AuthorizationToken $AuthorizationToken
+        }
+        Write-Verbose "Account $AccountId successfully found: $($Response.StatusCode)"
+        $ResponseObj = ConvertFrom-Json $Response.Content
+        $Accounts = @()
+        $Accounts += $ResponseObj
     } else {
-        $Response = & "$FILE_DIR\Invoke-CyberArkRequest.ps1" -Server $Server -Method "GET" -Endpoint $QueryEndpoint -AuthorizationToken $AuthorizationToken
-    }
-    $ResponseObj = ConvertFrom-Json $Response.Content
-    Write-Verbose "Found $($ResponseObj.count) account(s) matching the query '$Query'."
+        Add-Type -AssemblyName System.Web
+        $EncodedQuery = [System.Web.HttpUtility]::UrlEncode($Query)
+        $QueryEndpoint = "/PasswordVault/api/Accounts?search=$EncodedQuery"
+        if ($Safe) {
+            $EncodedSafe = [System.Web.HttpUtility]::UrlEncode("safename eq $Safe")
+            $QueryEndpoint += "&filter=$EncodedSafe"
+        }
 
-    $Accounts = $ResponseObj.value
+        if ($AcceptAllCertificates) {
+            $Response = & "$FILE_DIR\Invoke-CyberArkRequest.ps1" -Server $Server -Method "GET" -Endpoint $QueryEndpoint -AuthorizationToken $AuthorizationToken -AcceptAllCertificates
+        } else {
+            $Response = & "$FILE_DIR\Invoke-CyberArkRequest.ps1" -Server $Server -Method "GET" -Endpoint $QueryEndpoint -AuthorizationToken $AuthorizationToken
+        }
+        $ResponseObj = ConvertFrom-Json $Response.Content
+        Write-Verbose "Found $($ResponseObj.count) account(s) matching the query '$Query'."
+        $Accounts = $ResponseObj.value
+    }
 
     foreach ($Account in $Accounts) {
         $RetrieveEndpoint = "/PasswordVault/api/Accounts/$($Account.id)/Password/Retrieve"
