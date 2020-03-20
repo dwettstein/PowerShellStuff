@@ -30,10 +30,13 @@
 param (
     # Param1 help description
     [Parameter(Mandatory = $true, ValueFromPipeline = $true, Position = 0)]
+    [ValidateNotNullOrEmpty()]
+    # [ValidatePattern('.*[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}.*')]
     [String] $Param1
     ,
     # Param2 help description
-    [Parameter(Mandatory = $false, ValueFromPipeline = $true, Position = 1)]
+    [Parameter(Mandatory = $false, Position = 1)]
+    [ValidateSet(0, 1, 2)]
     [Int] $Param2
 )
 
