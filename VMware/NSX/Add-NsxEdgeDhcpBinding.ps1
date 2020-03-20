@@ -10,7 +10,7 @@
     Version:    v1.0.1
 
     Changelog:
-                v1.0.1, 2020-03-13, David Wettstein: Change AsObj to AsJson.
+                v1.0.1, 2020-03-13, David Wettstein: Change AsObj to AsXml.
                 v1.0.0, 2019-08-23, David Wettstein: First implementation.
 
 .NOTES
@@ -74,7 +74,7 @@ param (
     [String] $DhcpOptionBootfile
     ,
     [Parameter(Mandatory = $false, Position = 14)]
-    [Switch] $AsJson
+    [Switch] $AsXml
     ,
     [Parameter(Mandatory = $false, Position = 15)]
     [PSObject] $NsxConnection
@@ -201,7 +201,7 @@ try {
         throw "Failed to invoke $($Uri): $($Response.StatusCode) - $($Response.Content)"
     }
 
-    if ($AsJson) {
+    if ($AsXml) {
         $ScriptOut = $Response.Content
     } else {
         [Xml] $ResponseXml = $Response.Content
