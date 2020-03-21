@@ -1,0 +1,74 @@
+{
+    "variable": {
+        "server": {},
+        "username": {},
+        "password": {},
+        "allow_unverified_ssl": {
+            "default": false
+        }
+    },
+    "provider": {
+        "vsphere": {
+            "vsphere_server": "${var.server}",
+            "user": "${var.username}",
+            "password": "${var.password}",
+            "allow_unverified_ssl": "${var.allow_unverified_ssl}"
+        }
+    },
+    "data": {
+        "vsphere_datacenter": {
+            "dc": {
+                "name": ""
+            }
+        },
+        "vsphere_compute_cluster": {
+            "cluster": {
+                "name": "",
+                "datacenter_id": "${data.vsphere_datacenter.dc.id}"
+            }
+        },
+        "vsphere_datastore": {
+            "datastore": {
+                "name": "",
+                "datacenter_id": "${data.vsphere_datacenter.dc.id}"
+            }
+        },
+        "vsphere_network": {
+            "network": {
+                "name": "",
+                "datacenter_id": "${data.vsphere_datacenter.dc.id}"
+            }
+        },
+        "vsphere_virtual_machine": {
+            "template": {
+                "name": "",
+                "datacenter_id": "${data.vsphere_datacenter.dc.id}"
+            }
+        }
+    },
+    "resource": {
+        "vsphere_virtual_machine": {
+            "vm": {
+                "name": "",
+                "guest_id": "${data.vsphere_virtual_machine.template.guest_id}",
+                "resource_pool_id": "${data.vsphere_compute_cluster.cluster.resource_pool_id}",
+                "datastore_id": "${data.vsphere_datastore.datastore.id}",
+                "folder": "",
+                "network_interface": {
+                    "network_id": "${data.vsphere_network.network.id}"
+                },
+                "disk": {
+                    "label": "disk0",
+                    "unit_number": 0,
+                    "size": "${data.vsphere_virtual_machine.template.disks.0.size}",
+                    "eagerly_scrub": "${data.vsphere_virtual_machine.template.disks.0.eagerly_scrub}",
+                    "thin_provisioned": "${data.vsphere_virtual_machine.template.disks.0.thin_provisioned}"
+                },
+                "clone": {
+                    "template_uuid": "${data.vsphere_virtual_machine.template.id}"
+                },
+                "wait_for_guest_net_routable": false
+            }
+        }
+    }
+}

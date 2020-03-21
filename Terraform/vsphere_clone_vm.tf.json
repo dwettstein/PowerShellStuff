@@ -1,0 +1,107 @@
+{
+    "variable": {
+        "server": {},
+        "username": {},
+        "password": {},
+        "allow_unverified_ssl": {
+            "default": false
+        },
+        "datacenter_name": {},
+        "cluster_name": {},
+        "host_name": {},
+        "datastore_name": {},
+        "network_name": {},
+        "folder_name": {
+            "default": "Terraform"
+        },
+        "vm_template_name": {},
+        "vm_name": {},
+        "vm_cpu": {
+            "default": 1
+        },
+        "vm_cpu_cores_per_socket": {
+            "default": 1
+        },
+        "vm_memory_mb": {
+            "default": 256
+        },
+        "number_of_vms": {
+            "default": 1
+        }
+    },
+    "provider": {
+        "vsphere": {
+            "vsphere_server": "${var.server}",
+            "user": "${var.username}",
+            "password": "${var.password}",
+            "allow_unverified_ssl": "${var.allow_unverified_ssl}"
+        }
+    },
+    "data": {
+        "vsphere_datacenter": {
+            "dc": {
+                "name": "${var.datacenter_name}"
+            }
+        },
+        "vsphere_compute_cluster": {
+            "cluster": {
+                "name": "${var.cluster_name}",
+                "datacenter_id": "${data.vsphere_datacenter.dc.id}"
+            }
+        },
+        "vsphere_host": {
+            "host": {
+                "name": "${var.host_name}",
+                "datacenter_id": "${data.vsphere_datacenter.dc.id}"
+            }
+        },
+        "vsphere_datastore": {
+            "datastore": {
+                "name": "${var.datastore_name}",
+                "datacenter_id": "${data.vsphere_datacenter.dc.id}"
+            }
+        },
+        "vsphere_network": {
+            "network": {
+                "name": "${var.network_name}",
+                "datacenter_id": "${data.vsphere_datacenter.dc.id}"
+            }
+        },
+        "vsphere_virtual_machine": {
+            "template": {
+                "name": "${var.vm_template_name}",
+                "datacenter_id": "${data.vsphere_datacenter.dc.id}"
+            }
+        }
+    },
+    "resource": {
+        "vsphere_virtual_machine": {
+            "vm": {
+                "count": "${var.number_of_vms}",
+                "name": "${var.vm_name} ${count.index + 1}",
+                "guest_id": "${data.vsphere_virtual_machine.template.guest_id}",
+                "resource_pool_id": "${data.vsphere_compute_cluster.cluster.resource_pool_id}",
+                "host_system_id": "${data.vsphere_host.host.id}",
+                "datastore_id": "${data.vsphere_datastore.datastore.id}",
+                "folder": "${var.folder_name}",
+                "network_interface": {
+                    "network_id": "${data.vsphere_network.network.id}"
+                },
+                "disk": {
+                    "label": "disk0",
+                    "unit_number": 0,
+                    "size": "${data.vsphere_virtual_machine.template.disks.0.size}",
+                    "eagerly_scrub": "${data.vsphere_virtual_machine.template.disks.0.eagerly_scrub}",
+                    "thin_provisioned": "${data.vsphere_virtual_machine.template.disks.0.thin_provisioned}"
+                },
+                "clone": {
+                    "template_uuid": "${data.vsphere_virtual_machine.template.id}"
+                },
+                "num_cpus": "${var.vm_cpu}",
+                "num_cores_per_socket": "${var.vm_cpu_cores_per_socket}",
+                "memory": "${var.vm_memory_mb}",
+                "wait_for_guest_net_routable": false
+            }
+        }
+    }
+}

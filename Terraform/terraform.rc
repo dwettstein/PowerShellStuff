@@ -1,0 +1,26 @@
+# Terraform CLI Configuration File
+# See also: https://www.terraform.io/docs/commands/cli-config.html
+#
+# On Windows, the file must be named named `terraform.rc` and it has to be placed in the relevant user's `$env:APPDATA` directory.
+# On all other systems, the file must be named `.terraformrc` and placed directly in the relevant user's home directory.
+#
+# The location of the file can also be specified using the `TF_CLI_CONFIG_FILE` environment variable.
+# See also: https://www.terraform.io/docs/commands/environment-variables.html
+#
+# Plugin locations:
+# See also: https://www.terraform.io/docs/extend/how-terraform-works.html#plugin-locations
+# - `.`: For convenience during plugin development.
+# - Location of the terraform binary (/usr/local/bin, for example.)
+# - `terraform.d/plugins/<OS>_<ARCH>`: For checking custom providers into a configuration's VCS repository (not recommended).
+# - `.terraform/plugins/<OS>_<ARCH>`: Automatically downloaded providers.
+# - `$HOME/.terraform.d/plugins/<OS>_<ARCH>` or `%APPDATA%\terraform.d\plugins\<OS>_<ARCH>`: The user plugins directory.
+#
+# If Terraform `init` is run with the `-plugin-dir=<PATH>` option, it overrides the default plugin locations and searches only the specified path.
+
+plugin_cache_dir = "$HOME/.terraform.d/plugin-cache"
+# Can also be set as environment variable `TF_PLUGIN_CACHE_DIR`:
+# export TF_PLUGIN_CACHE_DIR="$HOME/.terraform.d/plugin-cache"
+
+disable_checkpoint = true
+# Can also be set as environment variable `CHECKPOINT_DISABLE`:
+# export CHECKPOINT_DISABLE="true"
