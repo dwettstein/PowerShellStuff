@@ -15,9 +15,10 @@
 
     File-Name:  Connect-VCloud.ps1
     Author:     David Wettstein
-    Version:    v1.1.3
+    Version:    v1.2.0
 
     Changelog:
+                v1.2.0, 2020-04-06, David Wettstein: Return a secure string by default.
                 v1.1.3, 2020-03-12, David Wettstein: Refactor and improve credential handling.
                 v1.1.2, 2019-12-17, David Wettstein: Improve parameter validation.
                 v1.1.1, 2019-12-13, David Wettstein: Improve credential handling.
@@ -50,24 +51,27 @@ param (
     ,
     [Parameter(Mandatory = $false, Position = 2)]
     [ValidateNotNullOrEmpty()]
-    [String] $Username = "${env:USERNAME}"  # secure string or plain text (not recommended)
+    [String] $APIVersion = "31.0"
     ,
     [Parameter(Mandatory = $false, Position = 3)]
-    [String] $Password = $null  # secure string or plain text (not recommended)
+    [Switch] $AsPlainText = $false
     ,
     [Parameter(Mandatory = $false, Position = 4)]
-    [Switch] $Interactive
+    [ValidateNotNullOrEmpty()]
+    [String] $Username = "${env:USERNAME}"  # secure string or plain text (not recommended)
     ,
     [Parameter(Mandatory = $false, Position = 5)]
-    [ValidateNotNullOrEmpty()]
-    [String] $PswdDir = "$HOME\.pscredentials"  # $HOME for Local System Account: C:\Windows\System32\config\systemprofile
+    [String] $Password = $null  # secure string or plain text (not recommended)
     ,
     [Parameter(Mandatory = $false, Position = 6)]
-    [Switch] $AcceptAllCertificates = $false
+    [Switch] $Interactive
     ,
     [Parameter(Mandatory = $false, Position = 7)]
     [ValidateNotNullOrEmpty()]
-    [String] $APIVersion = "31.0"
+    [String] $PswdDir = "$HOME\.pscredentials"  # $HOME for Local System Account: C:\Windows\System32\config\systemprofile
+    ,
+    [Parameter(Mandatory = $false, Position = 8)]
+    [Switch] $AcceptAllCertificates = $false
 )
 
 $ErrorActionPreference = "Stop"
@@ -198,8 +202,13 @@ try {
     }
 
     $Response = Invoke-WebRequest -Method Post -Headers $Headers -Uri $EndpointUrl
+    $AuthorizationToken = $Response.Headers.'x-vcloud-authorization'
 
-    $ScriptOut = $Response.Headers.'x-vcloud-authorization'
+    if ($AsPlainText) {
+        $ScriptOut = $AuthorizationToken
+    } else {
+        $ScriptOut = (ConvertTo-SecureString -AsPlainText -Force $AuthorizationToken | ConvertFrom-SecureString)
+    }
 } catch {
     # Error in $_ or $Error[0] variable.
     Write-Warning "Exception occurred at line $($_.InvocationInfo.ScriptLineNumber): $($_.Exception.ToString())" -WarningAction Continue

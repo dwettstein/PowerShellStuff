@@ -74,7 +74,7 @@ param (
     ,
     [Parameter(Mandatory = $false, Position = 9)]
     [ValidateNotNullOrEmpty()]
-    [String] $AuthorizationToken = $null
+    [String] $AuthorizationToken = $null  # secure string or plain text (not recommended)
     ,
     [Parameter(Mandatory = $false, Position = 10)]
     [Switch] $AcceptAllCertificates = $false

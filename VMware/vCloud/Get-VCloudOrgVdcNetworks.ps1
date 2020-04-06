@@ -36,7 +36,7 @@ param (
     [Switch] $IncludeShared = $false
     ,
     [Parameter(Mandatory = $false, Position = 3)]
-    [String] $AuthorizationToken = $null
+    [String] $AuthorizationToken = $null  # secure string or plain text (not recommended)
     ,
     [Parameter(Mandatory = $false, Position = 4)]
     [Switch] $AcceptAllCertificates = $false

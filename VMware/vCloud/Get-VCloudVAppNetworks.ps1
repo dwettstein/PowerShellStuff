@@ -36,7 +36,7 @@ param (
     $OrgVdcNetworks = $null
     ,
     [Parameter(Mandatory = $false, Position = 2)]
-    [String] $AuthorizationToken = $null
+    [String] $AuthorizationToken = $null  # secure string or plain text (not recommended)
     ,
     [Parameter(Mandatory = $false, Position = 3)]
     [Switch] $AcceptAllCertificates = $false

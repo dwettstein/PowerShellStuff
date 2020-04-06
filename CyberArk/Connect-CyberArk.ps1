@@ -17,9 +17,10 @@
 
     File-Name:  Connect-CyberArk.ps1
     Author:     David Wettstein
-    Version:    v1.0.3
+    Version:    v1.1.0
 
     Changelog:
+                v1.1.0, 2020-04-06, David Wettstein: Return a secure string by default.
                 v1.0.3, 2020-03-12, David Wettstein: Refactor and improve credential handling.
                 v1.0.2, 2019-12-17, David Wettstein: Improve parameter validation.
                 v1.0.1, 2019-12-13, David Wettstein: Improve credential handling.
@@ -50,20 +51,23 @@ param (
     [String] $Server
     ,
     [Parameter(Mandatory = $false, Position = 1)]
+    [Switch] $AsPlainText = $false
+    ,
+    [Parameter(Mandatory = $false, Position = 2)]
     [ValidateNotNullOrEmpty()]
     [String] $Username = "${env:USERNAME}"  # secure string or plain text (not recommended)
     ,
-    [Parameter(Mandatory = $false, Position = 2)]
+    [Parameter(Mandatory = $false, Position = 3)]
     [String] $Password = $null  # secure string or plain text (not recommended)
     ,
-    [Parameter(Mandatory = $false, Position = 3)]
+    [Parameter(Mandatory = $false, Position = 4)]
     [Switch] $Interactive
     ,
-    [Parameter(Mandatory = $false, Position = 4)]
+    [Parameter(Mandatory = $false, Position = 5)]
     [ValidateNotNullOrEmpty()]
     [String] $PswdDir = "$HOME\.pscredentials"  # $HOME for Local System Account: C:\Windows\System32\config\systemprofile
     ,
-    [Parameter(Mandatory = $false, Position = 5)]
+    [Parameter(Mandatory = $false, Position = 6)]
     [Switch] $AcceptAllCertificates = $false
 )
 
@@ -197,8 +201,13 @@ try {
     }
 
     $Response = Invoke-WebRequest -Method Post -Headers $Headers -Body (ConvertTo-Json $Body) -Uri $EndpointUrl
+    $AuthorizationToken = $Response.Content.Trim('"')
 
-    $ScriptOut = $Response.Content.Trim('"')
+    if ($AsPlainText) {
+        $ScriptOut = $AuthorizationToken
+    } else {
+        $ScriptOut = (ConvertTo-SecureString -AsPlainText -Force $AuthorizationToken | ConvertFrom-SecureString)
+    }
 } catch {
     # Error in $_ or $Error[0] variable.
     Write-Warning "Exception occurred at line $($_.InvocationInfo.ScriptLineNumber): $($_.Exception.ToString())" -WarningAction Continue

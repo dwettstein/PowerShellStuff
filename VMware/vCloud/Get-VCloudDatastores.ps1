@@ -29,7 +29,7 @@ param (
     [String] $Server
     ,
     [Parameter(Mandatory = $false, Position = 1)]
-    [String] $AuthorizationToken = $null
+    [String] $AuthorizationToken = $null  # secure string or plain text (not recommended)
     ,
     [Parameter(Mandatory = $false, Position = 2)]
     [Switch] $AcceptAllCertificates = $false
