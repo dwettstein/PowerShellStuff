@@ -13,9 +13,10 @@
         7. Delete the temporary file.
 
     Author:     David Wettstein
-    Version:    v1.0.1
+    Version:    v1.1.0
 
     Changelog:
+                v1.1.0, 2020-04-07, David Wettstein: Load module config from XML file.
                 v1.0.1, 2020-03-13, David Wettstein: Use $env:TEMP.
                 v1.0.0, 2018-08-03, David Wettstein: First implementation.
 
@@ -60,3 +61,19 @@ foreach ($Item in $ChildItems) {
     Export-ModuleMember -Function $FunctionName
     Remove-Item -Path $TempFileName
 }
+
+# Load module config from an XML file and export it under the same variable name as in PrivateData section of *.psd1 file.
+# NOTE: $MyInvocation.MyCommand.Module.PrivateData is not yet accessible here.
+# See also: https://stackoverflow.com/questions/22269275/accessing-privatedata-during-import-module
+[String] $ModuleName = (Get-Item $PSCommandPath).BaseName
+[String] $ModuleConfigVariableName = $ModuleName.Replace('.', '_')
+[String] $ModuleConfigPath = Join-Path -Path $PSScriptRoot -ChildPath "$ModuleName.xml"
+
+if (Test-Path -Path $ModuleConfigPath) {
+    if (-not (Test-Path Variable:\$($ModuleConfigVariableName))) {  # Don't overwrite the variable if it already exists.
+        Write-Verbose "Loading module configuration file from path: $ModuleConfigPath"
+        Set-Variable -Name $ModuleConfigVariableName -Value (Import-Clixml -Path $ModuleConfigPath)
+    }
+}
+
+Export-ModuleMember -Variable $ModuleConfigVariableName
