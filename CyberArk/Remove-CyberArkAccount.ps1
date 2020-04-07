@@ -41,7 +41,7 @@
 [CmdletBinding()]
 [OutputType([String])]
 param (
-    [Parameter(Mandatory = $true, Position = 0)]
+    [Parameter(Mandatory = $false, Position = 0)]
     [ValidateNotNullOrEmpty()]
     [String] $Server
     ,
@@ -49,10 +49,10 @@ param (
     [ValidateNotNullOrEmpty()]
     $Account  # Account ID or output from Get-CyberArkAccount
     ,
-    [Parameter(Mandatory = $false, Position = 3)]
+    [Parameter(Mandatory = $false, Position = 2)]
     [String] $AuthorizationToken = $null  # secure string or plain text (not recommended)
     ,
-    [Parameter(Mandatory = $false, Position = 4)]
+    [Parameter(Mandatory = $false, Position = 3)]
     [Switch] $AcceptAllCertificates = $false
 )
 

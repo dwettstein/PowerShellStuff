@@ -20,7 +20,8 @@
     Version:    v1.1.0
 
     Changelog:
-                v1.1.0, 2020-04-06, David Wettstein: Return a secure string by default.
+                v1.1.0, 2020-04-07, David Wettstein: Sync input variables with cache.
+                v1.0.4, 2020-04-06, David Wettstein: Return a secure string by default.
                 v1.0.3, 2020-03-12, David Wettstein: Refactor and improve credential handling.
                 v1.0.2, 2019-12-17, David Wettstein: Improve parameter validation.
                 v1.0.1, 2019-12-13, David Wettstein: Improve credential handling.
@@ -46,7 +47,7 @@
 [CmdletBinding()]
 [OutputType([String])]
 param (
-    [Parameter(Mandatory = $true, ValueFromPipeline = $true, Position = 0)]
+    [Parameter(Mandatory = $false, ValueFromPipeline = $true, Position = 0)]
     [ValidateNotNullOrEmpty()]
     [String] $Server
     ,
@@ -104,6 +105,45 @@ $ScriptOut = ""
 
 Write-Verbose "$($FILE_NAME): CALL."
 
+if ($MyInvocation.MyCommand.Module) {
+    $ModulePrivateData = $MyInvocation.MyCommand.Module.PrivateData
+    Write-Verbose "$($ModulePrivateData.GetEnumerator() | ForEach-Object { "$($_.Name)=$($_.Value)" })"
+    if ($ModulePrivateData.ModuleConfig) {
+        $ModuleConfig = Get-Variable -Name $ModulePrivateData.ModuleConfig -ValueOnly
+        Write-Verbose "$($ModuleConfig.GetEnumerator() | ForEach-Object { "$($_.Name)=$($_.Value)" })"
+    }
+}
+
+function Sync-VariableCache ($VarName, $VarValue, [String] $VariableCachePrefix = "", [Switch] $IsMandatory = $false) {
+    if (-not (Test-Path Variable:\$($VariableCachePrefix + "VariableCache"))) {  # Don't overwrite the variable if it already exists.
+        Set-Variable -Name ($VariableCachePrefix + "VariableCache") -Value @{} -Scope "Global"
+    }
+    $VariableCache = Get-Variable -Name ($VariableCachePrefix + "VariableCache") -ValueOnly
+
+    if ([String]::IsNullOrEmpty($VarValue)) {
+        Write-Verbose "No $VarName given. Try to use value from cache or module config. Mandatory variable? $IsMandatory"
+        if (-not [String]::IsNullOrEmpty($VariableCache."$VarName")) {
+            $VarValue = $VariableCache."$VarName"
+            Write-Verbose "Found value in cache: $VarName = $VarValue"
+        } elseif (-not [String]::IsNullOrEmpty($ModuleConfig."$VarName")) {
+            $VarValue = $ModuleConfig."$VarName"
+            Write-Verbose "Found value in module config: $VarName = $VarValue"
+        } else {
+            if ($IsMandatory) {
+                throw "No $VarName given. Please use the input parameters or the module config."
+            }
+        }
+    } else {
+        Write-Verbose "Update cache with variable: $VarName = $VarValue."
+        if ([String]::IsNullOrEmpty($VariableCache."$VarName")) {
+            $null = Add-Member -InputObject $VariableCache -MemberType NoteProperty -Name $VarName -Value $VarValue
+        } else {
+            $VariableCache."$VarName" = $VarValue
+        }
+    }
+    $VarValue
+}
+
 function Approve-AllCertificates {
     $CSSource = @'
 using System.Net;
@@ -131,6 +171,9 @@ public class ServerCertificate {
 #trap { Write-Error $_; exit 1; break; }
 
 try {
+    $Server = Sync-VariableCache "Server" $Server "CyberArkClient" -IsMandatory
+    $AcceptAllCertificates = Sync-VariableCache "AcceptAllCertificates" $AcceptAllCertificate "CyberArkClient"
+
     if ($AcceptAllCertificates) {
         Approve-AllCertificates
     }
@@ -202,11 +245,17 @@ try {
 
     $Response = Invoke-WebRequest -Method Post -Headers $Headers -Body (ConvertTo-Json $Body) -Uri $EndpointUrl
     $AuthorizationToken = $Response.Content.Trim('"')
+    $AuthorizationTokenSecureString = (ConvertTo-SecureString -AsPlainText -Force $AuthorizationToken | ConvertFrom-SecureString)
+
+    $null = Sync-VariableCache "AuthorizationToken" $AuthorizationTokenSecureString "CyberArkClient"
+    if ([String]::IsNullOrEmpty($ModuleConfig.AuthorizationToken)) {
+        $ModuleConfig.AuthorizationToken = $AuthorizationTokenSecureString
+    }
 
     if ($AsPlainText) {
         $ScriptOut = $AuthorizationToken
     } else {
-        $ScriptOut = (ConvertTo-SecureString -AsPlainText -Force $AuthorizationToken | ConvertFrom-SecureString)
+        $ScriptOut = $AuthorizationTokenSecureString
     }
 } catch {
     # Error in $_ or $Error[0] variable.
