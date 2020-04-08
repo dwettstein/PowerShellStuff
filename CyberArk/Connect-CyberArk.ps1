@@ -136,7 +136,7 @@ function Sync-VariableCache ($VarName, $VarValue, [String] $VariableCachePrefix 
     } else {
         Write-Verbose "Update cache with variable: $VarName = $VarValue."
         if ([String]::IsNullOrEmpty($VariableCache."$VarName")) {
-            $null = Add-Member -InputObject $VariableCache -MemberType NoteProperty -Name $VarName -Value $VarValue
+            $null = Add-Member -InputObject $VariableCache -MemberType NoteProperty -Name $VarName -Value $VarValue -Force
         } else {
             $VariableCache."$VarName" = $VarValue
         }
@@ -248,8 +248,8 @@ try {
     $AuthorizationTokenSecureString = (ConvertTo-SecureString -AsPlainText -Force $AuthorizationToken | ConvertFrom-SecureString)
 
     $null = Sync-VariableCache "AuthorizationToken" $AuthorizationTokenSecureString "CyberArkClient"
-    if ([String]::IsNullOrEmpty($ModuleConfig.AuthorizationToken)) {
-        $ModuleConfig.AuthorizationToken = $AuthorizationTokenSecureString
+    if ($ModuleConfig -and [String]::IsNullOrEmpty($ModuleConfig.AuthorizationToken)) {
+        $null = Add-Member -InputObject $ModuleConfig -MemberType NoteProperty -Name "AuthorizationToken" -Value $AuthorizationTokenSecureString -Force
     }
 
     if ($AsPlainText) {

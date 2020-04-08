@@ -89,7 +89,7 @@ if ([String]::IsNullOrEmpty($VarValue)) {
 } else {
     Write-Verbose "Update cache with variable: $VarName = $VarValue."
     if ([String]::IsNullOrEmpty($VariableCache."$VarName")) {
-        $null = Add-Member -InputObject $VariableCache -MemberType NoteProperty -Name $VarName -Value $VarValue
+        $null = Add-Member -InputObject $VariableCache -MemberType NoteProperty -Name $VarName -Value $VarValue -Force
     } else {
         $VariableCache."$VarName" = $VarValue
     }
