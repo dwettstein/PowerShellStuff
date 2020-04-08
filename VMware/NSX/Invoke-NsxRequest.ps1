@@ -65,6 +65,9 @@ param (
     ,
     [Parameter(Mandatory = $false, Position = 8)]
     [Switch] $AcceptAllCertificates = $false
+    ,
+    [Parameter(Mandatory = $false, Position = 9)]
+    [Object] $NsxConnection
 )
 
 $ErrorActionPreference = "Stop"
