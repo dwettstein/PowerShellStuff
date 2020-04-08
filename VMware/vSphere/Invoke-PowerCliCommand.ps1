@@ -7,9 +7,10 @@
 
     File-Name:  Invoke-PowerCliCommand.ps1
     Author:     David Wettstein
-    Version:    v1.0.1
+    Version:    v1.1.0
 
     Changelog:
+                v1.1.0, 2020-04-07, David Wettstein: Sync input variables with cache.
                 v1.0.1, 2020-03-13, David Wettstein: Change AsObj to AsJson.
                 v1.0.0, 2019-03-10, David Wettstein: First implementation.
 
@@ -27,21 +28,27 @@
     $Result = & "$PSScriptRoot\Invoke-PowerCliCommand.ps1" -Server "vcenter.vsphere.local" -Command "Get-VM -Name 'vm_name'" -Username "user" -Password "changeme"
 #>
 [CmdletBinding()]
-[OutputType([PSObject])]
+[OutputType([Object])]
 param (
-    [Parameter(Mandatory = $true, Position = 0)]
+    [Parameter(Mandatory = $false, Position = 0)]
     [String] $Server
     ,
-    [Parameter(Mandatory = $true, Position = 1)]
+    [Parameter(Mandatory = $true, ValueFromPipeline = $true, Position = 1)]
     [String] $Command
     ,
     [Parameter(Mandatory = $false, Position = 2)]
     [Switch] $AsJson
     ,
     [Parameter(Mandatory = $false, Position = 3)]
-    [String] $Username  # secure string or plain text (not recommended)
+    [Object] $VCenterConnection
     ,
     [Parameter(Mandatory = $false, Position = 4)]
+    [Switch] $DisconnectVCenter
+    ,
+    [Parameter(Mandatory = $false, Position = 5)]
+    [String] $Username  # secure string or plain text (not recommended)
+    ,
+    [Parameter(Mandatory = $false, Position = 6)]
     [String] $Password  # secure string or plain text (not recommended)
 )
 
@@ -80,12 +87,54 @@ $ScriptOut = ""
 
 Write-Verbose "$($FILE_NAME): CALL."
 
+if ($MyInvocation.MyCommand.Module) {
+    $ModulePrivateData = $MyInvocation.MyCommand.Module.PrivateData
+    Write-Verbose "$($ModulePrivateData.GetEnumerator() | ForEach-Object { "$($_.Name)=$($_.Value)" })"
+    if ($ModulePrivateData.ModuleConfig) {
+        $ModuleConfig = Get-Variable -Name $ModulePrivateData.ModuleConfig -ValueOnly
+        Write-Verbose "$($ModuleConfig.GetEnumerator() | ForEach-Object { "$($_.Name)=$($_.Value)" })"
+    }
+}
+
+function Sync-VariableCache ($VarName, $VarValue, [String] $VariableCachePrefix = "", [Switch] $IsMandatory = $false) {
+    if (-not (Test-Path Variable:\$($VariableCachePrefix + "VariableCache"))) {  # Don't overwrite the variable if it already exists.
+        Set-Variable -Name ($VariableCachePrefix + "VariableCache") -Value @{} -Scope "Global"
+    }
+    $VariableCache = Get-Variable -Name ($VariableCachePrefix + "VariableCache") -ValueOnly
+
+    if ([String]::IsNullOrEmpty($VarValue)) {
+        Write-Verbose "No $VarName given. Try to use value from cache or module config. Mandatory variable? $IsMandatory"
+        if (-not [String]::IsNullOrEmpty($VariableCache."$VarName")) {
+            $VarValue = $VariableCache."$VarName"
+            Write-Verbose "Found value in cache: $VarName = $VarValue"
+        } elseif (-not [String]::IsNullOrEmpty($ModuleConfig."$VarName")) {
+            $VarValue = $ModuleConfig."$VarName"
+            Write-Verbose "Found value in module config: $VarName = $VarValue"
+        } else {
+            if ($IsMandatory) {
+                throw "No $VarName given. Please use the input parameters or the module config."
+            }
+        }
+    } else {
+        Write-Verbose "Update cache with variable: $VarName = $VarValue."
+        if ([String]::IsNullOrEmpty($VariableCache."$VarName")) {
+            $null = Add-Member -InputObject $VariableCache -MemberType NoteProperty -Name $VarName -Value $VarValue -Force
+        } else {
+            $VariableCache."$VarName" = $VarValue
+        }
+    }
+    $VarValue
+}
+
 #===============================================================================
 # Main
 #===============================================================================
 #trap { Write-Error $_; exit 1; break; }
 
 try {
+    $Server = Sync-VariableCache "Server" $Server "VSphereClient" -IsMandatory
+    $VCenterConnection = Sync-VariableCache "VCenterConnection" $VCenterConnection "VSphereClient"
+
     # First check if given command is from PowerCLI module.
     $Cmdlet = $Command.Split(' ')[0]
     $CmdletModule = (Get-Command $Cmdlet).ModuleName
@@ -94,8 +143,11 @@ try {
         throw "Only cmdlets from the following modules are allowed to be invoked: $($Modules -join ',')"
     }
 
-    $VCenterConnection = & "$FILE_DIR\Connect-VCenter.ps1" -Server $Server -Username $Username -Password $Password
+    if (-not $VCenterConnection) {
+        $VCenterConnection = & "$FILE_DIR\Connect-VCenter.ps1" -Server $Server -Username $Username -Password $Password
+    }
 
+    Write-Verbose "Execute command: $Command"
     $CommandResult = Invoke-Expression -Command $Command
     Write-Verbose "$CommandResult"
 
@@ -127,7 +179,7 @@ try {
     $ErrorOut = "$($_.Exception.Message)"
     $ExitCode = 1
 } finally {
-    if ($null -ne $VCenterConnection) {
+    if ($DisconnectVCenter -and $VCenterConnection) {
         $null = Disconnect-VIServer -Server $VCenterConnection -Confirm:$false
     }
 
