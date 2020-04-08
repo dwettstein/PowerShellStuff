@@ -135,7 +135,7 @@ try {
     }
 
     $BaseUrl = "${Protocol}://$Server"
-    $EndpointUrl = "${BaseUrl}${endpoint}"
+    $EndpointUrl = "${BaseUrl}${Endpoint}"
 
     $Headers = @{
         "Accept" = "$MediaType;version=$APIVersion"
