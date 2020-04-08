@@ -7,9 +7,10 @@
 
     File-Name:  Add-NsxEdgeDhcpBinding.ps1
     Author:     David Wettstein
-    Version:    v1.0.1
+    Version:    v1.0.2
 
     Changelog:
+                v1.0.2, 2020-04-08, David Wettstein: Use helper Invoke-NsxRequest.
                 v1.0.1, 2020-03-13, David Wettstein: Change AsObj to AsXml.
                 v1.0.0, 2019-08-23, David Wettstein: First implementation.
 
@@ -24,9 +25,10 @@
     Example of how to use this cmdlet
 #>
 [CmdletBinding()]
-[OutputType([PSObject])]
+[OutputType([Object])]
 param (
-    [Parameter(Mandatory = $true, Position = 0)]
+    [Parameter(Mandatory = $false, Position = 0)]
+    [ValidateNotNullOrEmpty()]
     [String] $Server
     ,
     [Parameter(Mandatory = $true, Position = 1)]
@@ -38,6 +40,7 @@ param (
     [String] $MacAddress
     ,
     [Parameter(Mandatory = $true, Position = 3)]
+    [ValidateNotNullOrEmpty()]
     [String] $Hostname
     ,
     [Parameter(Mandatory = $true, Position = 4)]
@@ -77,7 +80,7 @@ param (
     [Switch] $AsXml
     ,
     [Parameter(Mandatory = $false, Position = 15)]
-    [PSObject] $NsxConnection
+    [Object] $NsxConnection
 )
 
 $ErrorActionPreference = "Stop"
@@ -89,9 +92,7 @@ $private:OFS = ","
 # Initialization and Functions
 #===============================================================================
 # Make sure the necessary modules are loaded.
-$Modules = @(
-    "VMware.VimAutomation.Core", "PowerNSX"
-)
+$Modules = @()
 foreach ($Module in $Modules) {
     if (Get-Module | Where-Object { $_.Name -eq $Module }) {
         # Module already imported. Do nothing.
@@ -121,10 +122,6 @@ Write-Verbose "$($FILE_NAME): CALL."
 #trap { Write-Error $_; exit 1; break; }
 
 try {
-    if (-not $NsxConnection) {
-        $NsxConnection = & "$FILE_DIR\Connect-Nsx.ps1" -Server $Server
-    }
-
     # Template for request body
     [Xml] $Body = @"
 <staticBinding>
@@ -195,10 +192,10 @@ try {
     }
 
     # Invoke API with this body
-    $Uri = "/api/4.0/edges/$EdgeId/dhcp/config/bindings"
-    $Response = Invoke-NsxWebRequest -method "POST" -URI $Uri -body $Body.OuterXml -connection $NsxConnection -WarningAction SilentlyContinue
+    $Endpoint = "/api/4.0/edges/$EdgeId/dhcp/config/bindings"
+    $Response = & "$FILE_DIR\Invoke-NsxRequest.ps1" -Server $Server -Method "POST" -Endpoint $Endpoint -Body $Body.OuterXml -NsxConnection $NsxConnection
     if ($Response.StatusCode -lt 200 -or $Response.StatusCode -ge 300) {
-        throw "Failed to invoke $($Uri): $($Response.StatusCode) - $($Response.Content)"
+        throw "Failed to invoke $($Endpoint): $($Response.StatusCode) - $($Response.Content)"
     }
 
     if ($AsXml) {

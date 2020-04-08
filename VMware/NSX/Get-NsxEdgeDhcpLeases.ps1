@@ -7,9 +7,10 @@
 
     File-Name:  Get-NsxEdgeDhcpLeases.ps1
     Author:     David Wettstein
-    Version:    v1.0.1
+    Version:    v1.0.2
 
     Changelog:
+                v1.0.2, 2020-04-08, David Wettstein: Use helper Invoke-NsxRequest.
                 v1.0.1, 2020-03-13, David Wettstein: Change AsObj to AsXml.
                 v1.0.0, 2019-08-23, David Wettstein: First implementation.
 
@@ -24,12 +25,13 @@
     Example of how to use this cmdlet
 #>
 [CmdletBinding()]
-[OutputType([PSObject])]
+[OutputType([Object])]
 param (
-    [Parameter(Mandatory = $true, Position = 0)]
+    [Parameter(Mandatory = $false, Position = 0)]
+    [ValidateNotNullOrEmpty()]
     [String] $Server
     ,
-    [Parameter(Mandatory = $true, Position = 1)]
+    [Parameter(Mandatory = $true, ValueFromPipeline = $true, Position = 1)]
     [ValidatePattern("^edge-\d+$")]
     [String] $EdgeId
     ,
@@ -37,7 +39,7 @@ param (
     [Switch] $AsXml
     ,
     [Parameter(Mandatory = $false, Position = 3)]
-    [PSObject] $NsxConnection
+    [Object] $NsxConnection
 )
 
 $ErrorActionPreference = "Stop"
@@ -49,9 +51,7 @@ $private:OFS = ","
 # Initialization and Functions
 #===============================================================================
 # Make sure the necessary modules are loaded.
-$Modules = @(
-    "VMware.VimAutomation.Core", "PowerNSX"
-)
+$Modules = @()
 foreach ($Module in $Modules) {
     if (Get-Module | Where-Object { $_.Name -eq $Module }) {
         # Module already imported. Do nothing.
@@ -81,14 +81,10 @@ Write-Verbose "$($FILE_NAME): CALL."
 #trap { Write-Error $_; exit 1; break; }
 
 try {
-    if (-not $NsxConnection) {
-        $NsxConnection = & "$FILE_DIR\Connect-Nsx.ps1" -Server $Server
-    }
-
-    $Uri = "/api/4.0/edges/$EdgeId/dhcp/leaseInfo"
-    $Response = Invoke-NsxWebRequest -method "GET" -URI $Uri -connection $NsxConnection -WarningAction SilentlyContinue
+    $Endpoint = "/api/4.0/edges/$EdgeId/dhcp/leaseInfo"
+    $Response = & "$FILE_DIR\Invoke-NsxRequest.ps1" -Server $Server -Method "GET" -Endpoint $Endpoint -NsxConnection $NsxConnection
     if ($Response.StatusCode -lt 200 -or $Response.StatusCode -ge 300) {
-        throw "Failed to invoke $($Uri): $($Response.StatusCode) - $($Response.Content)"
+        throw "Failed to invoke $($Endpoint): $($Response.StatusCode) - $($Response.Content)"
     }
 
     if ($AsXml) {

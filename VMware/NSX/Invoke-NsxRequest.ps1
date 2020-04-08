@@ -1,30 +1,20 @@
 <#
 .SYNOPSIS
-    Login to a NSX-V server using the following order and return an authorization token:
-        1. Try with username and password, if provided.
-        2. Try with PSCredential file "$Server-$Username.xml" in given directory (default "$HOME\.pscredentials").
-        3. If interactive, get credentials from user with a prompt.
-        4. If not interactive, try with PSCredential file "$Username.xml".
+    Wrapper cmdlet for directly invoking any RESTful API request on the given server,
+    using the provided authorization token, e.g. "Basic username:password", or an existing PSCredential for authentication.
 
 .DESCRIPTION
-    Login to a NSX-V server using the following order and return an authorization token:
-        1. Try with username and password, if provided.
-        2. Try with PSCredential file "$Server-$Username.xml" in given directory (default "$HOME\.pscredentials").
-        3. If interactive, get credentials from user with a prompt.
-        4. If not interactive, try with PSCredential file "$Username.xml".
+    Wrapper cmdlet for directly invoking any RESTful API request on the given server,
+    using the provided authorization token, e.g. "Basic username:password", or an existing PSCredential for authentication.
 
-    Also have a look at https://github.com/vmware/powernsx for more functionality.
-
-    File-Name:  Connect-Nsx.ps1
+    File-Name:  Invoke-ServerRequest.ps1
     Author:     David Wettstein
     Version:    v1.1.0
 
     Changelog:
                 v1.1.0, 2020-04-07, David Wettstein: Sync input variables with cache.
-                v1.0.3, 2020-03-12, David Wettstein: Refactor and improve credential handling.
-                v1.0.2, 2019-12-17, David Wettstein: Improve parameter validation.
-                v1.0.1, 2019-12-13, David Wettstein: Improve credential handling.
-                v1.0.0, 2019-08-23, David Wettstein: First implementation.
+                v1.0.1, 2020-03-13, David Wettstein: Refactor and generalize cmdlet.
+                v1.0.0, 2019-05-30, David Wettstein: First implementation.
 
 .NOTES
     Copyright (c) 2019-2020 David Wettstein,
@@ -33,40 +23,47 @@
 .LINK
     https://github.com/dwettstein/PowerShell
 
-.LINK
-    https://github.com/vmware/powernsx
+.EXAMPLE
+    $Result = & ".\Invoke-ServerRequest.ps1" "example.com" "/api/v1/version" -AuthorizationToken $AuthorizationToken
 
 .EXAMPLE
-    $NsxConnection = & ".\Connect-Nsx.ps1" "nsx.vsphere.local"
-
-.EXAMPLE
-    $NsxConnection = & "$PSScriptRoot\Connect-Nsx.ps1" -Server "nsx.vsphere.local" -Username "user" -Password "changeme"
+    [Xml] $Result = & "$PSScriptRoot\Invoke-ServerRequest.ps1" -Server "example.com" -Endpoint "/api/v1/version" -Method "GET" -MediaType "application/*+xml" -AcceptAllCertificates
 #>
 [CmdletBinding()]
-[OutputType([PSObject])]
+[OutputType([Object])]
 param (
-    [Parameter(Mandatory = $false, ValueFromPipeline = $true, Position = 0)]
+    [Parameter(Mandatory = $false, Position = 0)]
     [ValidateNotNullOrEmpty()]
     [String] $Server
     ,
-    [Parameter(Mandatory = $false, Position = 1)]
-    [Switch] $AsPlainText = $false
+    [Parameter(Mandatory = $true, Position = 1)]
+    [ValidateNotNullOrEmpty()]
+    [String] $Endpoint
     ,
     [Parameter(Mandatory = $false, Position = 2)]
-    [ValidateNotNullOrEmpty()]
-    [String] $Username = "${env:USERNAME}"  # secure string or plain text (not recommended)
+    [ValidateSet('GET', 'POST', 'PUT', 'PATCH', 'UPDATE', 'DELETE')]
+    [String] $Method = "GET"
     ,
     [Parameter(Mandatory = $false, Position = 3)]
-    [String] $Password = $null  # secure string or plain text (not recommended)
+    [ValidateNotNullOrEmpty()]
+    [String] $Body = $null
     ,
     [Parameter(Mandatory = $false, Position = 4)]
-    [Switch] $Interactive
+    [ValidateSet('application/*', 'application/json', 'application/xml', 'application/*+xml', 'application/x-www-form-urlencoded', 'multipart/form-data', 'text/plain', 'text/xml', IgnoreCase = $false)]
+    [String] $MediaType = "application/xml"
     ,
     [Parameter(Mandatory = $false, Position = 5)]
     [ValidateNotNullOrEmpty()]
-    [String] $PswdDir = "$HOME\.pscredentials"  # $HOME for Local System Account: C:\Windows\System32\config\systemprofile
+    [String] $AuthorizationHeader = "Authorization"
     ,
     [Parameter(Mandatory = $false, Position = 6)]
+    [String] $AuthorizationToken = $null  # secure string or plain text (not recommended)
+    ,
+    [Parameter(Mandatory = $false, Position = 7)]
+    [ValidateSet('http', 'https', IgnoreCase = $false)]
+    [String] $Protocol = "https"
+    ,
+    [Parameter(Mandatory = $false, Position = 8)]
     [Switch] $AcceptAllCertificates = $false
 )
 
@@ -172,71 +169,28 @@ public class ServerCertificate {
 
 try {
     $Server = Sync-VariableCache "Server" $Server "NSXClient" -IsMandatory
+    # $AuthorizationToken = Sync-VariableCache "AuthorizationToken" $AuthorizationToken "NSXClient"
+    $NsxConnection = Sync-VariableCache "NsxConnection" $NsxConnection "NSXClient"
     $AcceptAllCertificates = Sync-VariableCache "AcceptAllCertificates" $AcceptAllCertificate "NSXClient"
 
     if ($AcceptAllCertificates) {
         Approve-AllCertificates
     }
 
-    # If username is given as SecureString string, convert it to plain text.
-    try {
-        $UsernameSecureString = ConvertTo-SecureString -String $Username
-        $BSTR = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($UsernameSecureString)
-        $Username = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($BSTR)
-        $null = [System.Runtime.InteropServices.Marshal]::ZeroFreeBSTR($BSTR)
-    } catch {
-        # Username was already given as plain text.
+    $BaseUrl = "${Protocol}://$Server"
+    # $EndpointUrl = "${BaseUrl}${Endpoint}"
+
+    if (-not $NsxConnection) {
+        $NsxConnection = & "$FILE_DIR\Connect-Nsx.ps1" -Server $Server
     }
-    if (-not (Test-Path $PswdDir)) {
-        $null = New-Item -ItemType Directory -Path $PswdDir
-    }
-    $CredPath = ($PswdDir + "\" + "$Server-$Username.xml")
-    $UserCredPath = ($PswdDir + "\" + "$Username.xml")
-    $Cred = $null
-    if (-not [String]::IsNullOrEmpty($Username) -and -not [String]::IsNullOrEmpty($Password)) {
-        # 1. Try with username and password, if provided.
-        try {
-            $PasswordSecureString = ConvertTo-SecureString -String $Password
-        } catch [System.FormatException] {
-            # Password was likely given as plain text, convert it to SecureString.
-            $PasswordSecureString = ConvertTo-SecureString -AsPlainText -Force $Password
-        }
-        $Cred = New-Object System.Management.Automation.PSCredential ($Username, $PasswordSecureString)
-    } elseif (Test-Path $CredPath) {
-        # 2. Try with PSCredential file $Server-$Username.xml.
-        $Cred = Import-Clixml -Path $CredPath
-        Write-Verbose "Credentials imported from: $CredPath"
-    } elseif ($Interactive) {
-        # 3. If interactive, get credentials from user with a prompt.
-        Write-Verbose "No credentials found at path '$CredPath', get them interactively."
-        $Cred = Get-Credential -Message $Server -UserName $Username
-        if ($Cred -and -not [String]::IsNullOrEmpty($Cred.GetNetworkCredential().Password)) {
-            $DoSave = Read-Host -Prompt "Save credentials at '$CredPath'? [y/N] "
-            if ($DoSave -match "^[yY]{1}(es)?$") {
-                $null = Export-Clixml -Path $CredPath -InputObject $Cred
-                Write-Verbose "Credentials exported to: $CredPath"
-            } else {
-                Write-Verbose "Credentials not exported."
-            }
-        } else {
-            throw "Password is null or empty."
-        }
-    } elseif (Test-Path $UserCredPath) {
-        # 4. If not interactive, try with PSCredential file $Username.xml.
-        $Cred = Import-Clixml -Path $UserCredPath
-        Write-Verbose "Credentials imported from: $UserCredPath"
+
+    if ($Body) {
+        $Response = Invoke-NsxWebRequest -Method $Method -URI $Endpoint -Body $Body.OuterXml -Connection $NsxConnection -WarningAction SilentlyContinue
     } else {
-        throw "No credentials found. Please use the input parameters or a PSCredential xml file at path '$CredPath'."
+        $Response = Invoke-NsxWebRequest -Method $Method -URI $Endpoint -Connection $NsxConnection -WarningAction SilentlyContinue
     }
 
-    $NsxConnection = Connect-NsxServer -Server $Server -Credential $Cred -DisableVIAutoConnect -WarningAction SilentlyContinue
-
-    $null = Sync-VariableCache "NsxConnection" $NsxConnection "NSXClient"
-    if ($ModuleConfig -and [String]::IsNullOrEmpty($ModuleConfig.NsxConnection)) {
-        $null = Add-Member -InputObject $ModuleConfig -MemberType NoteProperty -Name "NsxConnection" -Value $NsxConnection -Force
-    }
-
-    $ScriptOut = $NsxConnection
+    $ScriptOut = $Response
 } catch {
     # Error in $_ or $Error[0] variable.
     Write-Warning "Exception occurred at line $($_.InvocationInfo.ScriptLineNumber): $($_.Exception.ToString())" -WarningAction Continue
