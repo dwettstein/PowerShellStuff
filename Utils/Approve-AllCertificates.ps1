@@ -23,10 +23,10 @@
     https://github.com/dwettstein/PowerShell
 
 .EXAMPLE
-    .\Approve-AllCertificates.ps1
+    Approve-AllCertificates.ps1
 
 .EXAMPLE
-    $null = & "$PSScriptRoot\Utils\Approve-AllCertificates.ps1"
+    $null = & "$PSScriptRoot\Utils\Approve-AllCertificates"
 #>
 [CmdletBinding()]
 #[OutputType([Int])]

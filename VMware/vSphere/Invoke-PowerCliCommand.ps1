@@ -7,9 +7,10 @@
 
     File-Name:  Invoke-PowerCliCommand.ps1
     Author:     David Wettstein
-    Version:    v1.1.0
+    Version:    v1.1.1
 
     Changelog:
+                v1.1.1, 2020-04-09, David Wettstein: Improve path handling.
                 v1.1.0, 2020-04-07, David Wettstein: Sync input variables with cache.
                 v1.0.1, 2020-03-13, David Wettstein: Change AsObj to AsJson.
                 v1.0.0, 2019-03-10, David Wettstein: First implementation.
@@ -22,10 +23,10 @@
     https://github.com/dwettstein/PowerShell
 
 .EXAMPLE
-    $Result = & ".\Invoke-PowerCliCommand.ps1" "vcenter.vsphere.local" "Get-VM -Name 'vm_name'"
+    $Result = & "Invoke-PowerCliCommand" "vcenter.vsphere.local" "Get-VM -Name 'vm_name'"
 
 .EXAMPLE
-    $Result = & "$PSScriptRoot\Invoke-PowerCliCommand.ps1" -Server "vcenter.vsphere.local" -Command "Get-VM -Name 'vm_name'" -Username "user" -Password "changeme"
+    $Result = & "$PSScriptRoot\Invoke-PowerCliCommand" -Server "vcenter.vsphere.local" -Command "Get-VM -Name 'vm_name'" -Username "user" -Password "changeme"
 #>
 [CmdletBinding()]
 [OutputType([Object])]
@@ -75,10 +76,14 @@ foreach ($Module in $Modules) {
 $StartDate = [DateTime]::Now
 
 [String] $FILE_NAME = $MyInvocation.MyCommand.Name
-if ($PSVersionTable.PSVersion.Major -lt 3) {
-    [String] $FILE_DIR = Split-Path -Parent $MyInvocation.MyCommand.Definition
+if ($PSVersionTable.PSVersion.Major -lt 3 -or [String]::IsNullOrEmpty($PSScriptRoot)) {
+    # Join-Path with empty child path is used to append a path separator.
+    [String] $FILE_DIR = Join-Path (Split-Path -Parent $MyInvocation.MyCommand.Definition) ""
 } else {
-    [String] $FILE_DIR = $PSScriptRoot
+    [String] $FILE_DIR = Join-Path $PSScriptRoot ""
+}
+if ($MyInvocation.MyCommand.Module) {
+    $FILE_DIR = ""  # If this script is part of a module, we want to call module functions not files.
 }
 
 $ExitCode = 0
@@ -144,7 +149,7 @@ try {
     }
 
     if (-not $VCenterConnection) {
-        $VCenterConnection = & "$FILE_DIR\Connect-VCenter.ps1" -Server $Server -Username $Username -Password $Password
+        $VCenterConnection = & "${FILE_DIR}Connect-VCenter" -Server $Server -Username $Username -Password $Password
     }
 
     Write-Verbose "Execute command: $Command"

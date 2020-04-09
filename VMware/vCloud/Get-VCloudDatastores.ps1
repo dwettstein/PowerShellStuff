@@ -7,9 +7,10 @@
 
     File-Name:  Get-VCloudDatastores.ps1
     Author:     David Wettstein
-    Version:    v1.0.0
+    Version:    v1.0.1
 
     Changelog:
+                v1.0.1, 2020-04-09, David Wettstein: Improve path handling.
                 v1.0.0, 2020-02-09, David Wettstein: First implementation.
 
 .NOTES
@@ -56,10 +57,14 @@ foreach ($Module in $Modules) {
 $StartDate = [DateTime]::Now
 
 [String] $FILE_NAME = $MyInvocation.MyCommand.Name
-if ($PSVersionTable.PSVersion.Major -lt 3) {
-    [String] $FILE_DIR = Split-Path -Parent $MyInvocation.MyCommand.Definition
+if ($PSVersionTable.PSVersion.Major -lt 3 -or [String]::IsNullOrEmpty($PSScriptRoot)) {
+    # Join-Path with empty child path is used to append a path separator.
+    [String] $FILE_DIR = Join-Path (Split-Path -Parent $MyInvocation.MyCommand.Definition) ""
 } else {
-    [String] $FILE_DIR = $PSScriptRoot
+    [String] $FILE_DIR = Join-Path $PSScriptRoot ""
+}
+if ($MyInvocation.MyCommand.Module) {
+    $FILE_DIR = ""  # If this script is part of a module, we want to call module functions not files.
 }
 
 $ExitCode = 0
@@ -75,9 +80,9 @@ Write-Verbose "$($FILE_NAME): CALL."
 
 try {
     if ($AcceptAllCertificates) {
-        [Xml] $Response = & "$FILE_DIR\Invoke-VCloudRequest.ps1" -Server $Server -Method "GET" -Endpoint "/api/admin/extension/datastores" -AuthorizationToken $AuthorizationToken -AcceptAllCertificates
+        [Xml] $Response = & "${FILE_DIR}Invoke-VCloudRequest" -Server $Server -Method "GET" -Endpoint "/api/admin/extension/datastores" -AuthorizationToken $AuthorizationToken -AcceptAllCertificates
     } else {
-        [Xml] $Response = & "$FILE_DIR\Invoke-VCloudRequest.ps1" -Server $Server -Method "GET" -Endpoint "/api/admin/extension/datastores" -AuthorizationToken $AuthorizationToken
+        [Xml] $Response = & "${FILE_DIR}Invoke-VCloudRequest" -Server $Server -Method "GET" -Endpoint "/api/admin/extension/datastores" -AuthorizationToken $AuthorizationToken
     }
     $ScriptOut = $Response.DatastoreReferences.Reference
 } catch {

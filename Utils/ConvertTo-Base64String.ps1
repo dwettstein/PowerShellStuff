@@ -20,10 +20,10 @@
     https://github.com/dwettstein/PowerShell
 
 .EXAMPLE
-    .\ConvertTo-Base64String.ps1 -String "username:password"
+    ConvertTo-Base64String -String "username:password"
 
 .EXAMPLE
-    $StringInBase64 = & "$PSScriptRoot\Utils\ConvertTo-Base64String.ps1" -String "username:password"
+    $StringInBase64 = & "$PSScriptRoot\Utils\ConvertTo-Base64String" -String "username:password"
 #>
 [CmdletBinding()]
 [OutputType([String])]

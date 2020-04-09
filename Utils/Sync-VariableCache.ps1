@@ -30,10 +30,10 @@
     https://github.com/dwettstein/PowerShell
 
 .EXAMPLE
-    .\Sync-VariableCache.ps1 "MyVar" $MyVar -Verbose
+    Sync-VariableCache "MyVar" $MyVar -Verbose
 
 .EXAMPLE
-    $MyVar = & "$PSScriptRoot\Utils\Sync-VariableCache.ps1" -VarName "MyVar" -VarValue $MyVar -VariableCachePrefix "Utils" -IsMandatory
+    $MyVar = & "$PSScriptRoot\Utils\Sync-VariableCache" -VarName "MyVar" -VarValue $MyVar -VariableCachePrefix "Utils" -IsMandatory
 #>
 [CmdletBinding()]
 [OutputType([Object])]

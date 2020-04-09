@@ -11,9 +11,10 @@
 
     File-Name:  Get-CyberArkAccount.ps1
     Author:     David Wettstein
-    Version:    v1.2.0
+    Version:    v1.2.1
 
     Changelog:
+                v1.2.1, 2020-04-09, David Wettstein: Improve path handling.
                 v1.2.0, 2020-03-19, David Wettstein: Implement get account by id.
                 v1.1.0, 2020-03-15, David Wettstein: Add more switches, use SecureString as default.
                 v1.0.1, 2020-03-13, David Wettstein: Change AsObj to AsJson.
@@ -33,10 +34,10 @@
     https://docs.cyberark.com/
 
 .EXAMPLE
-    $Account = & ".\Get-CyberArkAccount.ps1" "example.com" "query params"
+    $Account = & "Get-CyberArkAccount" "example.com" "query params"
 
 .EXAMPLE
-    $Account = & "$PSScriptRoot\Get-CyberArkAccount.ps1" -Server "example.com" -Query "query params" -AsJson
+    $Account = & "$PSScriptRoot\Get-CyberArkAccount" -Server "example.com" -Query "query params" -AsJson
 #>
 [CmdletBinding()]
 [OutputType([PSObject])]
@@ -94,10 +95,14 @@ foreach ($Module in $Modules) {
 $StartDate = [DateTime]::Now
 
 [String] $FILE_NAME = $MyInvocation.MyCommand.Name
-if ($PSVersionTable.PSVersion.Major -lt 3) {
-    [String] $FILE_DIR = Split-Path -Parent $MyInvocation.MyCommand.Definition
+if ($PSVersionTable.PSVersion.Major -lt 3 -or [String]::IsNullOrEmpty($PSScriptRoot)) {
+    # Join-Path with empty child path is used to append a path separator.
+    [String] $FILE_DIR = Join-Path (Split-Path -Parent $MyInvocation.MyCommand.Definition) ""
 } else {
-    [String] $FILE_DIR = $PSScriptRoot
+    [String] $FILE_DIR = Join-Path $PSScriptRoot ""
+}
+if ($MyInvocation.MyCommand.Module) {
+    $FILE_DIR = ""  # If this script is part of a module, we want to call module functions not files.
 }
 
 $ExitCode = 0
@@ -120,9 +125,9 @@ try {
         }
         $Endpoint = "/PasswordVault/api/Accounts/$AccountId"
         if ($AcceptAllCertificates) {
-            $Response = & "$FILE_DIR\Invoke-CyberArkRequest.ps1" -Server $Server -Method "GET" -Endpoint $Endpoint -AuthorizationToken $AuthorizationToken -AcceptAllCertificates
+            $Response = & "${FILE_DIR}Invoke-CyberArkRequest" -Server $Server -Method "GET" -Endpoint $Endpoint -AuthorizationToken $AuthorizationToken -AcceptAllCertificates
         } else {
-            $Response = & "$FILE_DIR\Invoke-CyberArkRequest.ps1" -Server $Server -Method "GET" -Endpoint $Endpoint -AuthorizationToken $AuthorizationToken
+            $Response = & "${FILE_DIR}Invoke-CyberArkRequest" -Server $Server -Method "GET" -Endpoint $Endpoint -AuthorizationToken $AuthorizationToken
         }
         Write-Verbose "Account $AccountId successfully found: $($Response.StatusCode)"
         $ResponseObj = ConvertFrom-Json $Response.Content
@@ -138,9 +143,9 @@ try {
         }
 
         if ($AcceptAllCertificates) {
-            $Response = & "$FILE_DIR\Invoke-CyberArkRequest.ps1" -Server $Server -Method "GET" -Endpoint $QueryEndpoint -AuthorizationToken $AuthorizationToken -AcceptAllCertificates
+            $Response = & "${FILE_DIR}Invoke-CyberArkRequest" -Server $Server -Method "GET" -Endpoint $QueryEndpoint -AuthorizationToken $AuthorizationToken -AcceptAllCertificates
         } else {
-            $Response = & "$FILE_DIR\Invoke-CyberArkRequest.ps1" -Server $Server -Method "GET" -Endpoint $QueryEndpoint -AuthorizationToken $AuthorizationToken
+            $Response = & "${FILE_DIR}Invoke-CyberArkRequest" -Server $Server -Method "GET" -Endpoint $QueryEndpoint -AuthorizationToken $AuthorizationToken
         }
         $ResponseObj = ConvertFrom-Json $Response.Content
         Write-Verbose "Found $($ResponseObj.count) account(s) matching the query '$Query'."
@@ -150,9 +155,9 @@ try {
     foreach ($Account in $Accounts) {
         $RetrieveEndpoint = "/PasswordVault/api/Accounts/$($Account.id)/Password/Retrieve"
         if ($AcceptAllCertificates) {
-            $RetrieveResponse = & "$FILE_DIR\Invoke-CyberArkRequest.ps1" -Server $Server -Method "POST" -Endpoint $RetrieveEndpoint -AuthorizationToken $AuthorizationToken -AcceptAllCertificates
+            $RetrieveResponse = & "${FILE_DIR}Invoke-CyberArkRequest" -Server $Server -Method "POST" -Endpoint $RetrieveEndpoint -AuthorizationToken $AuthorizationToken -AcceptAllCertificates
         } else {
-            $RetrieveResponse = & "$FILE_DIR\Invoke-CyberArkRequest.ps1" -Server $Server -Method "POST" -Endpoint $RetrieveEndpoint -AuthorizationToken $AuthorizationToken
+            $RetrieveResponse = & "${FILE_DIR}Invoke-CyberArkRequest" -Server $Server -Method "POST" -Endpoint $RetrieveEndpoint -AuthorizationToken $AuthorizationToken
         }
         $Password = $RetrieveResponse.Content.Trim('"')
 

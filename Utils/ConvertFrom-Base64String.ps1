@@ -20,10 +20,10 @@
     https://github.com/dwettstein/PowerShell
 
 .EXAMPLE
-    .\ConvertFrom-Base64String.ps1 -String "dXNlcm5hbWU6cGFzc3dvcmQ="
+    ConvertFrom-Base64String -String "dXNlcm5hbWU6cGFzc3dvcmQ="
 
 .EXAMPLE
-    $String = & "$PSScriptRoot\Utils\ConvertFrom-Base64String.ps1" -String "dXNlcm5hbWU6cGFzc3dvcmQ="
+    $String = & "$PSScriptRoot\Utils\ConvertFrom-Base64String" -String "dXNlcm5hbWU6cGFzc3dvcmQ="
 #>
 [CmdletBinding()]
 [OutputType([String])]

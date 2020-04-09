@@ -66,10 +66,14 @@ begin {
 
     [String] $FILE_NAME = $MyInvocation.MyCommand.Name
     if ($PSVersionTable.PSVersion.Major -lt 3 -or [String]::IsNullOrEmpty($PSScriptRoot)) {
-        [String] $FILE_DIR = Split-Path -Parent $MyInvocation.MyCommand.Definition
+        # Join-Path with empty child path is used to append a path separator.
+        [String] $FILE_DIR = Join-Path (Split-Path -Parent $MyInvocation.MyCommand.Definition) ""
     } else {
-        [String] $FILE_DIR = $PSScriptRoot
+        [String] $FILE_DIR = Join-Path $PSScriptRoot ""
     }
+    # if ($MyInvocation.MyCommand.Module) {
+    #     $FILE_DIR = ""  # If this script is part of a module, we want to call module functions not files.
+    # }
 
     $ExitCode = 0
     $ErrorOut = ""
@@ -97,9 +101,9 @@ begin {
         )
 
         if ([String]::IsNullOrEmpty($LogFileRoot)) {
-            [String] $LogFileName = $FILE_DIR + "\" + $FILE_NAME + "_" + (Get-Date -Format "yyyy-MM-dd") + ".log"
+            [String] $LogFileName = "${FILE_DIR}${FILE_NAME}_$(Get-Date -Format 'yyyy-MM-dd').log"
         } else {
-            [String] $LogFileName = $LogFileRoot + "\" + $FILE_NAME + "_" + (Get-Date -Format "yyyy-MM-dd") + ".log"
+            [String] $LogFileName = "${LogFileRoot}${FILE_NAME}_$(Get-Date -Format 'yyyy-MM-dd').log"
         }
         $LogDate = Get-Date -Format "yyyy-MM-ddTHH:mm:ss.fffzzz"  # ISO8601
 

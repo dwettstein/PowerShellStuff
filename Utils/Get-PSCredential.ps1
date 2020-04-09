@@ -23,9 +23,10 @@
 
     File-Name:  Get-PSCredential.ps1
     Author:     David Wettstein
-    Version:    v2.0.0
+    Version:    v2.0.1
 
     Changelog:
+                v2.0.1, 2020-04-09, David Wettstein: Improve path handling.
                 v2.0.0, 2020-03-12, David Wettstein: Refactor credential handling, merge duplicated script.
                 v1.0.2, 2019-12-17, David Wettstein: Improve parameter validation and documentation.
                 v1.0.1, 2019-12-13, David Wettstein: Improve credential handling.
@@ -39,10 +40,10 @@
     https://github.com/dwettstein/PowerShell
 
 .EXAMPLE
-    .\Get-PSCredential.ps1 -Server '{{server}}'
+    Get-PSCredential -Server '{{server}}'
 
 .EXAMPLE
-    $Cred = & "$PSScriptRoot\Utils\Get-PSCredential.ps1" -Server '{{server}}'
+    $Cred = & "$PSScriptRoot\Utils\Get-PSCredential" -Server '{{server}}'
 #>
 [CmdletBinding()]
 [OutputType([PSCredential])]
@@ -84,8 +85,8 @@ try {
     if (-not (Test-Path $PswdDir)) {
         $null = New-Item -ItemType Directory -Path $PswdDir
     }
-    $CredPath = ($PswdDir + "\" + "$Server-$Username.xml")
-    $UserCredPath = ($PswdDir + "\" + "$Username.xml")
+    $CredPath = Join-Path $PswdDir "$Server-$Username.xml"
+    $UserCredPath = Join-Path $PswdDir "$Username.xml"
     $Cred = $null
     if (-not [String]::IsNullOrEmpty($Username) -and -not [String]::IsNullOrEmpty($Password)) {
         # 1. Try with username and password, if provided.

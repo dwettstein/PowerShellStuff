@@ -13,9 +13,10 @@
         7. Delete the temporary file.
 
     Author:     David Wettstein
-    Version:    v1.1.0
+    Version:    v1.1.1
 
     Changelog:
+                v1.1.1, 2020-04-09, David Wettstein: Improve path handling.
                 v1.1.0, 2020-04-07, David Wettstein: Load module config from XML file.
                 v1.0.1, 2020-03-13, David Wettstein: Use $env:TEMP.
                 v1.0.0, 2018-08-03, David Wettstein: First implementation.
@@ -33,13 +34,14 @@ $WarningPreference = "SilentlyContinue"
 $private:OFS = ","
 
 [String] $FILE_NAME = $MyInvocation.MyCommand.Name
-if ($PSVersionTable.PSVersion.Major -lt 3) {
-    [String] $FILE_DIR = Split-Path -Parent $MyInvocation.MyCommand.Definition
+if ($PSVersionTable.PSVersion.Major -lt 3 -or [String]::IsNullOrEmpty($PSScriptRoot)) {
+    # Join-Path with empty child path is used to append a path separator.
+    [String] $FILE_DIR = Join-Path (Split-Path -Parent $MyInvocation.MyCommand.Definition) ""
 } else {
-    [String] $FILE_DIR = $PSScriptRoot
+    [String] $FILE_DIR = Join-Path $PSScriptRoot ""
 }
 
-$ChildItems = Get-ChildItem -Path "$FILE_DIR\*.ps1"
+$ChildItems = Get-ChildItem -Path "${FILE_DIR}*.ps1"
 
 foreach ($Item in $ChildItems) {
     $FunctionName = [System.IO.Path]::GetFileNameWithoutExtension($Item.FullName)
@@ -47,7 +49,7 @@ foreach ($Item in $ChildItems) {
         continue
     }
     $ItemContent = Get-Content -Path $Item.FullName
-    $TempFileName = "$env:TEMP\$FunctionName.tmp.ps1"
+    $TempFileName = Join-Path -Path $env:TEMP -ChildPath "$FunctionName.tmp.ps1"
     $TempFileContent = ""
     $TempFileContent += "function $FunctionName {`n"
     foreach ($Line in $ItemContent) {
@@ -67,7 +69,7 @@ foreach ($Item in $ChildItems) {
 # See also: https://stackoverflow.com/questions/22269275/accessing-privatedata-during-import-module
 [String] $ModuleName = (Get-Item $PSCommandPath).BaseName
 [String] $ModuleConfigVariableName = $ModuleName.Replace('.', '_')
-[String] $ModuleConfigPath = Join-Path -Path $PSScriptRoot -ChildPath "$ModuleName.xml"
+[String] $ModuleConfigPath = Join-Path -Path $FILE_DIR -ChildPath "$ModuleName.xml"
 
 if (-not (Test-Path Variable:\$($ModuleConfigVariableName))) {  # Don't overwrite the variable if it already exists.
     $ModuleConfig = @{}

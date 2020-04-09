@@ -22,10 +22,10 @@
     https://github.com/dwettstein/PowerShell
 
 .EXAMPLE
-    .\ConvertTo-Cidr.ps1 -IpAddress "192.168.0.100"
+    ConvertTo-Cidr.ps1 -IpAddress "192.168.0.100"
 
 .EXAMPLE
-    $CidrAddress = & "$PSScriptRoot\Utils\ConvertTo-Cidr.ps1" -IpAddress "192.168.0.100" -SubnetMask "255.255.0.0"
+    $CidrAddress = & "$PSScriptRoot\Utils\ConvertTo-Cidr" -IpAddress "192.168.0.100" -SubnetMask "255.255.0.0"
 #>
 [CmdletBinding()]
 [OutputType([String])]

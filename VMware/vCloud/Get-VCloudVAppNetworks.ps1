@@ -7,9 +7,10 @@
 
     File-Name:  Get-VCloudVAppNetworks.ps1
     Author:     David Wettstein
-    Version:    v1.0.0
+    Version:    v1.0.1
 
     Changelog:
+                v1.0.1, 2020-04-09, David Wettstein: Improve path handling.
                 v1.0.0, 2019-09-17, David Wettstein: First implementation.
 
 .NOTES
@@ -63,10 +64,14 @@ foreach ($Module in $Modules) {
 $StartDate = [DateTime]::Now
 
 [String] $FILE_NAME = $MyInvocation.MyCommand.Name
-if ($PSVersionTable.PSVersion.Major -lt 3) {
-    [String] $FILE_DIR = Split-Path -Parent $MyInvocation.MyCommand.Definition
+if ($PSVersionTable.PSVersion.Major -lt 3 -or [String]::IsNullOrEmpty($PSScriptRoot)) {
+    # Join-Path with empty child path is used to append a path separator.
+    [String] $FILE_DIR = Join-Path (Split-Path -Parent $MyInvocation.MyCommand.Definition) ""
 } else {
-    [String] $FILE_DIR = $PSScriptRoot
+    [String] $FILE_DIR = Join-Path $PSScriptRoot ""
+}
+if ($MyInvocation.MyCommand.Module) {
+    $FILE_DIR = ""  # If this script is part of a module, we want to call module functions not files.
 }
 
 $ExitCode = 0
@@ -86,9 +91,9 @@ try {
         $Filter = "(vApp==$VApp)"
     }
     if ($AcceptAllCertificates) {
-        $VAppNetworks = & "$FILE_DIR\Search-VCloud.ps1" -Server $Server -Type "adminVAppNetwork" -ResultType "AdminVAppNetworkRecord" -Filter $Filter -AuthorizationToken $AuthorizationToken -AcceptAllCertificates
+        $VAppNetworks = & "${FILE_DIR}Search-VCloud" -Server $Server -Type "adminVAppNetwork" -ResultType "AdminVAppNetworkRecord" -Filter $Filter -AuthorizationToken $AuthorizationToken -AcceptAllCertificates
     } else {
-        $VAppNetworks = & "$FILE_DIR\Search-VCloud.ps1" -Server $Server -Type "adminVAppNetwork" -ResultType "AdminVAppNetworkRecord" -Filter $Filter -AuthorizationToken $AuthorizationToken
+        $VAppNetworks = & "${FILE_DIR}Search-VCloud" -Server $Server -Type "adminVAppNetwork" -ResultType "AdminVAppNetworkRecord" -Filter $Filter -AuthorizationToken $AuthorizationToken
     }
 
     $ScriptOut = @()

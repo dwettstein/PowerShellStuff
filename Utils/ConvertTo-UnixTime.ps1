@@ -20,10 +20,10 @@
     https://github.com/dwettstein/PowerShell
 
 .EXAMPLE
-    .\ConvertTo-UnixTime.ps1 -Milliseconds
+    ConvertTo-UnixTime -Milliseconds
 
 .EXAMPLE
-    $UnixTimeInMs = & "$PSScriptRoot\Utils\ConvertTo-UnixTime.ps1" -DateTime $DateTime -Milliseconds
+    $UnixTimeInMs = & "$PSScriptRoot\Utils\ConvertTo-UnixTime" -DateTime $DateTime -Milliseconds
 #>
 [CmdletBinding()]
 [OutputType([Double])]

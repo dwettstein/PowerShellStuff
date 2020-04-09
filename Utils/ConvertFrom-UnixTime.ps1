@@ -20,10 +20,10 @@
     https://github.com/dwettstein/PowerShell
 
 .EXAMPLE
-    .\ConvertFrom-UnixTime.ps1 -UnixTimestamp 1502798835021
+    ConvertFrom-UnixTime -UnixTimestamp 1502798835021
 
 .EXAMPLE
-    $DateTime = & "$PSScriptRoot\Utils\ConvertFrom-UnixTime.ps1" -UnixTimestamp 1502798835021 -UniversalTime -Iso8601
+    $DateTime = & "$PSScriptRoot\Utils\ConvertFrom-UnixTime" -UnixTimestamp 1502798835021 -UniversalTime -Iso8601
 #>
 [CmdletBinding()]
 [OutputType([DateTime])]

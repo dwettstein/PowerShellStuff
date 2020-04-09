@@ -7,9 +7,10 @@
 
     File-Name:  Invoke-HttpRequest.ps1
     Author:     David Wettstein
-    Version:    v1.1.0
+    Version:    v1.1.1
 
     Changelog:
+                v1.1.1, 2020-04-09, David Wettstein: Improve path handling.
                 v1.1.0, 2019-01-10, David Wettstein: Add switch for enabling all security protocols.
                 v1.0.2, 2018-08-01, David Wettstein: Update code formatting.
                 v1.0.1, 2016-10-17, David Wettstein: Add minor improvements.
@@ -23,10 +24,10 @@
     https://github.com/dwettstein/PowerShell
 
 .EXAMPLE
-    .\Invoke-HttpRequest.ps1 -Method GET -Uri "https://example.com"
+    Invoke-HttpRequest -Method GET -Uri "https://example.com"
 
 .EXAMPLE
-    .\Invoke-HttpRequest.ps1 -Method GET -Uri "https://example.com/api/users?name=David" -Headers @{"Accept"="application/json"; "Authorization"="Basic dXNlcm5hbWU6cGFzc3dvcmQ="} -AcceptAllCertificates
+    Invoke-HttpRequest -Method GET -Uri "https://example.com/api/users?name=David" -Headers @{"Accept"="application/json"; "Authorization"="Basic dXNlcm5hbWU6cGFzc3dvcmQ="} -AcceptAllCertificates
 #>
 [CmdletBinding()]
 [OutputType([Hashtable])]
@@ -114,10 +115,14 @@ public class ServerCertificate {
 $StartDate = [DateTime]::Now
 
 [String] $FILE_NAME = $MyInvocation.MyCommand.Name
-if ($PSVersionTable.PSVersion.Major -lt 3) {
-    [String] $FILE_DIR = Split-Path -Parent $MyInvocation.MyCommand.Definition
+if ($PSVersionTable.PSVersion.Major -lt 3 -or [String]::IsNullOrEmpty($PSScriptRoot)) {
+    # Join-Path with empty child path is used to append a path separator.
+    [String] $FILE_DIR = Join-Path (Split-Path -Parent $MyInvocation.MyCommand.Definition) ""
 } else {
-    [String] $FILE_DIR = $PSScriptRoot
+    [String] $FILE_DIR = Join-Path $PSScriptRoot ""
+}
+if ($MyInvocation.MyCommand.Module) {
+    $FILE_DIR = ""  # If this script is part of a module, we want to call module functions not files.
 }
 
 $ExitCode = 0

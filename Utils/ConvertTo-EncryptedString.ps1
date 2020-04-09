@@ -20,13 +20,13 @@
     https://github.com/dwettstein/PowerShell
 
 .EXAMPLE
-    .\ConvertTo-EncryptedString.ps1 -String "Plain Text String"
+    ConvertTo-EncryptedString -String "Plain Text String"
 
 .EXAMPLE
-    .\ConvertTo-EncryptedString.ps1 -String "Plain Text String" -Key "changeme0123456789"
+    ConvertTo-EncryptedString -String "Plain Text String" -Key "changeme0123456789"
 
 .EXAMPLE
-    $EncryptedString = & "$PSScriptRoot\Utils\ConvertTo-EncryptedString.ps1" -String "Plain Text String" -Key "changeme0123456789"
+    $EncryptedString = & "$PSScriptRoot\Utils\ConvertTo-EncryptedString" -String "Plain Text String" -Key "changeme0123456789"
 #>
 [CmdletBinding()]
 [OutputType([String])]

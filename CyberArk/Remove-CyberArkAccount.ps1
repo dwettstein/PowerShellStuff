@@ -11,9 +11,10 @@
 
     File-Name:  Remove-CyberArkAccount.ps1
     Author:     David Wettstein
-    Version:    v1.0.0
+    Version:    v1.0.1
 
     Changelog:
+                v1.0.1, 2020-04-09, David Wettstein: Improve path handling.
                 v1.0.0, 2020-03-16, David Wettstein: First implementation.
 
 .NOTES
@@ -30,13 +31,13 @@
     https://docs.cyberark.com/
 
 .EXAMPLE
-    $Result = & ".\Remove-CyberArkAccount.ps1" "example.com" $Account
+    $Result = & "Remove-CyberArkAccount" "example.com" $Account
 
 .EXAMPLE
-    $Result = & "$PSScriptRoot\Remove-CyberArkAccount.ps1" -Server "example.com" -Account $Account -AsJson
+    $Result = & "$PSScriptRoot\Remove-CyberArkAccount" -Server "example.com" -Account $Account -AsJson
 
 .EXAMPLE
-    & "$PSScriptRoot\Get-CyberArkAccount.ps1" "example.com" "query params" | & "$PSScriptRoot\Remove-CyberArkAccount.ps1" "example.com"
+    & "$PSScriptRoot\Get-CyberArkAccount" "example.com" "query params" | & "$PSScriptRoot\Remove-CyberArkAccount" "example.com"
 #>
 [CmdletBinding()]
 [OutputType([String])]
@@ -77,10 +78,14 @@ foreach ($Module in $Modules) {
 $StartDate = [DateTime]::Now
 
 [String] $FILE_NAME = $MyInvocation.MyCommand.Name
-if ($PSVersionTable.PSVersion.Major -lt 3) {
-    [String] $FILE_DIR = Split-Path -Parent $MyInvocation.MyCommand.Definition
+if ($PSVersionTable.PSVersion.Major -lt 3 -or [String]::IsNullOrEmpty($PSScriptRoot)) {
+    # Join-Path with empty child path is used to append a path separator.
+    [String] $FILE_DIR = Join-Path (Split-Path -Parent $MyInvocation.MyCommand.Definition) ""
 } else {
-    [String] $FILE_DIR = $PSScriptRoot
+    [String] $FILE_DIR = Join-Path $PSScriptRoot ""
+}
+if ($MyInvocation.MyCommand.Module) {
+    $FILE_DIR = ""  # If this script is part of a module, we want to call module functions not files.
 }
 
 $ExitCode = 0
@@ -102,9 +107,9 @@ try {
     }
     $Endpoint = "/PasswordVault/api/Accounts/$AccountId"
     if ($AcceptAllCertificates) {
-        $Response = & "$FILE_DIR\Invoke-CyberArkRequest.ps1" -Server $Server -Method "DELETE" -Endpoint $Endpoint -AuthorizationToken $AuthorizationToken -AcceptAllCertificates
+        $Response = & "${FILE_DIR}Invoke-CyberArkRequest" -Server $Server -Method "DELETE" -Endpoint $Endpoint -AuthorizationToken $AuthorizationToken -AcceptAllCertificates
     } else {
-        $Response = & "$FILE_DIR\Invoke-CyberArkRequest.ps1" -Server $Server -Method "DELETE" -Endpoint $Endpoint -AuthorizationToken $AuthorizationToken
+        $Response = & "${FILE_DIR}Invoke-CyberArkRequest" -Server $Server -Method "DELETE" -Endpoint $Endpoint -AuthorizationToken $AuthorizationToken
     }
     if ($Response.StatusCode -lt 200 -or $Response.StatusCode -ge 300) {
         throw "Failed to invoke $($Endpoint): $($Response.StatusCode) - $($Response.Content)"

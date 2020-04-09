@@ -9,9 +9,10 @@
 
     File-Name:  Invoke-ServerRequest.ps1
     Author:     David Wettstein
-    Version:    v1.1.0
+    Version:    v1.1.1
 
     Changelog:
+                v1.1.1, 2020-04-09, David Wettstein: Improve path handling.
                 v1.1.0, 2020-04-07, David Wettstein: Sync input variables with cache.
                 v1.0.1, 2020-03-13, David Wettstein: Refactor and generalize cmdlet.
                 v1.0.0, 2019-05-30, David Wettstein: First implementation.
@@ -24,10 +25,10 @@
     https://github.com/dwettstein/PowerShell
 
 .EXAMPLE
-    $Result = & ".\Invoke-ServerRequest.ps1" "example.com" "/api/v1/version" -AuthorizationToken $AuthorizationToken
+    $Result = & "Invoke-ServerRequest" "example.com" "/api/v1/version" -AuthorizationToken $AuthorizationToken
 
 .EXAMPLE
-    [Xml] $Result = & "$PSScriptRoot\Invoke-ServerRequest.ps1" -Server "example.com" -Endpoint "/api/v1/version" -Method "GET" -MediaType "application/*+xml" -AcceptAllCertificates
+    [Xml] $Result = & "$PSScriptRoot\Invoke-ServerRequest" -Server "example.com" -Endpoint "/api/v1/version" -Method "GET" -MediaType "application/*+xml" -AcceptAllCertificates
 #>
 [CmdletBinding()]
 [OutputType([Object])]
@@ -87,10 +88,14 @@ foreach ($Module in $Modules) {
 $StartDate = [DateTime]::Now
 
 [String] $FILE_NAME = $MyInvocation.MyCommand.Name
-if ($PSVersionTable.PSVersion.Major -lt 3) {
-    [String] $FILE_DIR = Split-Path -Parent $MyInvocation.MyCommand.Definition
+if ($PSVersionTable.PSVersion.Major -lt 3 -or [String]::IsNullOrEmpty($PSScriptRoot)) {
+    # Join-Path with empty child path is used to append a path separator.
+    [String] $FILE_DIR = Join-Path (Split-Path -Parent $MyInvocation.MyCommand.Definition) ""
 } else {
-    [String] $FILE_DIR = $PSScriptRoot
+    [String] $FILE_DIR = Join-Path $PSScriptRoot ""
+}
+if ($MyInvocation.MyCommand.Module) {
+    $FILE_DIR = ""  # If this script is part of a module, we want to call module functions not files.
 }
 
 $ExitCode = 0
@@ -185,9 +190,9 @@ try {
     # If no AuthorizationToken is given, try to get it.
     if ([String]::IsNullOrEmpty($AuthorizationToken)) {
         if ($AcceptAllCertificates) {
-            $AuthorizationToken = & "$FILE_DIR\Connect-CyberArk.ps1" -Server $Server -AcceptAllCertificates
+            $AuthorizationToken = & "${FILE_DIR}Connect-CyberArk" -Server $Server -AcceptAllCertificates
         } else {
-            $AuthorizationToken = & "$FILE_DIR\Connect-CyberArk.ps1" -Server $Server
+            $AuthorizationToken = & "${FILE_DIR}Connect-CyberArk" -Server $Server
         }
     }
     # If AuthorizationToken is given as SecureString string, convert it to plain text.

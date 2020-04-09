@@ -15,10 +15,11 @@
 
     File-Name:  Write-Log.ps1
     Author:     David Wettstein
-    Version:    v1.0.0
+    Version:    v1.0.1
 
     Changelog:
-                v1.0.0, 2020-01-03, David Wettstein: First implementation, based on Logger module.
+                v1.0.1, 2020-04-09, David Wettstein: Improve path handling.
+                v1.0.0, 2020-01-03, David Wettstein: First implementation, based on my old Logger module.
 
 .NOTES
     Copyright (c) 2020 David Wettstein,
@@ -57,20 +58,24 @@ $private:OFS = ","
 # If this script was called from another script use its name for the log entry.
 if (-not [String]::IsNullOrEmpty($MyInvocation.PSCommandPath)) {
     [String] $FILE_NAME = Get-ChildItem $MyInvocation.PSCommandPath | Select-Object -Expand Name
-    [String] $FILE_DIR = Split-Path -Parent $MyInvocation.PSCommandPath
+    [String] $FILE_DIR = Join-Path (Split-Path -Parent $MyInvocation.PSCommandPath) ""
 } else {
     [String] $FILE_NAME = $MyInvocation.MyCommand.Name
     if ($PSVersionTable.PSVersion.Major -lt 3 -or [String]::IsNullOrEmpty($PSScriptRoot)) {
-        [String] $FILE_DIR = Split-Path -Parent $MyInvocation.MyCommand.Definition
+        # Join-Path with empty child path is used to append a path separator.
+        [String] $FILE_DIR = Join-Path (Split-Path -Parent $MyInvocation.MyCommand.Definition) ""
     } else {
-        [String] $FILE_DIR = $PSScriptRoot
+        [String] $FILE_DIR = Join-Path $PSScriptRoot ""
+    }
+    if ($MyInvocation.MyCommand.Module) {
+        $FILE_DIR = ""  # If this script is part of a module, we want to call module functions not files.
     }
 }
 
 if ([String]::IsNullOrEmpty($LogFileRoot)) {
-    [String] $LogFileName = $FILE_DIR + "\" + $FILE_NAME + "_" + (Get-Date -Format "yyyy-MM-dd") + ".log"
+    [String] $LogFileName = "${FILE_DIR}${FILE_NAME}_$(Get-Date -Format 'yyyy-MM-dd').log"
 } else {
-    [String] $LogFileName = $LogFileRoot + "\" + $FILE_NAME + "_" + (Get-Date -Format "yyyy-MM-dd") + ".log"
+    [String] $LogFileName = "${LogFileRoot}${FILE_NAME}_$(Get-Date -Format 'yyyy-MM-dd').log"
 }
 $LogDate = Get-Date -Format "yyyy-MM-ddTHH:mm:ss.fffzzz"  # ISO8601
 

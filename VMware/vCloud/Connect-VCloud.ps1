@@ -15,9 +15,10 @@
 
     File-Name:  Connect-VCloud.ps1
     Author:     David Wettstein
-    Version:    v1.2.0
+    Version:    v1.2.1
 
     Changelog:
+                v1.2.1, 2020-04-09, David Wettstein: Improve path handling.
                 v1.2.0, 2020-04-06, David Wettstein: Return a secure string by default.
                 v1.1.3, 2020-03-12, David Wettstein: Refactor and improve credential handling.
                 v1.1.2, 2019-12-17, David Wettstein: Improve parameter validation.
@@ -33,10 +34,10 @@
     https://github.com/dwettstein/PowerShell
 
 .EXAMPLE
-    $AuthorizationToken = & ".\Connect-VCloud.ps1" "example.com"
+    $AuthorizationToken = & "Connect-VCloud" "example.com"
 
 .EXAMPLE
-    $AuthorizationToken = & "$PSScriptRoot\Connect-VCloud.ps1" -Server "example.com" -Organization "system" -Username "user" -Password "changeme" -AcceptAllCertificates
+    $AuthorizationToken = & "$PSScriptRoot\Connect-VCloud" -Server "example.com" -Organization "system" -Username "user" -Password "changeme" -AcceptAllCertificates
 #>
 [CmdletBinding()]
 [OutputType([String])]
@@ -95,10 +96,14 @@ foreach ($Module in $Modules) {
 $StartDate = [DateTime]::Now
 
 [String] $FILE_NAME = $MyInvocation.MyCommand.Name
-if ($PSVersionTable.PSVersion.Major -lt 3) {
-    [String] $FILE_DIR = Split-Path -Parent $MyInvocation.MyCommand.Definition
+if ($PSVersionTable.PSVersion.Major -lt 3 -or [String]::IsNullOrEmpty($PSScriptRoot)) {
+    # Join-Path with empty child path is used to append a path separator.
+    [String] $FILE_DIR = Join-Path (Split-Path -Parent $MyInvocation.MyCommand.Definition) ""
 } else {
-    [String] $FILE_DIR = $PSScriptRoot
+    [String] $FILE_DIR = Join-Path $PSScriptRoot ""
+}
+if ($MyInvocation.MyCommand.Module) {
+    $FILE_DIR = ""  # If this script is part of a module, we want to call module functions not files.
 }
 
 $ExitCode = 0
@@ -150,8 +155,8 @@ try {
     if (-not (Test-Path $PswdDir)) {
         $null = New-Item -ItemType Directory -Path $PswdDir
     }
-    $CredPath = ($PswdDir + "\" + "$Server-$Username.xml")
-    $UserCredPath = ($PswdDir + "\" + "$Username.xml")
+    $CredPath = Join-Path $PswdDir "$Server-$Username.xml"
+    $UserCredPath = Join-Path $PswdDir "$Username.xml"
     $Cred = $null
     if (-not [String]::IsNullOrEmpty($Username) -and -not [String]::IsNullOrEmpty($Password)) {
         # 1. Try with username and password, if provided.

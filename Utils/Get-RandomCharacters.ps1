@@ -24,10 +24,10 @@
     https://github.com/dwettstein/PowerShell
 
 .EXAMPLE
-    .\Get-RandomCharacters.ps1 -Length 32
+    Get-RandomCharacters -Length 32
 
 .EXAMPLE
-    $RandomString = & "$PSScriptRoot\Utils\Get-RandomCharacters.ps1" -Length 32 -Characters "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+    $RandomString = & "$PSScriptRoot\Utils\Get-RandomCharacters" -Length 32 -Characters "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 #>
 [CmdletBinding()]
 [OutputType([String])]

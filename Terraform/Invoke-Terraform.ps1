@@ -61,9 +61,10 @@
 
     File-Name:  Invoke-Terraform.ps1
     Author:     David Wettstein
-    Version:    v1.0.0
+    Version:    v1.0.1
 
     Changelog:
+                v1.0.1, 2020-04-09, David Wettstein: Improve path handling.
                 v1.0.0, 2020-03-21, David Wettstein: Refactor and improve credential handling.
                 v0.0.1, 2018-10-03, David Wettstein: First implementation.
 
@@ -78,13 +79,13 @@
     https://www.terraform.io/docs/
 
 .EXAMPLE
-    .\Invoke-Terraform.ps1 -Action "apply" -Server "example.com" -Interactive
+    Invoke-Terraform -Action "apply" -Server "example.com" -Interactive
 
 .EXAMPLE
-    $Result = & ".\Invoke-Terraform.ps1" -Action "apply" -Server "example.com" -VarsJson '{"vm_name": "my terraform vm"}'
+    $Result = & "Invoke-Terraform" -Action "apply" -Server "example.com" -VarsJson '{"vm_name": "my terraform vm"}'
 
 .EXAMPLE
-    $Result = & "$PSScriptRoot\Invoke-Terraform.ps1" -Action "apply" -Server "example.com" -Username "user" -Password "changeme" -AutoApprove -AcceptAllCertificates
+    $Result = & "$PSScriptRoot\Invoke-Terraform" -Action "apply" -Server "example.com" -Username "user" -Password "changeme" -AutoApprove -AcceptAllCertificates
 #>
 [CmdletBinding()]
 [OutputType([String])]
@@ -155,10 +156,14 @@ $StartDate = [DateTime]::Now
 
 [String] $FILE_NAME = $MyInvocation.MyCommand.Name
 if ($PSVersionTable.PSVersion.Major -lt 3 -or [String]::IsNullOrEmpty($PSScriptRoot)) {
-    [String] $FILE_DIR = Split-Path -Parent $MyInvocation.MyCommand.Definition
+    # Join-Path with empty child path is used to append a path separator.
+    [String] $FILE_DIR = Join-Path (Split-Path -Parent $MyInvocation.MyCommand.Definition) ""
 } else {
-    [String] $FILE_DIR = $PSScriptRoot
+    [String] $FILE_DIR = Join-Path $PSScriptRoot ""
 }
+# if ($MyInvocation.MyCommand.Module) {
+#     $FILE_DIR = ""  # If this script is part of a module, we want to call module functions not files.
+# }
 
 $ExitCode = 0
 $ErrorOut = ""
@@ -187,8 +192,8 @@ try {
         $null = Set-Location "$ConfigDir"
     }
 
-    if (-not [String]::IsNullOrEmpty($BinaryDir) -and -not ($BinaryDir.EndsWith("\") -or $BinaryDir.EndsWith("/"))) {
-        $BinaryDir += "\"
+    if (-not [String]::IsNullOrEmpty($BinaryDir)) {
+        $BinaryDir = Join-Path -Path $BinaryDir -ChildPath ""
     }
     $Command = "${BinaryDir}terraform.exe $Action"
 
@@ -205,8 +210,8 @@ try {
         if (-not (Test-Path $PswdDir)) {
             $null = New-Item -ItemType Directory -Path $PswdDir
         }
-        $CredPath = ($PswdDir + "\" + "$Server-$Username.xml")
-        $UserCredPath = ($PswdDir + "\" + "$Username.xml")
+        $CredPath = Join-Path $PswdDir "$Server-$Username.xml"
+        $UserCredPath = Join-Path $PswdDir "$Username.xml"
         $Cred = $null
         if (-not [String]::IsNullOrEmpty($Username) -and -not [String]::IsNullOrEmpty($Password)) {
             # 1. Try with username and password, if provided.

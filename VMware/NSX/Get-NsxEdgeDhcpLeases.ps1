@@ -7,9 +7,10 @@
 
     File-Name:  Get-NsxEdgeDhcpLeases.ps1
     Author:     David Wettstein
-    Version:    v1.0.2
+    Version:    v1.0.3
 
     Changelog:
+                v1.0.3, 2020-04-09, David Wettstein: Improve path handling.
                 v1.0.2, 2020-04-08, David Wettstein: Use helper Invoke-NsxRequest.
                 v1.0.1, 2020-03-13, David Wettstein: Change AsObj to AsXml.
                 v1.0.0, 2019-08-23, David Wettstein: First implementation.
@@ -63,10 +64,14 @@ foreach ($Module in $Modules) {
 $StartDate = [DateTime]::Now
 
 [String] $FILE_NAME = $MyInvocation.MyCommand.Name
-if ($PSVersionTable.PSVersion.Major -lt 3) {
-    [String] $FILE_DIR = Split-Path -Parent $MyInvocation.MyCommand.Definition
+if ($PSVersionTable.PSVersion.Major -lt 3 -or [String]::IsNullOrEmpty($PSScriptRoot)) {
+    # Join-Path with empty child path is used to append a path separator.
+    [String] $FILE_DIR = Join-Path (Split-Path -Parent $MyInvocation.MyCommand.Definition) ""
 } else {
-    [String] $FILE_DIR = $PSScriptRoot
+    [String] $FILE_DIR = Join-Path $PSScriptRoot ""
+}
+if ($MyInvocation.MyCommand.Module) {
+    $FILE_DIR = ""  # If this script is part of a module, we want to call module functions not files.
 }
 
 $ExitCode = 0
@@ -82,7 +87,7 @@ Write-Verbose "$($FILE_NAME): CALL."
 
 try {
     $Endpoint = "/api/4.0/edges/$EdgeId/dhcp/leaseInfo"
-    $Response = & "$FILE_DIR\Invoke-NsxRequest.ps1" -Server $Server -Method "GET" -Endpoint $Endpoint -NsxConnection $NsxConnection
+    $Response = & "${FILE_DIR}Invoke-NsxRequest" -Server $Server -Method "GET" -Endpoint $Endpoint -NsxConnection $NsxConnection
     if ($Response.StatusCode -lt 200 -or $Response.StatusCode -ge 300) {
         throw "Failed to invoke $($Endpoint): $($Response.StatusCode) - $($Response.Content)"
     }
