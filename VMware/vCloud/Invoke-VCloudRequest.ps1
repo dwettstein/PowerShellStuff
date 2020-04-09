@@ -9,10 +9,11 @@
 
     File-Name:  Invoke-ServerRequest.ps1
     Author:     David Wettstein
-    Version:    v1.0.2
+    Version:    v1.1.1
 
     Changelog:
-                v1.0.2, 2020-04-09, David Wettstein: Improve path handling.
+                v1.1.1, 2020-04-09, David Wettstein: Improve path handling.
+                v1.1.0, 2020-04-07, David Wettstein: Sync input variables with cache.
                 v1.0.1, 2020-03-13, David Wettstein: Refactor and generalize cmdlet.
                 v1.0.0, 2019-05-30, David Wettstein: First implementation.
 
@@ -32,8 +33,7 @@
 [CmdletBinding()]
 [OutputType([Object])]
 param (
-    [Parameter(Mandatory = $true, Position = 0)]
-    [ValidateNotNullOrEmpty()]
+    [Parameter(Mandatory = $false, Position = 0)]
     [String] $Server
     ,
     [Parameter(Mandatory = $true, Position = 1)]
@@ -108,6 +108,45 @@ $ScriptOut = ""
 
 Write-Verbose "$($FILE_NAME): CALL."
 
+if ($MyInvocation.MyCommand.Module) {
+    $ModulePrivateData = $MyInvocation.MyCommand.Module.PrivateData
+    Write-Verbose "$($ModulePrivateData.GetEnumerator() | ForEach-Object { "$($_.Name)=$($_.Value)" })"
+    if ($ModulePrivateData.ModuleConfig) {
+        $ModuleConfig = Get-Variable -Name $ModulePrivateData.ModuleConfig -ValueOnly
+        Write-Verbose "$($ModuleConfig.GetEnumerator() | ForEach-Object { "$($_.Name)=$($_.Value)" })"
+    }
+}
+
+function Sync-VariableCache ($VarName, $VarValue, [String] $VariableCachePrefix = "", [Switch] $IsMandatory = $false) {
+    if (-not (Test-Path Variable:\$($VariableCachePrefix + "VariableCache"))) {  # Don't overwrite the variable if it already exists.
+        Set-Variable -Name ($VariableCachePrefix + "VariableCache") -Value @{} -Scope "Global"
+    }
+    $VariableCache = Get-Variable -Name ($VariableCachePrefix + "VariableCache") -ValueOnly
+
+    if ([String]::IsNullOrEmpty($VarValue)) {
+        Write-Verbose "$VarName is null or empty. Try to use value from cache or module config. Mandatory variable? $IsMandatory"
+        if (-not [String]::IsNullOrEmpty($VariableCache."$VarName")) {
+            $VarValue = $VariableCache."$VarName"
+            Write-Verbose "Found value in cache: $VarName = $VarValue"
+        } elseif (-not [String]::IsNullOrEmpty($ModuleConfig."$VarName")) {
+            $VarValue = $ModuleConfig."$VarName"
+            Write-Verbose "Found value in module config: $VarName = $VarValue"
+        } else {
+            if ($IsMandatory) {
+                throw "$VarName is null or empty. Please use the input parameters or the module config."
+            }
+        }
+    } else {
+        Write-Verbose "Update cache with variable: $VarName = $VarValue."
+        if ([String]::IsNullOrEmpty($VariableCache."$VarName")) {
+            $null = Add-Member -InputObject $VariableCache -MemberType NoteProperty -Name $VarName -Value $VarValue -Force
+        } else {
+            $VariableCache."$VarName" = $VarValue
+        }
+    }
+    $VarValue
+}
+
 function Approve-AllCertificates {
     $CSSource = @'
 using System.Net;
@@ -135,6 +174,10 @@ public class ServerCertificate {
 #trap { Write-Error $_; exit 1; break; }
 
 try {
+    $Server = Sync-VariableCache "Server" $Server "VCloudClient" -IsMandatory
+    $AuthorizationToken = Sync-VariableCache "AuthorizationToken" $AuthorizationToken "VCloudClient"
+    $AcceptAllCertificates = Sync-VariableCache "AcceptAllCertificates" $AcceptAllCertificate "VCloudClient"
+
     if ($AcceptAllCertificates) {
         Approve-AllCertificates
     }
