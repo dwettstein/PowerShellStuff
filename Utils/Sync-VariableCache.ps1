@@ -74,7 +74,7 @@ if (-not (Test-Path Variable:\$($VariableCachePrefix + "VariableCache"))) {  # D
 $VariableCache = Get-Variable -Name ($VariableCachePrefix + "VariableCache") -ValueOnly
 
 if ([String]::IsNullOrEmpty($VarValue)) {
-    Write-Verbose "No $VarName given. Try to use value from cache or module config. Mandatory variable? $IsMandatory"
+    Write-Verbose "$VarName is null or empty. Try to use value from cache or module config. Mandatory variable? $IsMandatory"
     if (-not [String]::IsNullOrEmpty($VariableCache."$VarName")) {
         $VarValue = $VariableCache."$VarName"
         Write-Verbose "Found value in cache: $VarName = $VarValue"
@@ -83,7 +83,7 @@ if ([String]::IsNullOrEmpty($VarValue)) {
         Write-Verbose "Found value in module config: $VarName = $VarValue"
     } else {
         if ($IsMandatory) {
-            throw "No $VarName given. Please use the input parameters or the module config."
+            throw "$VarName is null or empty. Please use the input parameters or the module config."
         }
     }
 } else {

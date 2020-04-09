@@ -33,7 +33,6 @@
 [OutputType([Object])]
 param (
     [Parameter(Mandatory = $false, Position = 0)]
-    [ValidateNotNullOrEmpty()]
     [String] $Server
     ,
     [Parameter(Mandatory = $true, Position = 1)]
@@ -116,7 +115,7 @@ function Sync-VariableCache ($VarName, $VarValue, [String] $VariableCachePrefix 
     $VariableCache = Get-Variable -Name ($VariableCachePrefix + "VariableCache") -ValueOnly
 
     if ([String]::IsNullOrEmpty($VarValue)) {
-        Write-Verbose "No $VarName given. Try to use value from cache or module config. Mandatory variable? $IsMandatory"
+        Write-Verbose "$VarName is null or empty. Try to use value from cache or module config. Mandatory variable? $IsMandatory"
         if (-not [String]::IsNullOrEmpty($VariableCache."$VarName")) {
             $VarValue = $VariableCache."$VarName"
             Write-Verbose "Found value in cache: $VarName = $VarValue"
@@ -125,7 +124,7 @@ function Sync-VariableCache ($VarName, $VarValue, [String] $VariableCachePrefix 
             Write-Verbose "Found value in module config: $VarName = $VarValue"
         } else {
             if ($IsMandatory) {
-                throw "No $VarName given. Please use the input parameters or the module config."
+                throw "$VarName is null or empty. Please use the input parameters or the module config."
             }
         }
     } else {
