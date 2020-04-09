@@ -69,11 +69,13 @@ foreach ($Item in $ChildItems) {
 [String] $ModuleConfigVariableName = $ModuleName.Replace('.', '_')
 [String] $ModuleConfigPath = Join-Path -Path $PSScriptRoot -ChildPath "$ModuleName.xml"
 
-if (Test-Path -Path $ModuleConfigPath) {
-    if (-not (Test-Path Variable:\$($ModuleConfigVariableName))) {  # Don't overwrite the variable if it already exists.
+if (-not (Test-Path Variable:\$($ModuleConfigVariableName))) {  # Don't overwrite the variable if it already exists.
+    $ModuleConfig = @{}
+    if (Test-Path -Path $ModuleConfigPath) {
         Write-Verbose "Loading module configuration file from path: $ModuleConfigPath"
-        Set-Variable -Name $ModuleConfigVariableName -Value (Import-Clixml -Path $ModuleConfigPath)
+        $ModuleConfig = (Import-Clixml -Path $ModuleConfigPath)
     }
+    Set-Variable -Name $ModuleConfigVariableName -Value $ModuleConfig -Force
 }
 
 Export-ModuleMember -Variable $ModuleConfigVariableName
