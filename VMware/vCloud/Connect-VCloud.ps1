@@ -180,7 +180,7 @@ public class ServerCertificate {
 
 try {
     $Server = Sync-VariableCache "Server" $Server "VCloudClient" -IsMandatory
-    $AcceptAllCertificates = Sync-VariableCache "AcceptAllCertificates" $AcceptAllCertificate "VCloudClient"
+    $AcceptAllCertificates = Sync-VariableCache "AcceptAllCertificates" $AcceptAllCertificates "VCloudClient"
 
     if ($AcceptAllCertificates) {
         Approve-AllCertificates

@@ -176,7 +176,7 @@ public class ServerCertificate {
 
 try {
     $Server = Sync-VariableCache "Server" $Server "CyberArkClient" -IsMandatory
-    $AcceptAllCertificates = Sync-VariableCache "AcceptAllCertificates" $AcceptAllCertificate "CyberArkClient"
+    $AcceptAllCertificates = Sync-VariableCache "AcceptAllCertificates" $AcceptAllCertificates "CyberArkClient"
 
     if ($AcceptAllCertificates) {
         Approve-AllCertificates

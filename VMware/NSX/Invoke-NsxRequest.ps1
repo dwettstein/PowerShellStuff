@@ -178,7 +178,7 @@ try {
     $Server = Sync-VariableCache "Server" $Server "NSXClient" -IsMandatory
     # $AuthorizationToken = Sync-VariableCache "AuthorizationToken" $AuthorizationToken "NSXClient"
     $NsxConnection = Sync-VariableCache "NsxConnection" $NsxConnection "NSXClient"
-    $AcceptAllCertificates = Sync-VariableCache "AcceptAllCertificates" $AcceptAllCertificate "NSXClient"
+    $AcceptAllCertificates = Sync-VariableCache "AcceptAllCertificates" $AcceptAllCertificates "NSXClient"
 
     if ($AcceptAllCertificates) {
         Approve-AllCertificates

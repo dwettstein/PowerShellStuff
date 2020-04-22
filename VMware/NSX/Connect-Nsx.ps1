@@ -176,7 +176,7 @@ public class ServerCertificate {
 
 try {
     $Server = Sync-VariableCache "Server" $Server "NSXClient" -IsMandatory
-    $AcceptAllCertificates = Sync-VariableCache "AcceptAllCertificates" $AcceptAllCertificate "NSXClient"
+    $AcceptAllCertificates = Sync-VariableCache "AcceptAllCertificates" $AcceptAllCertificates "NSXClient"
 
     if ($AcceptAllCertificates) {
         Approve-AllCertificates
