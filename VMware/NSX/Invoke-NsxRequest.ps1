@@ -9,9 +9,10 @@
 
     File-Name:  Invoke-ServerRequest.ps1
     Author:     David Wettstein
-    Version:    v1.1.1
+    Version:    v2.0.0
 
     Changelog:
+                v2.0.0, 2020-04-23, David Wettstein: Refactor and get rid of PowerNSX.
                 v1.1.1, 2020-04-09, David Wettstein: Improve path handling.
                 v1.1.0, 2020-04-07, David Wettstein: Sync input variables with cache.
                 v1.0.1, 2020-03-13, David Wettstein: Refactor and generalize cmdlet.
@@ -65,9 +66,6 @@ param (
     ,
     [Parameter(Mandatory = $false, Position = 8)]
     [Switch] $AcceptAllCertificates = $false
-    ,
-    [Parameter(Mandatory = $false, Position = 9)]
-    [Object] $NsxConnection
 )
 
 $ErrorActionPreference = "Stop"
@@ -79,9 +77,7 @@ $private:OFS = ","
 # Initialization and Functions
 #===============================================================================
 # Make sure the necessary modules are loaded.
-$Modules = @(
-    "VMware.VimAutomation.Core", "PowerNSX"
-)
+$Modules = @()
 foreach ($Module in $Modules) {
     if (Get-Module | Where-Object { $_.Name -eq $Module }) {
         # Module already imported. Do nothing.
@@ -176,25 +172,47 @@ public class ServerCertificate {
 
 try {
     $Server = Sync-VariableCache "Server" $Server "NSXClient" -IsMandatory
-    # $AuthorizationToken = Sync-VariableCache "AuthorizationToken" $AuthorizationToken "NSXClient"
-    $NsxConnection = Sync-VariableCache "NsxConnection" $NsxConnection "NSXClient"
+    $AuthorizationToken = Sync-VariableCache "AuthorizationToken" $AuthorizationToken "NSXClient"
     $AcceptAllCertificates = Sync-VariableCache "AcceptAllCertificates" $AcceptAllCertificates "NSXClient"
 
     if ($AcceptAllCertificates) {
         Approve-AllCertificates
     }
 
-    # $BaseUrl = "${Protocol}://$Server"
-    # $EndpointUrl = "${BaseUrl}${Endpoint}"
+    $BaseUrl = "${Protocol}://$Server"
+    $EndpointUrl = "${BaseUrl}${Endpoint}"
 
-    if (-not $NsxConnection) {
-        $NsxConnection = & "${FILE_DIR}Connect-Nsx" -Server $Server
+    $Headers = @{
+        "Accept" = "$MediaType"
+        "Content-Type" = "$MediaType"
+        "Cache-Control" = "no-cache"
+    }
+
+    # If no AuthorizationToken is given, try to get it.
+    if ([String]::IsNullOrEmpty($AuthorizationToken)) {
+        if ($AcceptAllCertificates) {
+            $AuthorizationToken = & "${FILE_DIR}Connect-Nsx" -Server $Server -AcceptAllCertificates
+        } else {
+            $AuthorizationToken = & "${FILE_DIR}Connect-Nsx" -Server $Server
+        }
+    }
+    # If AuthorizationToken is given as SecureString string, convert it to plain text.
+    try {
+        $AuthorizationTokenSecureString = ConvertTo-SecureString -String $AuthorizationToken
+        $BSTR = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($AuthorizationTokenSecureString)
+        $AuthorizationToken = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($BSTR)
+        $null = [System.Runtime.InteropServices.Marshal]::ZeroFreeBSTR($BSTR)
+    } catch {
+        # AuthorizationToken was already given as plain text.
+    }
+    if (-not [String]::IsNullOrEmpty($AuthorizationToken)) {
+        $Headers."$AuthorizationHeader" = "$AuthorizationToken"
     }
 
     if ($Body) {
-        $Response = Invoke-NsxWebRequest -Method $Method -URI $Endpoint -Body $Body.OuterXml -Connection $NsxConnection -WarningAction SilentlyContinue
+        $Response = Invoke-WebRequest -Method $Method -Headers $Headers -Uri $EndpointUrl -Body $Body
     } else {
-        $Response = Invoke-NsxWebRequest -Method $Method -URI $Endpoint -Connection $NsxConnection -WarningAction SilentlyContinue
+        $Response = Invoke-WebRequest -Method $Method -Headers $Headers -Uri $EndpointUrl
     }
 
     $ScriptOut = $Response

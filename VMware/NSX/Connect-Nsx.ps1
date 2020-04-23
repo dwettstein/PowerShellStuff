@@ -17,9 +17,10 @@
 
     File-Name:  Connect-Nsx.ps1
     Author:     David Wettstein
-    Version:    v1.1.1
+    Version:    v2.0.0
 
     Changelog:
+                v2.0.0, 2020-04-23, David Wettstein: Refactor and get rid of PowerNSX.
                 v1.1.1, 2020-04-09, David Wettstein: Improve path handling.
                 v1.1.0, 2020-04-07, David Wettstein: Sync input variables with cache.
                 v1.0.3, 2020-03-12, David Wettstein: Refactor and improve credential handling.
@@ -38,35 +39,38 @@
     https://github.com/vmware/powernsx
 
 .EXAMPLE
-    $NsxConnection = & "Connect-Nsx" "nsx.vsphere.local"
+    $AuthorizationToken = & "Connect-Nsx" "example.com"
 
 .EXAMPLE
-    $NsxConnection = & "$PSScriptRoot\Connect-Nsx" -Server "nsx.vsphere.local" -Username "user" -Password "changeme"
+    $AuthorizationToken = & "$PSScriptRoot\Connect-Nsx" -Server "example.com" -Username "user" -Password "changeme"
 #>
 [CmdletBinding()]
-[OutputType([PSObject])]
+[OutputType([String])]
 param (
     [Parameter(Mandatory = $false, ValueFromPipeline = $true, Position = 0)]
     [String] $Server
     ,
     [Parameter(Mandatory = $false, Position = 1)]
-    [Switch] $AsPlainText = $false
+    [Switch] $UseJWT = $false
     ,
     [Parameter(Mandatory = $false, Position = 2)]
+    [Switch] $AsPlainText = $false
+    ,
+    [Parameter(Mandatory = $false, Position = 3)]
     [ValidateNotNullOrEmpty()]
     [String] $Username = "${env:USERNAME}"  # secure string or plain text (not recommended)
     ,
-    [Parameter(Mandatory = $false, Position = 3)]
+    [Parameter(Mandatory = $false, Position = 4)]
     [String] $Password = $null  # secure string or plain text (not recommended)
     ,
-    [Parameter(Mandatory = $false, Position = 4)]
+    [Parameter(Mandatory = $false, Position = 5)]
     [Switch] $Interactive
     ,
-    [Parameter(Mandatory = $false, Position = 5)]
+    [Parameter(Mandatory = $false, Position = 6)]
     [ValidateNotNullOrEmpty()]
     [String] $PswdDir = "$HOME\.pscredentials"  # $HOME for Local System Account: C:\Windows\System32\config\systemprofile
     ,
-    [Parameter(Mandatory = $false, Position = 6)]
+    [Parameter(Mandatory = $false, Position = 7)]
     [Switch] $AcceptAllCertificates = $false
 )
 
@@ -79,9 +83,7 @@ $private:OFS = ","
 # Initialization and Functions
 #===============================================================================
 # Make sure the necessary modules are loaded.
-$Modules = @(
-    "VMware.VimAutomation.Core", "PowerNSX"
-)
+$Modules = @()
 foreach ($Module in $Modules) {
     if (Get-Module | Where-Object { $_.Name -eq $Module }) {
         # Module already imported. Do nothing.
@@ -233,14 +235,37 @@ try {
         throw "No credentials found. Please use the input parameters or a PSCredential xml file at path '$CredPath'."
     }
 
-    $NsxConnection = Connect-NsxServer -Server $Server -Credential $Cred -DisableVIAutoConnect -WarningAction SilentlyContinue
+    $BaseUrl = "https://$Server"
+    $EndpointUrl = "$BaseUrl/api/2.0/services/auth/token"
 
-    $null = Sync-VariableCache "NsxConnection" $NsxConnection "NSXClient"
-    if ($ModuleConfig -and [String]::IsNullOrEmpty($ModuleConfig.NsxConnection)) {
-        $null = Add-Member -InputObject $ModuleConfig -MemberType NoteProperty -Name "NsxConnection" -Value $NsxConnection -Force
+    $CredString = $Cred.GetNetworkCredential().Username + "@" + $Organization + ":" + $Cred.GetNetworkCredential().Password
+    $CredStringInBytes = [System.Text.Encoding]::UTF8.GetBytes($CredString)
+    $CredStringInBase64 = [System.Convert]::ToBase64String($CredStringInBytes)
+
+    if ($UseJWT) {
+        $Headers = @{
+            "Authorization" = "Basic $CredStringInBase64"
+            "Accept" = "application/xml"
+        }
+
+        $Response = Invoke-WebRequest -Method Post -Headers $Headers -Uri $EndpointUrl
+        [Xml] $ResponseXml = $Response.Content
+        $AuthorizationToken = "AUTHTOKEN $($Response.authToken.value)"
+    } else {
+        $AuthorizationToken = "Basic $CredStringInBase64"
+    }
+    $AuthorizationTokenSecureString = (ConvertTo-SecureString -AsPlainText -Force $AuthorizationToken | ConvertFrom-SecureString)
+
+    $null = Sync-VariableCache "AuthorizationToken" $AuthorizationTokenSecureString "NSXClient"
+    if ($ModuleConfig -and [String]::IsNullOrEmpty($ModuleConfig.AuthorizationToken)) {
+        $null = Add-Member -InputObject $ModuleConfig -MemberType NoteProperty -Name "AuthorizationToken" -Value $AuthorizationTokenSecureString -Force
     }
 
-    $ScriptOut = $NsxConnection
+    if ($AsPlainText) {
+        $ScriptOut = $AuthorizationToken
+    } else {
+        $ScriptOut = $AuthorizationTokenSecureString
+    }
 } catch {
     # Error in $_ or $Error[0] variable.
     Write-Warning "Exception occurred at line $($_.InvocationInfo.ScriptLineNumber): $($_.Exception.ToString())" -WarningAction Continue
