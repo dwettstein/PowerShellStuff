@@ -7,9 +7,10 @@
 
     File-Name:  Get-NsxEdgeDhcpLeases.ps1
     Author:     David Wettstein
-    Version:    v1.0.3
+    Version:    v2.0.0
 
     Changelog:
+                v2.0.0, 2020-04-23, David Wettstein: Refactor and get rid of PowerNSX.
                 v1.0.3, 2020-04-09, David Wettstein: Improve path handling.
                 v1.0.2, 2020-04-08, David Wettstein: Use helper Invoke-NsxRequest.
                 v1.0.1, 2020-03-13, David Wettstein: Change AsObj to AsXml.
@@ -40,7 +41,10 @@ param (
     [Switch] $AsXml
     ,
     [Parameter(Mandatory = $false, Position = 3)]
-    [Object] $NsxConnection
+    [String] $AuthorizationToken = $null  # secure string or plain text (not recommended)
+    ,
+    [Parameter(Mandatory = $false, Position = 4)]
+    [Switch] $AcceptAllCertificates = $false
 )
 
 $ErrorActionPreference = "Stop"
@@ -87,7 +91,11 @@ Write-Verbose "$($FILE_NAME): CALL."
 
 try {
     $Endpoint = "/api/4.0/edges/$EdgeId/dhcp/leaseInfo"
-    $Response = & "${FILE_DIR}Invoke-NsxRequest" -Server $Server -Method "GET" -Endpoint $Endpoint -NsxConnection $NsxConnection
+    if ($AcceptAllCertificates) {
+        $Response = & "${FILE_DIR}Invoke-NsxRequest" -Server $Server -Method "GET" -Endpoint $Endpoint -AuthorizationToken $AuthorizationToken -AcceptAllCertificates
+    } else {
+        $Response = & "${FILE_DIR}Invoke-NsxRequest" -Server $Server -Method "GET" -Endpoint $Endpoint -AuthorizationToken $AuthorizationToken
+    }
     if ($Response.StatusCode -lt 200 -or $Response.StatusCode -ge 300) {
         throw "Failed to invoke $($Endpoint): $($Response.StatusCode) - $($Response.Content)"
     }
