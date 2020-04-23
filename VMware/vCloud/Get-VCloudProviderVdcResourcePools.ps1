@@ -27,7 +27,6 @@
 [OutputType([PSObject])]
 param (
     [Parameter(Mandatory = $false, Position = 0)]
-    [ValidateNotNullOrEmpty()]
     [String] $Server
     ,
     [Parameter(Mandatory = $true, Position = 1)]

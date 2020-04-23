@@ -43,8 +43,7 @@
 [CmdletBinding()]
 [OutputType([String])]
 param (
-    [Parameter(Mandatory = $true, ValueFromPipeline = $true, Position = 0)]
-    [ValidateNotNullOrEmpty()]
+    [Parameter(Mandatory = $false, ValueFromPipeline = $true, Position = 0)]
     [String] $Server
     ,
     [Parameter(Mandatory = $false, Position = 1)]
