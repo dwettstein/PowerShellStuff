@@ -104,79 +104,15 @@ $ScriptOut = ""
 
 Write-Verbose "$($FILE_NAME): CALL."
 
-if ($MyInvocation.MyCommand.Module) {
-    $ModulePrivateData = $MyInvocation.MyCommand.Module.PrivateData
-    Write-Verbose "$($ModulePrivateData.GetEnumerator() | ForEach-Object { "$($_.Name)=$($_.Value)" })"
-    if ($ModulePrivateData.ModuleConfig) {
-        $ModuleConfig = Get-Variable -Name $ModulePrivateData.ModuleConfig -ValueOnly
-        Write-Verbose "$($ModuleConfig.GetEnumerator() | ForEach-Object { "$($_.Name)=$($_.Value)" })"
-    }
-}
-
-function Sync-VariableCache ($VarName, $VarValue, [String] $VariableCachePrefix = "", [Switch] $IsMandatory = $false) {
-    if (-not (Test-Path Variable:\$($VariableCachePrefix + "VariableCache"))) {  # Don't overwrite the variable if it already exists.
-        Set-Variable -Name ($VariableCachePrefix + "VariableCache") -Value @{} -Scope "Global"
-    }
-    $VariableCache = Get-Variable -Name ($VariableCachePrefix + "VariableCache") -ValueOnly
-
-    if ([String]::IsNullOrEmpty($VarValue)) {
-        Write-Verbose "$VarName is null or empty. Try to use value from cache or module config. Mandatory variable? $IsMandatory"
-        if (-not [String]::IsNullOrEmpty($VariableCache."$VarName")) {
-            $VarValue = $VariableCache."$VarName"
-            Write-Verbose "Found value in cache: $VarName = $VarValue"
-        } elseif (-not [String]::IsNullOrEmpty($ModuleConfig."$VarName")) {
-            $VarValue = $ModuleConfig."$VarName"
-            Write-Verbose "Found value in module config: $VarName = $VarValue"
-        } else {
-            if ($IsMandatory) {
-                throw "$VarName is null or empty. Please use the input parameters or the module config."
-            }
-        }
-    } else {
-        Write-Verbose "Update cache with variable: $VarName = $VarValue."
-        if ([String]::IsNullOrEmpty($VariableCache."$VarName")) {
-            $null = Add-Member -InputObject $VariableCache -MemberType NoteProperty -Name $VarName -Value $VarValue -Force
-        } else {
-            $VariableCache."$VarName" = $VarValue
-        }
-    }
-    $VarValue
-}
-
-function Approve-AllCertificates {
-    $CSSource = @'
-using System.Net;
-
-public class ServerCertificate {
-    public static void approveAllCertificates() {
-        ServicePointManager.ServerCertificateValidationCallback = delegate { return true; };
-    }
-}
-'@
-    if (-not ([System.Management.Automation.PSTypeName]'ServerCertificate').Type) {
-        Add-Type -TypeDefinition $CSSource
-    }
-    # Ignore self-signed SSL certificates.
-    [ServerCertificate]::approveAllCertificates()
-    # Disable certificate revocation check.
-    [System.Net.ServicePointManager]::CheckCertificateRevocationList = $false;
-    # Allow all security protocols.
-    [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]'Ssl3,Tls,Tls11,Tls12'
-}
-
 #===============================================================================
 # Main
 #===============================================================================
 #trap { Write-Error $_; exit 1; break; }
 
 try {
-    $Server = Sync-VariableCache "Server" $Server "CyberArkClient" -IsMandatory
-    $AuthorizationToken = Sync-VariableCache "AuthorizationToken" $AuthorizationToken "CyberArkClient"
-    $AcceptAllCertificates = Sync-VariableCache "AcceptAllCertificates" $AcceptAllCertificates "CyberArkClient"
-
-    if ($AcceptAllCertificates) {
-        Approve-AllCertificates
-    }
+    $Server = & "${FILE_DIR}Sync-CyberArkVariableCache" "Server" $Server -IsMandatory
+    $AuthorizationToken = & "${FILE_DIR}Sync-CyberArkVariableCache" "AuthorizationToken" $AuthorizationToken
+    $AcceptAllCertificates = & "${FILE_DIR}Sync-CyberArkVariableCache" "AcceptAllCertificates" $AcceptAllCertificates
 
     $BaseUrl = "${Protocol}://$Server"
     $EndpointUrl = "${BaseUrl}${Endpoint}"

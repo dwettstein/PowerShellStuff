@@ -109,45 +109,6 @@ $ScriptOut = ""
 
 Write-Verbose "$($FILE_NAME): CALL."
 
-if ($MyInvocation.MyCommand.Module) {
-    $ModulePrivateData = $MyInvocation.MyCommand.Module.PrivateData
-    Write-Verbose "$($ModulePrivateData.GetEnumerator() | ForEach-Object { "$($_.Name)=$($_.Value)" })"
-    if ($ModulePrivateData.ModuleConfig) {
-        $ModuleConfig = Get-Variable -Name $ModulePrivateData.ModuleConfig -ValueOnly
-        Write-Verbose "$($ModuleConfig.GetEnumerator() | ForEach-Object { "$($_.Name)=$($_.Value)" })"
-    }
-}
-
-function Sync-VariableCache ($VarName, $VarValue, [String] $VariableCachePrefix = "", [Switch] $IsMandatory = $false) {
-    if (-not (Test-Path Variable:\$($VariableCachePrefix + "VariableCache"))) {  # Don't overwrite the variable if it already exists.
-        Set-Variable -Name ($VariableCachePrefix + "VariableCache") -Value @{} -Scope "Global"
-    }
-    $VariableCache = Get-Variable -Name ($VariableCachePrefix + "VariableCache") -ValueOnly
-
-    if ([String]::IsNullOrEmpty($VarValue)) {
-        Write-Verbose "$VarName is null or empty. Try to use value from cache or module config. Mandatory variable? $IsMandatory"
-        if (-not [String]::IsNullOrEmpty($VariableCache."$VarName")) {
-            $VarValue = $VariableCache."$VarName"
-            Write-Verbose "Found value in cache: $VarName = $VarValue"
-        } elseif (-not [String]::IsNullOrEmpty($ModuleConfig."$VarName")) {
-            $VarValue = $ModuleConfig."$VarName"
-            Write-Verbose "Found value in module config: $VarName = $VarValue"
-        } else {
-            if ($IsMandatory) {
-                throw "$VarName is null or empty. Please use the input parameters or the module config."
-            }
-        }
-    } else {
-        Write-Verbose "Update cache with variable: $VarName = $VarValue."
-        if ([String]::IsNullOrEmpty($VariableCache."$VarName")) {
-            $null = Add-Member -InputObject $VariableCache -MemberType NoteProperty -Name $VarName -Value $VarValue -Force
-        } else {
-            $VariableCache."$VarName" = $VarValue
-        }
-    }
-    $VarValue
-}
-
 function Approve-AllCertificates {
     $CSSource = @'
 using System.Net;
@@ -175,62 +136,17 @@ public class ServerCertificate {
 #trap { Write-Error $_; exit 1; break; }
 
 try {
-    $Server = Sync-VariableCache "Server" $Server "CyberArkClient" -IsMandatory
-    $AcceptAllCertificates = Sync-VariableCache "AcceptAllCertificates" $AcceptAllCertificates "CyberArkClient"
+    $Server = & "${FILE_DIR}Sync-CyberArkVariableCache" "Server" $Server -IsMandatory
+    $AcceptAllCertificates = & "${FILE_DIR}Sync-CyberArkVariableCache" "AcceptAllCertificates" $AcceptAllCertificates
 
     if ($AcceptAllCertificates) {
         Approve-AllCertificates
     }
 
-    # If username is given as SecureString string, convert it to plain text.
-    try {
-        $UsernameSecureString = ConvertTo-SecureString -String $Username
-        $BSTR = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($UsernameSecureString)
-        $Username = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($BSTR)
-        $null = [System.Runtime.InteropServices.Marshal]::ZeroFreeBSTR($BSTR)
-    } catch {
-        # Username was already given as plain text.
-    }
-    if (-not (Test-Path $PswdDir)) {
-        $null = New-Item -ItemType Directory -Path $PswdDir
-    }
-    $CredPath = Join-Path $PswdDir "$Server-$Username.xml"
-    $UserCredPath = Join-Path $PswdDir "$Username.xml"
-    $Cred = $null
-    if (-not [String]::IsNullOrEmpty($Username) -and -not [String]::IsNullOrEmpty($Password)) {
-        # 1. Try with username and password, if provided.
-        try {
-            $PasswordSecureString = ConvertTo-SecureString -String $Password
-        } catch [System.FormatException] {
-            # Password was likely given as plain text, convert it to SecureString.
-            $PasswordSecureString = ConvertTo-SecureString -AsPlainText -Force $Password
-        }
-        $Cred = New-Object System.Management.Automation.PSCredential ($Username, $PasswordSecureString)
-    } elseif (Test-Path $CredPath) {
-        # 2. Try with PSCredential file $Server-$Username.xml.
-        $Cred = Import-Clixml -Path $CredPath
-        Write-Verbose "Credentials imported from: $CredPath"
-    } elseif ($Interactive) {
-        # 3. If interactive, get credentials from user with a prompt.
-        Write-Verbose "No credentials found at path '$CredPath', get them interactively."
-        $Cred = Get-Credential -Message $Server -UserName $Username
-        if ($Cred -and -not [String]::IsNullOrEmpty($Cred.GetNetworkCredential().Password)) {
-            $DoSave = Read-Host -Prompt "Save credentials at '$CredPath'? [y/N] "
-            if ($DoSave -match "^[yY]{1}(es)?$") {
-                $null = Export-Clixml -Path $CredPath -InputObject $Cred
-                Write-Verbose "Credentials exported to: $CredPath"
-            } else {
-                Write-Verbose "Credentials not exported."
-            }
-        } else {
-            throw "Password is null or empty."
-        }
-    } elseif (Test-Path $UserCredPath) {
-        # 4. If not interactive, try with PSCredential file $Username.xml.
-        $Cred = Import-Clixml -Path $UserCredPath
-        Write-Verbose "Credentials imported from: $UserCredPath"
+    if ($Interactive) {
+        $Cred = & "${FILE_DIR}Get-CyberArkPSCredential" -Server $Server -Username $Username -Password $Password -Interactive -PswdDir $PswdDir -ErrorAction:Stop
     } else {
-        throw "No credentials found. Please use the input parameters or a PSCredential xml file at path '$CredPath'."
+        $Cred = & "${FILE_DIR}Get-CyberArkPSCredential" -Server $Server -Username $Username -Password $Password -PswdDir $PswdDir -ErrorAction:Stop
     }
 
     $BaseUrl = "https://$Server"
@@ -251,10 +167,7 @@ try {
     $AuthorizationToken = $Response.Content.Trim('"')
     $AuthorizationTokenSecureString = (ConvertTo-SecureString -AsPlainText -Force $AuthorizationToken | ConvertFrom-SecureString)
 
-    $null = Sync-VariableCache "AuthorizationToken" $AuthorizationTokenSecureString "CyberArkClient"
-    if ($ModuleConfig -and [String]::IsNullOrEmpty($ModuleConfig.AuthorizationToken)) {
-        $null = Add-Member -InputObject $ModuleConfig -MemberType NoteProperty -Name "AuthorizationToken" -Value $AuthorizationTokenSecureString -Force
-    }
+    $null = & "${FILE_DIR}Sync-CyberArkVariableCache" "AuthorizationToken" $AuthorizationTokenSecureString
 
     if ($AsPlainText) {
         $ScriptOut = $AuthorizationToken

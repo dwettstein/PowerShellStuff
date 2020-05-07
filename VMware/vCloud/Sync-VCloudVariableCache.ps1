@@ -49,7 +49,7 @@ param (
     ,
     [Parameter(Mandatory = $false, Position = 2)]
     [ValidateNotNullOrEmpty()]
-    [String] $VariableCachePrefix = ""
+    [String] $VariableCachePrefix = "VCloudClient"
     ,
     [Parameter(Mandatory = $false, Position = 3)]
     [Switch] $IsMandatory

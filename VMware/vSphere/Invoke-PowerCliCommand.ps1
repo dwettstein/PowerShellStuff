@@ -92,53 +92,14 @@ $ScriptOut = ""
 
 Write-Verbose "$($FILE_NAME): CALL."
 
-if ($MyInvocation.MyCommand.Module) {
-    $ModulePrivateData = $MyInvocation.MyCommand.Module.PrivateData
-    Write-Verbose "$($ModulePrivateData.GetEnumerator() | ForEach-Object { "$($_.Name)=$($_.Value)" })"
-    if ($ModulePrivateData.ModuleConfig) {
-        $ModuleConfig = Get-Variable -Name $ModulePrivateData.ModuleConfig -ValueOnly
-        Write-Verbose "$($ModuleConfig.GetEnumerator() | ForEach-Object { "$($_.Name)=$($_.Value)" })"
-    }
-}
-
-function Sync-VariableCache ($VarName, $VarValue, [String] $VariableCachePrefix = "", [Switch] $IsMandatory = $false) {
-    if (-not (Test-Path Variable:\$($VariableCachePrefix + "VariableCache"))) {  # Don't overwrite the variable if it already exists.
-        Set-Variable -Name ($VariableCachePrefix + "VariableCache") -Value @{} -Scope "Global"
-    }
-    $VariableCache = Get-Variable -Name ($VariableCachePrefix + "VariableCache") -ValueOnly
-
-    if ([String]::IsNullOrEmpty($VarValue)) {
-        Write-Verbose "$VarName is null or empty. Try to use value from cache or module config. Mandatory variable? $IsMandatory"
-        if (-not [String]::IsNullOrEmpty($VariableCache."$VarName")) {
-            $VarValue = $VariableCache."$VarName"
-            Write-Verbose "Found value in cache: $VarName = $VarValue"
-        } elseif (-not [String]::IsNullOrEmpty($ModuleConfig."$VarName")) {
-            $VarValue = $ModuleConfig."$VarName"
-            Write-Verbose "Found value in module config: $VarName = $VarValue"
-        } else {
-            if ($IsMandatory) {
-                throw "$VarName is null or empty. Please use the input parameters or the module config."
-            }
-        }
-    } else {
-        Write-Verbose "Update cache with variable: $VarName = $VarValue."
-        if ([String]::IsNullOrEmpty($VariableCache."$VarName")) {
-            $null = Add-Member -InputObject $VariableCache -MemberType NoteProperty -Name $VarName -Value $VarValue -Force
-        } else {
-            $VariableCache."$VarName" = $VarValue
-        }
-    }
-    $VarValue
-}
-
 #===============================================================================
 # Main
 #===============================================================================
 #trap { Write-Error $_; exit 1; break; }
 
 try {
-    $Server = Sync-VariableCache "Server" $Server "VSphereClient" -IsMandatory
-    $VCenterConnection = Sync-VariableCache "VCenterConnection" $VCenterConnection "VSphereClient"
+    $Server = & "${FILE_DIR}Sync-VSphereVariableCache" "Server" $Server -IsMandatory
+    $VCenterConnection = & "${FILE_DIR}Sync-VSphereVariableCache" "VCenterConnection" $VCenterConnection
 
     # First check if given command is from PowerCLI module.
     $Cmdlet = $Command.Split(' ')[0]
