@@ -62,8 +62,8 @@ param (
     [String] $PswdDir = "$HOME\.pscredentials"  # $HOME for Local System Account: C:\Windows\System32\config\systemprofile
 )
 
-$ErrorActionPreference = "Stop"
-$WarningPreference = "SilentlyContinue"
+if (-not $PSCmdlet.MyInvocation.BoundParameters.ErrorAction) { $ErrorActionPreference = "Stop" }
+if (-not $PSCmdlet.MyInvocation.BoundParameters.WarningAction) { $WarningPreference = "SilentlyContinue" }
 # Use comma as output field separator (special variable $OFS).
 $private:OFS = ","
 

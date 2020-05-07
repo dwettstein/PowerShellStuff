@@ -74,8 +74,8 @@ param (
     [Switch] $AcceptAllCertificates = $false
 )
 
-$ErrorActionPreference = "Stop"
-$WarningPreference = "SilentlyContinue"
+if (-not $PSCmdlet.MyInvocation.BoundParameters.ErrorAction) { $ErrorActionPreference = "Stop" }
+if (-not $PSCmdlet.MyInvocation.BoundParameters.WarningAction) { $WarningPreference = "SilentlyContinue" }
 # Use comma as output field separator (special variable $OFS).
 $private:OFS = ","
 
@@ -134,6 +134,9 @@ try {
         $Accounts = @()
         $Accounts += $ResponseObj
     } else {
+        if ([String]::IsNullOrEmpty($Query)) {
+            throw "One of parameter Query or Account is mandatory!"
+        }
         Add-Type -AssemblyName System.Web
         $EncodedQuery = [System.Web.HttpUtility]::UrlEncode($Query)
         $QueryEndpoint = "/PasswordVault/api/Accounts?search=$EncodedQuery"

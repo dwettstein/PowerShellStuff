@@ -55,8 +55,8 @@ param (
     [Switch] $IsMandatory
 )
 
-$ErrorActionPreference = "Stop"
-$WarningPreference = "SilentlyContinue"
+if (-not $PSCmdlet.MyInvocation.BoundParameters.ErrorAction) { $ErrorActionPreference = "Stop" }
+if (-not $PSCmdlet.MyInvocation.BoundParameters.WarningAction) { $WarningPreference = "SilentlyContinue" }
 # Use comma as output field separator (special variable $OFS).
 $private:OFS = ","
 
