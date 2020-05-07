@@ -37,7 +37,7 @@ param (
     [String] $AuthorizationToken = $null  # secure string or plain text (not recommended)
     ,
     [Parameter(Mandatory = $false, Position = 3)]
-    [Switch] $AcceptAllCertificates = $false
+    [Switch] $ApproveAllCertificates = $false
 )
 
 if (-not $PSCmdlet.MyInvocation.BoundParameters.ErrorAction) { $ErrorActionPreference = "Stop" }
@@ -83,8 +83,8 @@ Write-Verbose "$($FILE_NAME): CALL."
 #trap { Write-Error $_; exit 1; break; }
 
 try {
-    if ($AcceptAllCertificates) {
-        [Xml] $Response = & "${FILE_DIR}Invoke-VCloudRequest" -Server $Server -Method "GET" -Endpoint "/api/admin/extension/providerVdcReferences" -AuthorizationToken $AuthorizationToken -AcceptAllCertificates
+    if ($ApproveAllCertificates) {
+        [Xml] $Response = & "${FILE_DIR}Invoke-VCloudRequest" -Server $Server -Method "GET" -Endpoint "/api/admin/extension/providerVdcReferences" -AuthorizationToken $AuthorizationToken -ApproveAllCertificates
     } else {
         [Xml] $Response = & "${FILE_DIR}Invoke-VCloudRequest" -Server $Server -Method "GET" -Endpoint "/api/admin/extension/providerVdcReferences" -AuthorizationToken $AuthorizationToken
     }
@@ -92,8 +92,8 @@ try {
 
     if ($IncludeResourcePools) {
         foreach ($ProviderVdc in $ScriptOut) {
-            if ($AcceptAllCertificates) {
-                $ProviderVdcResourcePools = & "${FILE_DIR}Get-VCloudProviderVdcResourcePools" -Server $Server -ProviderVdc $ProviderVdc.id -AuthorizationToken $AuthorizationToken -AcceptAllCertificates
+            if ($ApproveAllCertificates) {
+                $ProviderVdcResourcePools = & "${FILE_DIR}Get-VCloudProviderVdcResourcePools" -Server $Server -ProviderVdc $ProviderVdc.id -AuthorizationToken $AuthorizationToken -ApproveAllCertificates
             } else {
                 $ProviderVdcResourcePools = & "${FILE_DIR}Get-VCloudProviderVdcResourcePools" -Server $Server -ProviderVdc $ProviderVdc.id -AuthorizationToken $AuthorizationToken
             }

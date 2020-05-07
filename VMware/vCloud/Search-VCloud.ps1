@@ -48,7 +48,7 @@ param (
     [String] $AuthorizationToken = $null
     ,
     [Parameter(Mandatory=$false, Position=5)]
-    [Switch] $AcceptAllCertificates = $false
+    [Switch] $ApproveAllCertificates = $false
 )
 
 if (-not $PSCmdlet.MyInvocation.BoundParameters.ErrorAction) { $ErrorActionPreference = "Stop" }
@@ -102,8 +102,8 @@ try {
             $Endpoint += "&filter=$Filter"
         }
         $Endpoint += "&page=$Page"
-        if ($AcceptAllCertificates) {
-            [Xml] $Response = & "${FILE_DIR}Invoke-VCloudRequest" -Server $Server -Method "GET" -Endpoint $Endpoint -AuthorizationToken $AuthorizationToken -AcceptAllCertificates
+        if ($ApproveAllCertificates) {
+            [Xml] $Response = & "${FILE_DIR}Invoke-VCloudRequest" -Server $Server -Method "GET" -Endpoint $Endpoint -AuthorizationToken $AuthorizationToken -ApproveAllCertificates
         } else {
             [Xml] $Response = & "${FILE_DIR}Invoke-VCloudRequest" -Server $Server -Method "GET" -Endpoint $Endpoint -AuthorizationToken $AuthorizationToken
         }

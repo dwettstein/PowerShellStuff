@@ -43,7 +43,7 @@
     $AuthorizationToken = & "Connect-CyberArk" "example.com"
 
 .EXAMPLE
-    $AuthorizationToken = & "$PSScriptRoot\Connect-CyberArk" -Server "example.com" -Username "user" -Password "changeme" -AcceptAllCertificates
+    $AuthorizationToken = & "$PSScriptRoot\Connect-CyberArk" -Server "example.com" -Username "user" -Password "changeme" -ApproveAllCertificates
 #>
 [CmdletBinding()]
 [OutputType([String])]
@@ -69,7 +69,7 @@ param (
     [String] $PswdDir = "$HOME\.pscredentials"  # $HOME for Local System Account: C:\Windows\System32\config\systemprofile
     ,
     [Parameter(Mandatory = $false, Position = 6)]
-    [Switch] $AcceptAllCertificates = $false
+    [Switch] $ApproveAllCertificates = $false
 )
 
 if (-not $PSCmdlet.MyInvocation.BoundParameters.ErrorAction) { $ErrorActionPreference = "Stop" }
@@ -137,9 +137,9 @@ public class ServerCertificate {
 
 try {
     $Server = & "${FILE_DIR}Sync-CyberArkVariableCache" "Server" $Server -IsMandatory
-    $AcceptAllCertificates = & "${FILE_DIR}Sync-CyberArkVariableCache" "AcceptAllCertificates" $AcceptAllCertificates
+    $ApproveAllCertificates = & "${FILE_DIR}Sync-CyberArkVariableCache" "ApproveAllCertificates" $ApproveAllCertificates
 
-    if ($AcceptAllCertificates) {
+    if ($ApproveAllCertificates) {
         Approve-AllCertificates
     }
 

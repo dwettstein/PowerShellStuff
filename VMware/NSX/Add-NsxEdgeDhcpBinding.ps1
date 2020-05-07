@@ -85,7 +85,7 @@ param (
     [String] $AuthorizationToken = $null  # secure string or plain text (not recommended)
     ,
     [Parameter(Mandatory = $false, Position = 16)]
-    [Switch] $AcceptAllCertificates = $false
+    [Switch] $ApproveAllCertificates = $false
 )
 
 if (-not $PSCmdlet.MyInvocation.BoundParameters.ErrorAction) { $ErrorActionPreference = "Stop" }
@@ -202,8 +202,8 @@ try {
 
     # Invoke API with this body
     $Endpoint = "/api/4.0/edges/$EdgeId/dhcp/config/bindings"
-    if ($AcceptAllCertificates) {
-        $Response = & "${FILE_DIR}Invoke-NsxRequest" -Server $Server -Method "POST" -Endpoint $Endpoint -Body $Body.OuterXml -AuthorizationToken $AuthorizationToken -AcceptAllCertificates
+    if ($ApproveAllCertificates) {
+        $Response = & "${FILE_DIR}Invoke-NsxRequest" -Server $Server -Method "POST" -Endpoint $Endpoint -Body $Body.OuterXml -AuthorizationToken $AuthorizationToken -ApproveAllCertificates
     } else {
         $Response = & "${FILE_DIR}Invoke-NsxRequest" -Server $Server -Method "POST" -Endpoint $Endpoint -Body $Body.OuterXml -AuthorizationToken $AuthorizationToken
     }

@@ -41,7 +41,7 @@ param (
     [String] $AuthorizationToken = $null  # secure string or plain text (not recommended)
     ,
     [Parameter(Mandatory = $false, Position = 4)]
-    [Switch] $AcceptAllCertificates = $false
+    [Switch] $ApproveAllCertificates = $false
 )
 
 if (-not $PSCmdlet.MyInvocation.BoundParameters.ErrorAction) { $ErrorActionPreference = "Stop" }
@@ -91,8 +91,8 @@ try {
     if (-not [String]::IsNullOrEmpty($OrgVdc)) {
         $Filter = "(vdc==$OrgVdc)"
     }
-    if ($AcceptAllCertificates) {
-        $OrgVdcNetworks = & "${FILE_DIR}Search-VCloud" -Server $Server -Type "orgVdcNetwork" -ResultType "OrgVdcNetworkRecord" -Filter $Filter -AuthorizationToken $AuthorizationToken -AcceptAllCertificates
+    if ($ApproveAllCertificates) {
+        $OrgVdcNetworks = & "${FILE_DIR}Search-VCloud" -Server $Server -Type "orgVdcNetwork" -ResultType "OrgVdcNetworkRecord" -Filter $Filter -AuthorizationToken $AuthorizationToken -ApproveAllCertificates
     } else {
         $OrgVdcNetworks = & "${FILE_DIR}Search-VCloud" -Server $Server -Type "orgVdcNetwork" -ResultType "OrgVdcNetworkRecord" -Filter $Filter -AuthorizationToken $AuthorizationToken
     }

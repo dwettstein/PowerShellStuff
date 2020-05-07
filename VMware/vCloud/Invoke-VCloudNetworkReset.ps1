@@ -38,7 +38,7 @@ param (
     [String] $AuthorizationToken = $null  # secure string or plain text (not recommended)
     ,
     [Parameter(Mandatory = $false, Position = 3)]
-    [Switch] $AcceptAllCertificates = $false
+    [Switch] $ApproveAllCertificates = $false
 )
 
 if (-not $PSCmdlet.MyInvocation.BoundParameters.ErrorAction) { $ErrorActionPreference = "Stop" }
@@ -85,8 +85,8 @@ Write-Verbose "$($FILE_NAME): CALL."
 
 try {
     $NetworkId = & "${FILE_DIR}Split-VCloudId" -UrnOrHref $Network
-    if ($AcceptAllCertificates) {
-        [Xml] $Response = & "${FILE_DIR}Invoke-VCloudRequest" -Server $Server -Method "POST" -Endpoint "/api/admin/network/$NetworkId/action/reset" -AuthorizationToken $AuthorizationToken -AcceptAllCertificates
+    if ($ApproveAllCertificates) {
+        [Xml] $Response = & "${FILE_DIR}Invoke-VCloudRequest" -Server $Server -Method "POST" -Endpoint "/api/admin/network/$NetworkId/action/reset" -AuthorizationToken $AuthorizationToken -ApproveAllCertificates
     } else {
         [Xml] $Response = & "${FILE_DIR}Invoke-VCloudRequest" -Server $Server -Method "POST" -Endpoint "/api/admin/network/$NetworkId/action/reset" -AuthorizationToken $AuthorizationToken
     }

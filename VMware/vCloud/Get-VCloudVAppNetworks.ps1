@@ -41,7 +41,7 @@ param (
     [String] $AuthorizationToken = $null  # secure string or plain text (not recommended)
     ,
     [Parameter(Mandatory = $false, Position = 3)]
-    [Switch] $AcceptAllCertificates = $false
+    [Switch] $ApproveAllCertificates = $false
 )
 
 if (-not $PSCmdlet.MyInvocation.BoundParameters.ErrorAction) { $ErrorActionPreference = "Stop" }
@@ -91,8 +91,8 @@ try {
     if (-not [String]::IsNullOrEmpty($VApp)) {
         $Filter = "(vApp==$VApp)"
     }
-    if ($AcceptAllCertificates) {
-        $VAppNetworks = & "${FILE_DIR}Search-VCloud" -Server $Server -Type "adminVAppNetwork" -ResultType "AdminVAppNetworkRecord" -Filter $Filter -AuthorizationToken $AuthorizationToken -AcceptAllCertificates
+    if ($ApproveAllCertificates) {
+        $VAppNetworks = & "${FILE_DIR}Search-VCloud" -Server $Server -Type "adminVAppNetwork" -ResultType "AdminVAppNetworkRecord" -Filter $Filter -AuthorizationToken $AuthorizationToken -ApproveAllCertificates
     } else {
         $VAppNetworks = & "${FILE_DIR}Search-VCloud" -Server $Server -Type "adminVAppNetwork" -ResultType "AdminVAppNetworkRecord" -Filter $Filter -AuthorizationToken $AuthorizationToken
     }

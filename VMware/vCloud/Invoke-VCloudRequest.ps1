@@ -28,7 +28,7 @@
     $Result = & "Invoke-ServerRequest" "example.com" "/api/v1/version" -AuthorizationToken $AuthorizationToken
 
 .EXAMPLE
-    [Xml] $Result = & "$PSScriptRoot\Invoke-ServerRequest" -Server "example.com" -Endpoint "/api/v1/version" -Method "GET" -MediaType "application/*+xml" -AcceptAllCertificates
+    [Xml] $Result = & "$PSScriptRoot\Invoke-ServerRequest" -Server "example.com" -Endpoint "/api/v1/version" -Method "GET" -MediaType "application/*+xml" -ApproveAllCertificates
 #>
 [CmdletBinding()]
 [OutputType([Object])]
@@ -64,7 +64,7 @@ param (
     [String] $Protocol = "https"
     ,
     [Parameter(Mandatory = $false, Position = 8)]
-    [Switch] $AcceptAllCertificates = $false
+    [Switch] $ApproveAllCertificates = $false
     ,
     [Parameter(Mandatory = $false, Position = 9)]
     [ValidateNotNullOrEmpty()]
@@ -116,7 +116,7 @@ Write-Verbose "$($FILE_NAME): CALL."
 try {
     $Server = & "${FILE_DIR}Sync-VCloudVariableCache" "Server" $Server -IsMandatory
     $AuthorizationToken = & "${FILE_DIR}Sync-VCloudVariableCache" "AuthorizationToken" $AuthorizationToken
-    $AcceptAllCertificates = & "${FILE_DIR}Sync-VCloudVariableCache" "AcceptAllCertificates" $AcceptAllCertificates
+    $ApproveAllCertificates = & "${FILE_DIR}Sync-VCloudVariableCache" "ApproveAllCertificates" $ApproveAllCertificates
 
     $BaseUrl = "${Protocol}://$Server"
     $EndpointUrl = "${BaseUrl}${Endpoint}"
@@ -129,8 +129,8 @@ try {
 
     # If no AuthorizationToken is given, try to get it.
     if ([String]::IsNullOrEmpty($AuthorizationToken)) {
-        if ($AcceptAllCertificates) {
-            $AuthorizationToken = & "${FILE_DIR}Connect-VCloud" -Server $Server -AcceptAllCertificates
+        if ($ApproveAllCertificates) {
+            $AuthorizationToken = & "${FILE_DIR}Connect-VCloud" -Server $Server -ApproveAllCertificates
         } else {
             $AuthorizationToken = & "${FILE_DIR}Connect-VCloud" -Server $Server
         }

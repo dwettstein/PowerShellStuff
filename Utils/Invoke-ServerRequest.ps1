@@ -27,7 +27,7 @@
     $Result = & "Invoke-ServerRequest" "example.com" "/api/v1/version" -AuthorizationToken $AuthorizationToken
 
 .EXAMPLE
-    [Xml] $Result = & "$PSScriptRoot\Invoke-ServerRequest" -Server "example.com" -Endpoint "/api/v1/version" -Method "GET" -MediaType "application/*+xml" -AcceptAllCertificates
+    [Xml] $Result = & "$PSScriptRoot\Invoke-ServerRequest" -Server "example.com" -Endpoint "/api/v1/version" -Method "GET" -MediaType "application/*+xml" -ApproveAllCertificates
 #>
 [CmdletBinding()]
 [OutputType([Object])]
@@ -64,7 +64,7 @@ param (
     [String] $Protocol = "https"
     ,
     [Parameter(Mandatory = $false, Position = 8)]
-    [Switch] $AcceptAllCertificates = $false
+    [Switch] $ApproveAllCertificates = $false
 )
 
 if (-not $PSCmdlet.MyInvocation.BoundParameters.ErrorAction) { $ErrorActionPreference = "Stop" }
@@ -131,7 +131,7 @@ public class ServerCertificate {
 #trap { Write-Error $_; exit 1; break; }
 
 try {
-    if ($AcceptAllCertificates) {
+    if ($ApproveAllCertificates) {
         Approve-AllCertificates
     }
 

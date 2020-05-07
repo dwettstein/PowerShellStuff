@@ -38,7 +38,7 @@
     $AuthorizationToken = & "Connect-VCloud" "example.com"
 
 .EXAMPLE
-    $AuthorizationToken = & "$PSScriptRoot\Connect-VCloud" -Server "example.com" -Organization "system" -Username "user" -Password "changeme" -AcceptAllCertificates
+    $AuthorizationToken = & "$PSScriptRoot\Connect-VCloud" -Server "example.com" -Organization "system" -Username "user" -Password "changeme" -ApproveAllCertificates
 #>
 [CmdletBinding()]
 [OutputType([String])]
@@ -72,7 +72,7 @@ param (
     [String] $PswdDir = "$HOME\.pscredentials"  # $HOME for Local System Account: C:\Windows\System32\config\systemprofile
     ,
     [Parameter(Mandatory = $false, Position = 8)]
-    [Switch] $AcceptAllCertificates = $false
+    [Switch] $ApproveAllCertificates = $false
 )
 
 if (-not $PSCmdlet.MyInvocation.BoundParameters.ErrorAction) { $ErrorActionPreference = "Stop" }
@@ -140,9 +140,9 @@ public class ServerCertificate {
 
 try {
     $Server = & "${FILE_DIR}Sync-VCloudVariableCache" "Server" $Server -IsMandatory
-    $AcceptAllCertificates = & "${FILE_DIR}Sync-VCloudVariableCache" "AcceptAllCertificates" $AcceptAllCertificates
+    $ApproveAllCertificates = & "${FILE_DIR}Sync-VCloudVariableCache" "ApproveAllCertificates" $ApproveAllCertificates
 
-    if ($AcceptAllCertificates) {
+    if ($ApproveAllCertificates) {
         Approve-AllCertificates
     }
 

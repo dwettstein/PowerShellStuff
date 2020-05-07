@@ -29,7 +29,7 @@
     $Result = & "Invoke-ServerRequest" "example.com" "/api/v1/version" -AuthorizationToken $AuthorizationToken
 
 .EXAMPLE
-    [Xml] $Result = & "$PSScriptRoot\Invoke-ServerRequest" -Server "example.com" -Endpoint "/api/v1/version" -Method "GET" -MediaType "application/*+xml" -AcceptAllCertificates
+    [Xml] $Result = & "$PSScriptRoot\Invoke-ServerRequest" -Server "example.com" -Endpoint "/api/v1/version" -Method "GET" -MediaType "application/*+xml" -ApproveAllCertificates
 #>
 [CmdletBinding()]
 [OutputType([Object])]
@@ -65,7 +65,7 @@ param (
     [String] $Protocol = "https"
     ,
     [Parameter(Mandatory = $false, Position = 8)]
-    [Switch] $AcceptAllCertificates = $false
+    [Switch] $ApproveAllCertificates = $false
 )
 
 if (-not $PSCmdlet.MyInvocation.BoundParameters.ErrorAction) { $ErrorActionPreference = "Stop" }
@@ -113,7 +113,7 @@ Write-Verbose "$($FILE_NAME): CALL."
 try {
     $Server = & "${FILE_DIR}Sync-NsxVariableCache" "Server" $Server -IsMandatory
     $AuthorizationToken = & "${FILE_DIR}Sync-NsxVariableCache" "AuthorizationToken" $AuthorizationToken
-    $AcceptAllCertificates = & "${FILE_DIR}Sync-NsxVariableCache" "AcceptAllCertificates" $AcceptAllCertificates
+    $ApproveAllCertificates = & "${FILE_DIR}Sync-NsxVariableCache" "ApproveAllCertificates" $ApproveAllCertificates
 
     $BaseUrl = "${Protocol}://$Server"
     $EndpointUrl = "${BaseUrl}${Endpoint}"
@@ -126,8 +126,8 @@ try {
 
     # If no AuthorizationToken is given, try to get it.
     if ([String]::IsNullOrEmpty($AuthorizationToken)) {
-        if ($AcceptAllCertificates) {
-            $AuthorizationToken = & "${FILE_DIR}Connect-Nsx" -Server $Server -AcceptAllCertificates
+        if ($ApproveAllCertificates) {
+            $AuthorizationToken = & "${FILE_DIR}Connect-Nsx" -Server $Server -ApproveAllCertificates
         } else {
             $AuthorizationToken = & "${FILE_DIR}Connect-Nsx" -Server $Server
         }

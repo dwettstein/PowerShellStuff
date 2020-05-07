@@ -85,7 +85,7 @@
     $Result = & "Invoke-Terraform" -Action "apply" -Server "example.com" -VarsJson '{"vm_name": "my terraform vm"}'
 
 .EXAMPLE
-    $Result = & "$PSScriptRoot\Invoke-Terraform" -Action "apply" -Server "example.com" -Username "user" -Password "changeme" -AutoApprove -AcceptAllCertificates
+    $Result = & "$PSScriptRoot\Invoke-Terraform" -Action "apply" -Server "example.com" -Username "user" -Password "changeme" -AutoApprove -ApproveAllCertificates
 #>
 [CmdletBinding()]
 [OutputType([String])]
@@ -128,7 +128,7 @@ param (
     [String] $PswdDir = "$HOME\.pscredentials"  # $HOME for Local System Account: C:\Windows\System32\config\systemprofile
     ,
     [Parameter(Mandatory = $false, Position = 10)]
-    [Switch] $AcceptAllCertificates = $false
+    [Switch] $ApproveAllCertificates = $false
     ,
     [Parameter(Mandatory = $false, Position = 11)]
     [Switch] $Unsafe = $false
@@ -204,7 +204,7 @@ try {
             $Cred = & "${FILE_DIR}Get-TerraformPSCredential" -Server $Server -Username $Username -Password $Password -PswdDir $PswdDir -ErrorAction:Stop
         }
 
-        $Command += " -var 'server=$Server' -var 'username=$($Cred.UserName)' -var 'password=$($Cred.GetNetworkCredential().Password)' -var 'allow_unverified_ssl=$("$AcceptAllCertificates".ToLower())'"
+        $Command += " -var 'server=$Server' -var 'username=$($Cred.UserName)' -var 'password=$($Cred.GetNetworkCredential().Password)' -var 'allow_unverified_ssl=$("$ApproveAllCertificates".ToLower())'"
 
         $Vars = ConvertFrom-Json $VarsJson
         foreach ($Var in (Get-Member -MemberType NoteProperty -InputObject $Vars)) {

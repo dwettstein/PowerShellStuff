@@ -27,7 +27,7 @@
     Invoke-HttpRequest -Method GET -Uri "https://example.com"
 
 .EXAMPLE
-    Invoke-HttpRequest -Method GET -Uri "https://example.com/api/users?name=David" -Headers @{"Accept"="application/json"; "Authorization"="Basic dXNlcm5hbWU6cGFzc3dvcmQ="} -AcceptAllCertificates
+    Invoke-HttpRequest -Method GET -Uri "https://example.com/api/users?name=David" -Headers @{"Accept"="application/json"; "Authorization"="Basic dXNlcm5hbWU6cGFzc3dvcmQ="} -ApproveAllCertificates
 #>
 [CmdletBinding()]
 [OutputType([Hashtable])]
@@ -47,7 +47,7 @@ param (
     [String] $Body
     ,
     [Parameter(Mandatory = $false, Position = 4)]
-    [Switch] $AcceptAllCertificates = $false
+    [Switch] $ApproveAllCertificates = $false
 )
 
 if (-not $PSCmdlet.MyInvocation.BoundParameters.ErrorAction) { $ErrorActionPreference = "Stop" }
@@ -139,7 +139,7 @@ trap { Write-Error $_; exit 1; break; }
 try {
     Write-Verbose "Create HttpWebRequest '$Method' with URI: '$Uri'"
 
-    if ($AcceptAllCertificates) {
+    if ($ApproveAllCertificates) {
         Approve-AllCertificates
     }
 

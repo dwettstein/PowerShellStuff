@@ -54,7 +54,7 @@ param (
     [String] $AuthorizationToken = $null  # secure string or plain text (not recommended)
     ,
     [Parameter(Mandatory = $false, Position = 3)]
-    [Switch] $AcceptAllCertificates = $false
+    [Switch] $ApproveAllCertificates = $false
 )
 
 if (-not $PSCmdlet.MyInvocation.BoundParameters.ErrorAction) { $ErrorActionPreference = "Stop" }
@@ -106,8 +106,8 @@ try {
         $AccountId = $Account.id
     }
     $Endpoint = "/PasswordVault/api/Accounts/$AccountId"
-    if ($AcceptAllCertificates) {
-        $Response = & "${FILE_DIR}Invoke-CyberArkRequest" -Server $Server -Method "DELETE" -Endpoint $Endpoint -AuthorizationToken $AuthorizationToken -AcceptAllCertificates
+    if ($ApproveAllCertificates) {
+        $Response = & "${FILE_DIR}Invoke-CyberArkRequest" -Server $Server -Method "DELETE" -Endpoint $Endpoint -AuthorizationToken $AuthorizationToken -ApproveAllCertificates
     } else {
         $Response = & "${FILE_DIR}Invoke-CyberArkRequest" -Server $Server -Method "DELETE" -Endpoint $Endpoint -AuthorizationToken $AuthorizationToken
     }
