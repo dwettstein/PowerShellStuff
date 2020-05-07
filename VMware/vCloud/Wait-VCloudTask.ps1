@@ -7,9 +7,10 @@
 
     File-Name:  Wait-VCloudTask.ps1
     Author:     David Wettstein
-    Version:    v1.0.1
+    Version:    v1.0.2
 
     Changelog:
+                v1.0.2, 2020-05-07, David Wettstein: Reorganize input params.
                 v1.0.1, 2020-04-09, David Wettstein: Improve path handling.
                 v1.0.0, 2019-05-30, David Wettstein: First implementation.
 
@@ -26,19 +27,19 @@
 [CmdletBinding()]
 [OutputType([String])]
 param (
-    [Parameter(Mandatory=$false, Position=0)]
-    [ValidateNotNullOrEmpty()]
-    [String] $Server
-    ,
-    [Parameter(Mandatory=$true, Position=1)]
+    [Parameter(Mandatory=$true, ValueFromPipeline = $true, Position=0)]
     [ValidatePattern('.*[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}.*')]
     [String] $Task
     ,
-    [Parameter(Mandatory=$false, Position=2)]
+    [Parameter(Mandatory=$false, Position=1)]
     [Int] $SleepInSec = 5
     ,
-    [Parameter(Mandatory=$false, Position=3)]
+    [Parameter(Mandatory=$false, Position=2)]
     [Int] $TimeoutInSec = 3600  # 60min
+    ,
+    [Parameter(Mandatory=$false, Position=3)]
+    [ValidateNotNullOrEmpty()]
+    [String] $Server
     ,
     [Parameter(Mandatory=$false, Position=4)]
     [String] $AuthorizationToken = $null

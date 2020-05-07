@@ -7,9 +7,10 @@
 
     File-Name:  Invoke-PowerCliCommand.ps1
     Author:     David Wettstein
-    Version:    v1.1.1
+    Version:    v1.1.2
 
     Changelog:
+                v1.1.2, 2020-05-07, David Wettstein: Reorganize input params.
                 v1.1.1, 2020-04-09, David Wettstein: Improve path handling.
                 v1.1.0, 2020-04-07, David Wettstein: Sync input variables with cache.
                 v1.0.1, 2020-03-13, David Wettstein: Change AsObj to AsJson.
@@ -23,7 +24,7 @@
     https://github.com/dwettstein/PowerShell
 
 .EXAMPLE
-    $Result = & "Invoke-PowerCliCommand" "vcenter.vsphere.local" "Get-VM -Name 'vm_name'"
+    $Result = & "Invoke-PowerCliCommand" "Get-VM -Name 'vm_name'"
 
 .EXAMPLE
     $Result = & "$PSScriptRoot\Invoke-PowerCliCommand" -Server "vcenter.vsphere.local" -Command "Get-VM -Name 'vm_name'" -Username "user" -Password "changeme"
@@ -31,14 +32,14 @@
 [CmdletBinding()]
 [OutputType([Object])]
 param (
-    [Parameter(Mandatory = $false, Position = 0)]
-    [String] $Server
-    ,
-    [Parameter(Mandatory = $true, ValueFromPipeline = $true, Position = 1)]
+    [Parameter(Mandatory = $true, ValueFromPipeline = $true, Position = 0)]
     [String] $Command
     ,
-    [Parameter(Mandatory = $false, Position = 2)]
+    [Parameter(Mandatory = $false, Position = 1)]
     [Switch] $AsJson
+    ,
+    [Parameter(Mandatory = $false, Position = 2)]
+    [String] $Server
     ,
     [Parameter(Mandatory = $false, Position = 3)]
     [Object] $VCenterConnection

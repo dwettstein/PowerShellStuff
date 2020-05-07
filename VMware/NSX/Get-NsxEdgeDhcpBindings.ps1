@@ -7,9 +7,10 @@
 
     File-Name:  Get-NsxEdgeDhcpBindings.ps1
     Author:     David Wettstein
-    Version:    v2.0.0
+    Version:    v2.0.1
 
     Changelog:
+                v2.0.1, 2020-05-07, David Wettstein: Reorganize input params.
                 v2.0.0, 2020-04-23, David Wettstein: Refactor and get rid of PowerNSX.
                 v1.0.3, 2020-04-09, David Wettstein: Improve path handling.
                 v1.0.2, 2020-04-08, David Wettstein: Use helper Invoke-NsxRequest.
@@ -29,16 +30,16 @@
 [CmdletBinding()]
 [OutputType([Object])]
 param (
-    [Parameter(Mandatory = $false, Position = 0)]
-    [ValidateNotNullOrEmpty()]
-    [String] $Server
-    ,
-    [Parameter(Mandatory = $true, ValueFromPipeline = $true, Position = 1)]
+    [Parameter(Mandatory = $true, ValueFromPipeline = $true, Position = 0)]
     [ValidatePattern("^edge-\d+$")]
     [String] $EdgeId
     ,
-    [Parameter(Mandatory = $false, Position = 2)]
+    [Parameter(Mandatory = $false, Position = 1)]
     [Switch] $AsXml
+    ,
+    [Parameter(Mandatory = $false, Position = 2)]
+    [ValidateNotNullOrEmpty()]
+    [String] $Server
     ,
     [Parameter(Mandatory = $false, Position = 3)]
     [String] $AuthorizationToken = $null  # secure string or plain text (not recommended)

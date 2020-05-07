@@ -7,9 +7,10 @@
 
     File-Name:  Get-VCloudOrgs.ps1
     Author:     David Wettstein
-    Version:    v1.0.1
+    Version:    v1.0.2
 
     Changelog:
+                v1.0.2, 2020-05-07, David Wettstein: Reorganize input params.
                 v1.0.1, 2020-04-09, David Wettstein: Improve path handling.
                 v1.0.0, 2019-05-30, David Wettstein: First implementation.
 
@@ -26,12 +27,12 @@
 [CmdletBinding()]
 [OutputType([Array])]
 param (
-    [Parameter(Mandatory = $false, Position = 0)]
-    [ValidateNotNullOrEmpty()]
-    [String] $Server
+    [Parameter(Mandatory = $false, ValueFromPipeline = $true, Position = 0)]
+    [String] $OrgName = $null
     ,
     [Parameter(Mandatory = $false, Position = 1)]
-    [String] $OrgName = $null
+    [ValidateNotNullOrEmpty()]
+    [String] $Server
     ,
     [Parameter(Mandatory = $false, Position = 2)]
     [String] $AuthorizationToken = $null  # secure string or plain text (not recommended)

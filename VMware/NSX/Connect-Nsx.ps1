@@ -17,9 +17,10 @@
 
     File-Name:  Connect-Nsx.ps1
     Author:     David Wettstein
-    Version:    v2.0.0
+    Version:    v2.0.1
 
     Changelog:
+                v2.0.1, 2020-05-07, David Wettstein: Reorganize input params.
                 v2.0.0, 2020-04-23, David Wettstein: Refactor and get rid of PowerNSX.
                 v1.1.1, 2020-04-09, David Wettstein: Improve path handling.
                 v1.1.0, 2020-04-07, David Wettstein: Sync input variables with cache.

@@ -7,9 +7,10 @@
 
     File-Name:  Search-VCloud.ps1
     Author:     David Wettstein
-    Version:    v1.0.1
+    Version:    v1.0.2
 
     Changelog:
+                v1.0.2, 2020-05-07, David Wettstein: Reorganize input params.
                 v1.0.1, 2020-04-09, David Wettstein: Improve path handling.
                 v1.0.0, 2019-05-30, David Wettstein: First implementation.
 
@@ -32,17 +33,17 @@
 [CmdletBinding()]
 [OutputType([Array])]
 param (
-    [Parameter(Mandatory=$false, Position=0)]
-    [String] $Server
-    ,
-    [Parameter(Mandatory=$true, Position=1)]
+    [Parameter(Mandatory=$true, ValueFromPipeline = $true, Position=0)]
     [String] $Type
     ,
-    [Parameter(Mandatory=$true, Position=2)]
+    [Parameter(Mandatory=$true, Position=1)]
     [String] $ResultType
     ,
-    [Parameter(Mandatory=$false, Position=3)]
+    [Parameter(Mandatory=$false, Position=2)]
     [String] $Filter = $null  # e.g. (org==foo;vdc==bar)
+    ,
+    [Parameter(Mandatory=$false, Position=3)]
+    [String] $Server
     ,
     [Parameter(Mandatory=$false, Position=4)]
     [String] $AuthorizationToken = $null

@@ -7,9 +7,10 @@
 
     File-Name:  Get-VCloudVAppNetworks.ps1
     Author:     David Wettstein
-    Version:    v1.0.1
+    Version:    v1.0.2
 
     Changelog:
+                v1.0.2, 2020-05-07, David Wettstein: Reorganize input params.
                 v1.0.1, 2020-04-09, David Wettstein: Improve path handling.
                 v1.0.0, 2019-09-17, David Wettstein: First implementation.
 
@@ -26,11 +27,7 @@
 [CmdletBinding()]
 [OutputType([Array])]
 param (
-    [Parameter(Mandatory = $false, Position = 0)]
-    [ValidateNotNullOrEmpty()]
-    [String] $Server
-    ,
-    [Parameter(Mandatory = $false, Position = 1)]
+    [Parameter(Mandatory = $false, ValueFromPipeline = $true, Position = 0)]
     [ValidatePattern('.*[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}.*')]
     [String] $VApp = $null
     ,
@@ -38,9 +35,16 @@ param (
     $OrgVdcNetworks = $null
     ,
     [Parameter(Mandatory = $false, Position = 2)]
-    [String] $AuthorizationToken = $null  # secure string or plain text (not recommended)
+    [Array] $IgnoreFilter = @("none")
     ,
     [Parameter(Mandatory = $false, Position = 3)]
+    [ValidateNotNullOrEmpty()]
+    [String] $Server
+    ,
+    [Parameter(Mandatory = $false, Position = 4)]
+    [String] $AuthorizationToken = $null  # secure string or plain text (not recommended)
+    ,
+    [Parameter(Mandatory = $false, Position = 5)]
     [Switch] $ApproveAllCertificates = $false
 )
 
@@ -98,19 +102,16 @@ try {
     }
 
     $ScriptOut = @()
-    if ($OrgVdcNetworks) {
-        foreach ($VAppNetwork in $VAppNetworks) {
-            if ($VAppNetwork.name -eq "none") {
-                continue
-            } elseif ($VAppNetwork.name -in $OrgVdcNetworks.name) {
-                Write-Verbose "VApp network '$($VAppNetwork.name)' also in OrgVdcNetworks."
-                continue
-            } else {
-                $ScriptOut += $VAppNetwork
-            }
+    foreach ($VAppNetwork in $VAppNetworks) {
+        if ($IgnoreFilter -and ($VAppNetwork.name -in $IgnoreFilter)) {
+            Write-Verbose "Ignore network '$($VAppNetwork.name)'."
+            continue
+        } elseif ($OrgVdcNetworks -and ($VAppNetwork.name -in $OrgVdcNetworks.name)) {
+            Write-Verbose "VApp network '$($VAppNetwork.name)' also in OrgVdcNetworks."
+            continue
+        } else {
+            $ScriptOut += $VAppNetwork
         }
-    } else {
-        $ScriptOut = $VAppNetworks
     }
 } catch {
     # Error in $_ or $Error[0] variable.

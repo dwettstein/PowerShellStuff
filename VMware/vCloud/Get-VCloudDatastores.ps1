@@ -7,9 +7,10 @@
 
     File-Name:  Get-VCloudDatastores.ps1
     Author:     David Wettstein
-    Version:    v1.0.1
+    Version:    v1.0.2
 
     Changelog:
+                v1.0.2, 2020-05-07, David Wettstein: Reorganize input params.
                 v1.0.1, 2020-04-09, David Wettstein: Improve path handling.
                 v1.0.0, 2020-02-09, David Wettstein: First implementation.
 

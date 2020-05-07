@@ -7,9 +7,10 @@
 
     File-Name:  Add-NsxEdgeDhcpBinding.ps1
     Author:     David Wettstein
-    Version:    v2.0.0
+    Version:    v2.0.1
 
     Changelog:
+                v2.0.1, 2020-05-07, David Wettstein: Reorganize input params.
                 v2.0.0, 2020-04-23, David Wettstein: Refactor and get rid of PowerNSX.
                 v1.0.3, 2020-04-09, David Wettstein: Improve path handling.
                 v1.0.2, 2020-04-08, David Wettstein: Use helper Invoke-NsxRequest.
@@ -29,57 +30,57 @@
 [CmdletBinding()]
 [OutputType([Object])]
 param (
-    [Parameter(Mandatory = $false, Position = 0)]
-    [ValidateNotNullOrEmpty()]
-    [String] $Server
-    ,
-    [Parameter(Mandatory = $true, Position = 1)]
+    [Parameter(Mandatory = $true, Position = 0)]
     [ValidatePattern("^edge-\d+$")]
     [String] $EdgeId
     ,
-    [Parameter(Mandatory = $true, Position = 2)]
+    [Parameter(Mandatory = $true, Position = 1)]
     [ValidatePattern("^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$")]
     [String] $MacAddress
     ,
-    [Parameter(Mandatory = $true, Position = 3)]
+    [Parameter(Mandatory = $true, Position = 2)]
     [ValidateNotNullOrEmpty()]
     [String] $Hostname
     ,
-    [Parameter(Mandatory = $true, Position = 4)]
+    [Parameter(Mandatory = $true, Position = 3)]
     [ValidatePattern("^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$")]
     [String] $IpAddress
     ,
-    [Parameter(Mandatory = $true, Position = 5)]
+    [Parameter(Mandatory = $true, Position = 4)]
     [ValidatePattern("^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$")]
     [String] $SubnetMask
     ,
-    [Parameter(Mandatory = $false, Position = 6)]
+    [Parameter(Mandatory = $false, Position = 5)]
     [ValidatePattern("^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$")]
     [String] $DefaultGateway
     ,
-    [Parameter(Mandatory = $false, Position = 7)]
+    [Parameter(Mandatory = $false, Position = 6)]
     [String] $DomainName
     ,
-    [Parameter(Mandatory = $false, Position = 8)]
+    [Parameter(Mandatory = $false, Position = 7)]
     [Int] $LeaseTime = 86400
     ,
-    [Parameter(Mandatory = $false, Position = 9)]
+    [Parameter(Mandatory = $false, Position = 8)]
     [String] $PrimaryNameServer
     ,
-    [Parameter(Mandatory = $false, Position = 10)]
+    [Parameter(Mandatory = $false, Position = 9)]
     [String] $SecondaryNameServer
     ,
-    [Parameter(Mandatory = $false, Position = 11)]
+    [Parameter(Mandatory = $false, Position = 10)]
     [String] $DhcpOptionNextServer
     ,
-    [Parameter(Mandatory = $false, Position = 12)]
+    [Parameter(Mandatory = $false, Position = 11)]
     [String] $DhcpOptionTFTPServer
     ,
-    [Parameter(Mandatory = $false, Position = 13)]
+    [Parameter(Mandatory = $false, Position = 12)]
     [String] $DhcpOptionBootfile
     ,
-    [Parameter(Mandatory = $false, Position = 14)]
+    [Parameter(Mandatory = $false, Position = 13)]
     [Switch] $AsXml
+    ,
+    [Parameter(Mandatory = $false, Position = 14)]
+    [ValidateNotNullOrEmpty()]
+    [String] $Server
     ,
     [Parameter(Mandatory = $false, Position = 15)]
     [String] $AuthorizationToken = $null  # secure string or plain text (not recommended)
