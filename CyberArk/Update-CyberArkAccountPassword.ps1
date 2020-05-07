@@ -11,9 +11,10 @@
 
     File-Name:  Update-CyberArkAccountPassword.ps1
     Author:     David Wettstein
-    Version:    v1.0.1
+    Version:    v1.0.2
 
     Changelog:
+                v1.0.2, 2020-05-07, David Wettstein: Reorganize input params.
                 v1.0.1, 2020-04-09, David Wettstein: Improve path handling.
                 v1.0.0, 2020-03-19, David Wettstein: First implementation.
 
@@ -31,32 +32,32 @@
     https://docs.cyberark.com/
 
 .EXAMPLE
-    $Account = & "Update-CyberArkAccountPassword" "example.com" $Account -Interactive
+    $Account = & "Update-CyberArkAccountPassword" $Account -Interactive
 
 .EXAMPLE
-    $Account = & "$PSScriptRoot\Update-CyberArkAccountPassword" -Server "example.com" -Account $Account -Password "password"
+    $Account = & "$PSScriptRoot\Update-CyberArkAccountPassword" -Account $Account -Password "password" -Server "example.com"
 #>
 [CmdletBinding()]
 [OutputType([String])]
 param (
-    [Parameter(Mandatory = $false, Position = 0)]
-    [ValidateNotNullOrEmpty()]
-    [String] $Server
-    ,
-    [Parameter(Mandatory = $true, ValueFromPipeline = $true, Position = 1)]
+    [Parameter(Mandatory = $true, ValueFromPipeline = $true, Position = 0)]
     [ValidateNotNullOrEmpty()]
     $Account  # Account ID or output from Get-CyberArkAccount
     ,
-    [Parameter(Mandatory = $false, Position = 2)]
+    [Parameter(Mandatory = $false, Position = 1)]
     [ValidateNotNullOrEmpty()]
     [String] $Username = $null  # secure string or plain text (not recommended)
     ,
-    [Parameter(Mandatory = $false, Position = 3)]
+    [Parameter(Mandatory = $false, Position = 2)]
     [ValidateNotNullOrEmpty()]
     [String] $Password = $null  # secure string or plain text (not recommended)
     ,
-    [Parameter(Mandatory = $false, Position = 4)]
+    [Parameter(Mandatory = $false, Position = 3)]
     [Switch] $Interactive
+    ,
+    [Parameter(Mandatory = $false, Position = 4)]
+    [ValidateNotNullOrEmpty()]
+    [String] $Server
     ,
     [Parameter(Mandatory = $false, Position = 5)]
     [ValidateNotNullOrEmpty()]

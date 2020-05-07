@@ -11,9 +11,10 @@
 
     File-Name:  Add-CyberArkAccount.ps1
     Author:     David Wettstein
-    Version:    v1.0.1
+    Version:    v1.0.2
 
     Changelog:
+                v1.0.2, 2020-05-07, David Wettstein: Reorganize input params.
                 v1.0.1, 2020-04-09, David Wettstein: Improve path handling.
                 v1.0.0, 2020-03-16, David Wettstein: First implementation.
 
@@ -31,33 +32,33 @@
     https://docs.cyberark.com/
 
 .EXAMPLE
-    $Account = & "Add-CyberArkAccount" "example.com" "safeName" "customPlatformId" "server.example.com" -Interactive
+    $Account = & "Add-CyberArkAccount" "safeName" "customPlatformId" "server.example.com" -Interactive -Server "example.com"
 
 .EXAMPLE
-    $Account = & "$PSScriptRoot\Add-CyberArkAccount" -Server "example.com" -Safe "safeName" -PlatformId "customPlatformId" -Address "server.example.com" -DeviceType "Application" -Username "username" -Password "password" -AsJson
+    $Account = & "$PSScriptRoot\Add-CyberArkAccount" -Safe "safeName" -PlatformId "customPlatformId" -Address "server.example.com" -DeviceType "Application" -Username "username" -Password "password" -AsJson
 #>
 [CmdletBinding()]
 [OutputType([PSObject])]
 param (
-    [Parameter(Mandatory = $false, Position = 0)]
-    [ValidateNotNullOrEmpty()]
-    [String] $Server
-    ,
-    [Parameter(Mandatory = $true, Position = 1)]
-    [ValidateNotNullOrEmpty()]
-    [String] $Safe
-    ,
-    [Parameter(Mandatory = $true, Position = 2)]
+    [Parameter(Mandatory = $true, ValueFromPipeline = $true, Position = 0)]
     [ValidateNotNullOrEmpty()]
     [String] $Address
     ,
-    [Parameter(Mandatory = $true, Position = 3)]
+    [Parameter(Mandatory = $false, Position = 1)]
+    [ValidateNotNullOrEmpty()]
+    [String] $Safe
+    ,
+    [Parameter(Mandatory = $false, Position = 2)]
     [ValidateNotNullOrEmpty()]
     [String] $PlatformId
     ,
-    [Parameter(Mandatory = $false, Position = 4)]
+    [Parameter(Mandatory = $false, Position = 3)]
     [ValidateNotNullOrEmpty()]
     [String] $DeviceType = "Application"
+    ,
+    [Parameter(Mandatory = $false, Position = 4)]
+    [ValidateNotNullOrEmpty()]
+    [String] $Server
     ,
     [Parameter(Mandatory = $false, Position = 5)]
     [ValidateNotNullOrEmpty()]
@@ -124,6 +125,9 @@ Write-Verbose "$($FILE_NAME): CALL."
 #trap { Write-Error $_; exit 1; break; }
 
 try {
+    $Safe = & "${FILE_DIR}Sync-CyberArkVariableCache" "Safe" $Safe -IsMandatory
+    $PlatformId = & "${FILE_DIR}Sync-CyberArkVariableCache" "PlatformId" $PlatformId -IsMandatory
+
     # If username is given as SecureString string, convert it to plain text.
     try {
         $UsernameSecureString = ConvertTo-SecureString -String $Username

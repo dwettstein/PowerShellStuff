@@ -10,12 +10,20 @@
         <S N="Value"></S>
       </En>
       <En>
-        <S N="Key">AcceptAllCertificates</S>
+        <S N="Key">ApproveAllCertificates</S>
         <B N="Value">false</B>
       </En>
       <En>
         <S N="Key">AuthorizationToken</S>
         <Nil N="Value" />
+      </En>
+      <En>
+        <S N="Key">Safe</S>
+        <S N="Value"></S>
+      </En>
+      <En>
+        <S N="Key">PlatformId</S>
+        <S N="Value"></S>
       </En>
     </DCT>
   </Obj>

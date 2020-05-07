@@ -11,9 +11,10 @@
 
     File-Name:  Remove-CyberArkAccount.ps1
     Author:     David Wettstein
-    Version:    v1.0.1
+    Version:    v1.0.2
 
     Changelog:
+                v1.0.2, 2020-05-07, David Wettstein: Reorganize input params.
                 v1.0.1, 2020-04-09, David Wettstein: Improve path handling.
                 v1.0.0, 2020-03-16, David Wettstein: First implementation.
 
@@ -31,24 +32,24 @@
     https://docs.cyberark.com/
 
 .EXAMPLE
-    $Result = & "Remove-CyberArkAccount" "example.com" $Account
+    $Result = & "Remove-CyberArkAccount" $Account -Server "example.com"
 
 .EXAMPLE
-    $Result = & "$PSScriptRoot\Remove-CyberArkAccount" -Server "example.com" -Account $Account -AsJson
+    $Result = & "$PSScriptRoot\Remove-CyberArkAccount" -Account $Account -AsJson
 
 .EXAMPLE
-    & "$PSScriptRoot\Get-CyberArkAccount" "example.com" "query params" | & "$PSScriptRoot\Remove-CyberArkAccount" "example.com"
+    & "$PSScriptRoot\Get-CyberArkAccount" "query params" | & "$PSScriptRoot\Remove-CyberArkAccount"
 #>
 [CmdletBinding()]
 [OutputType([String])]
 param (
-    [Parameter(Mandatory = $false, Position = 0)]
-    [ValidateNotNullOrEmpty()]
-    [String] $Server
-    ,
-    [Parameter(Mandatory = $true, ValueFromPipeline = $true, Position = 1)]
+    [Parameter(Mandatory = $true, ValueFromPipeline = $true, Position = 0)]
     [ValidateNotNullOrEmpty()]
     $Account  # Account ID or output from Get-CyberArkAccount
+    ,
+    [Parameter(Mandatory = $false, Position = 1)]
+    [ValidateNotNullOrEmpty()]
+    [String] $Server
     ,
     [Parameter(Mandatory = $false, Position = 2)]
     [String] $AuthorizationToken = $null  # secure string or plain text (not recommended)

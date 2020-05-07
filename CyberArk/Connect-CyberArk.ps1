@@ -17,9 +17,10 @@
 
     File-Name:  Connect-CyberArk.ps1
     Author:     David Wettstein
-    Version:    v1.1.1
+    Version:    v1.1.2
 
     Changelog:
+                v1.1.2, 2020-05-07, David Wettstein: Reorganize input params.
                 v1.1.1, 2020-04-09, David Wettstein: Improve path handling.
                 v1.1.0, 2020-04-07, David Wettstein: Sync input variables with cache.
                 v1.0.4, 2020-04-06, David Wettstein: Return a secure string by default.

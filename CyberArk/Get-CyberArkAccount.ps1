@@ -11,9 +11,10 @@
 
     File-Name:  Get-CyberArkAccount.ps1
     Author:     David Wettstein
-    Version:    v1.2.1
+    Version:    v1.2.2
 
     Changelog:
+                v1.2.2, 2020-05-07, David Wettstein: Reorganize input params.
                 v1.2.1, 2020-04-09, David Wettstein: Improve path handling.
                 v1.2.0, 2020-03-19, David Wettstein: Implement get account by id.
                 v1.1.0, 2020-03-15, David Wettstein: Add more switches, use SecureString as default.
@@ -34,38 +35,41 @@
     https://docs.cyberark.com/
 
 .EXAMPLE
-    $Account = & "Get-CyberArkAccount" "example.com" "query params"
+    $Account = & "Get-CyberArkAccount" "query params"
 
 .EXAMPLE
-    $Account = & "$PSScriptRoot\Get-CyberArkAccount" -Server "example.com" -Query "query params" -AsJson
+    $Account = & "Get-CyberArkAccount" -Account $Account -Server "example.com"
+
+.EXAMPLE
+    $Account = & "$PSScriptRoot\Get-CyberArkAccount" -Query "query params" -AsJson
 #>
 [CmdletBinding()]
 [OutputType([PSObject])]
 param (
-    [Parameter(Mandatory = $false, Position = 0)]
-    [ValidateNotNullOrEmpty()]
-    [String] $Server
-    ,
-    [Parameter(Mandatory = $false, ValueFromPipeline = $true, Position = 1)]
+    [Parameter(Mandatory = $false, ValueFromPipeline = $true, Position = 0)]
     [ValidateNotNullOrEmpty()]
     [String] $Query
+    ,
+    [Parameter(Mandatory = $false, Position = 1)]
+    [ValidateNotNullOrEmpty()]
+    $Account  # Account ID or output from Get-CyberArkAccount
     ,
     [Parameter(Mandatory = $false, Position = 2)]
     [ValidateNotNullOrEmpty()]
     [String] $Safe
     ,
     [Parameter(Mandatory = $false, Position = 3)]
-    [ValidateNotNullOrEmpty()]
-    $Account  # Account ID or output from Get-CyberArkAccount
-    ,
-    [Parameter(Mandatory = $false, Position = 4)]
     [Switch] $AsCredential
     ,
-    [Parameter(Mandatory = $false, Position = 5)]
+    [Parameter(Mandatory = $false, Position = 4)]
     [Switch] $AsPlainText
     ,
-    [Parameter(Mandatory = $false, Position = 6)]
+    [Parameter(Mandatory = $false, Position = 5)]
     [Switch] $AsJson
+    ,
+    [Parameter(Mandatory = $false, Position = 6)]
+    [ValidateNotNullOrEmpty()]
+    [String] $Server
     ,
     [Parameter(Mandatory = $false, Position = 7)]
     [String] $AuthorizationToken = $null  # secure string or plain text (not recommended)
@@ -117,6 +121,8 @@ Write-Verbose "$($FILE_NAME): CALL."
 #trap { Write-Error $_; exit 1; break; }
 
 try {
+    $Safe = & "${FILE_DIR}Sync-CyberArkVariableCache" "Safe" $Safe
+
     if (-not [String]::IsNullOrEmpty($Account)) {
         if ($Account.GetType() -eq [String]) {
             $AccountId = $Account
