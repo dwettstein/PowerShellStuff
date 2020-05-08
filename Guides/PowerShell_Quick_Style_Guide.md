@@ -3,7 +3,7 @@
 This guide is intended to be a short overview of [The PowerShell Best Practices and Style Guide](https://poshcode.gitbooks.io/powershell-practice-and-style/).
 
 Author: David Wettstein<br/>
-Version: v1.0.2, 2019-11-29<br/>
+Version: v1.1.0, 2020-05-08<br/>
 License: Copyright (c) 2019-2020 David Wettstein, http://wettste.in, licensed under the [Creative Commons Attribution-ShareAlike 4.0 International License](https://creativecommons.org/licenses/by-sa/4.0/).<br/>
 All attributions and credits for [The PowerShell Best Practices and Style Guide](https://poshcode.gitbooks.io/powershell-practice-and-style/) go to Don Jones, Matt Penny, Carlos Perez, Joel Bennett and the PowerShell Community.
 
@@ -20,6 +20,7 @@ If you rather search a cheat sheet, I recommend the PDF from Warren Frame: [Powe
   - [Function Structure](#function-structure)
   - [Documentation and Comments](#documentation-and-comments)
   - [Naming Conventions](#naming-conventions)
+- [Tips and Common Pitfalls](#tips-and-common-pitfalls)
 
 
 # Style Guide
@@ -30,19 +31,19 @@ If you rather search a cheat sheet, I recommend the PDF from Warren Frame: [Powe
 - Capitalization Conventions
     - Use _PascalCase_ or _camelCase_ for all public identifiers: module names, function or cmdlet names, class, enum, and attribute names, public fields or properties, global variables and constants, parameters etc.
         ```powershell
-            [String] $MyVariable = "A typed variable."
+        [String] $MyVariable = "A typed variable."
         ```
     - PowerShell language keywords are written in _lowercase_ (e.g. `if`, `foreach`), as well as operators such as `-eq` and `-match`.
         ```powershell
-            if ($MyVariable -eq "AnyValue") {
-                # ...
+        if ($MyVariable -eq "AnyValue") {
+            # ...
         ```
     - Keywords in comment-based help are written in _UPPERCASE_ (e.g. `.SYNOPSIS`).
         ```powershell
-            <#
-            .SYNOPSIS
-                A short description...
-            #>
+        <#
+        .SYNOPSIS
+            A short description...
+        #>
         ```
     - Function names should follow PowerShell's _Verb-Noun_ naming conventions, using _PascalCase_ within both Verb and Noun (list allowed verbs with the cmdlet `Get-Verb`).
         ```powershell
@@ -51,13 +52,12 @@ If you rather search a cheat sheet, I recommend the PDF from Warren Frame: [Powe
         ```
 - Start all scripts or functions with `[CmdletBinding()]`.
     ```powershell
-        function Invoke-HttpRequest {
-            [CmdletBinding()]
-            param (
-                # ...
+    function Invoke-HttpRequest {
+        [CmdletBinding()]
+        param (
+            # ...
     ```
-- Follow either the _Stroustrup_ or the _One True Brace Style (1TBS or OTBS)_ brace style
-    - Write the opening brace always on the same line and the closing brace on a new line!
+- Follow either the _Stroustrup_ or the _One True Brace Style (1TBS or OTBS)_ brace style. Write the opening brace always on the same line and the closing brace on a new line!
     ```powershell
     function Invoke-HttpRequest {
         # ...
@@ -190,9 +190,48 @@ Read the full page [Documentation and Comments](https://poshcode.gitbooks.io/pow
     $Result = & ".\Invoke-AnotherScript.ps1" -Param1 "Value"
 
     # Good
-    [string] $ScriptPath = Split-Path -Parent $MyInvocation.MyCommand.Definition
-    $Result = & "$ScriptPath\Invoke-AnotherScript.ps1" -Param1 "Value"
+    $Result = & "$PSScriptRoot\Invoke-AnotherScript.ps1" -Param1 "Value"
     ```
-- Avoid using `~`, instead use `$env:USERPROFILE`.
+- Avoid using `~`, instead use `$env:USERPROFILE` or `$HOME`.
 
 Read the full page [Naming Conventions](https://poshcode.gitbooks.io/powershell-practice-and-style/Style-Guide/Naming-Conventions.html) for more information.
+
+
+# Tips and Common Pitfalls
+
+- When creating a new file, ensure that the encoding is _UTF-8_. Be aware that the PowerShell ISE creates files with encoding _UTF-8 with BOM_ by default. See also [What's the difference between UTF-8 and UTF-8 without BOM?](https://stackoverflow.com/questions/2223882/whats-the-difference-between-utf-8-and-utf-8-without-bom).
+- See `Get-Verb` to list all approved PowerShell verbs, always use one of them for your functions.
+- `$ErrorActionPreference` is set to `Continue` by default, thus the script continues to run even after an error happens. Add the following code at the beginning of your script to change the default behavior:
+    ```powershell
+    if (-not $PSCmdlet.MyInvocation.BoundParameters.ErrorAction) {
+        $ErrorActionPreference = "Stop"
+    }
+    ```
+- The results of each statement are added to the output stream and thus returned as script output, not only the ones containing the `return` keyword.
+    - Use `$null = {{statement}}` or `{{statement}} | Out-Null`, to ignore certain results.
+- When invoking other scripts within your script, use explicit not relative paths.
+    - Since PowerShell 3.0 you can get the directory of the current script with `$PSScriptRoot`.
+- Avoid blocking/waiting statements, like `Read-Host` or `Get-Credential`, in scripts that are run as child processes or in background.
+- When using `ConvertTo-Json` be aware that the default value for the parameter `-Depth` is only `2`.
+    > _-Depth [\<Int32\>]_<br/>
+    > &emsp;_Specifies how many levels of contained objects are included in the JSON representation. The default value is 2._
+- Additionally `ConvertTo-Json` replaces special characters with _Unicode_ escape characters. See also [ConvertTo-Json problem containing special characters](https://stackoverflow.com/questions/29306439/powershell-convertto-json-problem-containing-special-characters). If you need the unescaped characters, use the following code:
+    ```powershell
+    $UnescapedJson = [Regex]::Unescape($EscapedJson)
+    ```
+- For returning/printing a string with a colon (`:`) or text right after a variable, use `"${MyVariable}"` instead of `"$MyVariable"`.
+    ```powershell
+    # Error
+    Write-Verbose "$Result: $env:USERNAME_Will_Be_A_Pro"
+
+    # Good
+    Write-Verbose "${Result}: ${env:USERNAME}_Will_Be_A_Pro"
+    ```
+- Since PowerShell is a dynamically typed language, it won't return an empty array or an array with only one item, but either `$null` or the item on its own. See also [PowerShell doesn't return an empty array as an array](https://stackoverflow.com/questions/18476634/powershell-doesnt-return-an-empty-array-as-an-array). To return such an array, use the following code:
+    ```powershell
+    if ($Result.Length -le 1) {
+        , $Result  # Force PowerShell to return $Result as array.
+    } else {
+        $Result  # $Result is an array anyway.
+    }
+    ```

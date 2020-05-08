@@ -24,7 +24,7 @@
         <h1 id="powershell-quick-style-guide">PowerShell Quick Style Guide</h1>
 <p>This guide is intended to be a short overview of <a href="https://poshcode.gitbooks.io/powershell-practice-and-style/">The PowerShell Best Practices and Style Guide</a>.</p>
 <p>Author: David Wettstein<br/>
-Version: v1.0.2, 2019-11-29<br/>
+Version: v1.1.0, 2020-05-08<br/>
 License: Copyright (c) 2019-2020 David Wettstein, <a href="http://wettste.in">http://wettste.in</a>, licensed under the <a href="https://creativecommons.org/licenses/by-sa/4.0/">Creative Commons Attribution-ShareAlike 4.0 International License</a>.<br/>
 All attributions and credits for <a href="https://poshcode.gitbooks.io/powershell-practice-and-style/">The PowerShell Best Practices and Style Guide</a> go to Don Jones, Matt Penny, Carlos Perez, Joel Bennett and the PowerShell Community.</p>
 <p>If you rather search a cheat sheet, I recommend the PDF from Warren Frame: <a href="powershell-cheat-sheet.pdf">PowerShell Cheat Sheet</a>
@@ -44,23 +44,24 @@ All attributions and credits for <a href="https://poshcode.gitbooks.io/powershel
 <li><a href="#naming-conventions">Naming Conventions</a></li>
 </ul>
 </li>
+<li><a href="#tips-and-common-pitfalls">Tips and Common Pitfalls</a></li>
 </ul>
 <h1 id="style-guide">Style Guide</h1>
 <h2 id="code-layout-and-formatting">Code Layout and Formatting</h2>
 <ul>
 <li>Capitalization Conventions
 <ul>
-<li>Use <em>PascalCase</em> or <em>camelCase</em> for all public identifiers: module names, function or cmdlet names, class, enum, and attribute names, public fields or properties, global variables and constants, parameters etc.<pre><code class="language-powershell"><div>    [String] <span class="hljs-variable">$MyVariable</span> = <span class="hljs-string">"A typed variable."</span>
+<li>Use <em>PascalCase</em> or <em>camelCase</em> for all public identifiers: module names, function or cmdlet names, class, enum, and attribute names, public fields or properties, global variables and constants, parameters etc.<pre><code class="language-powershell"><div>[String] <span class="hljs-variable">$MyVariable</span> = <span class="hljs-string">"A typed variable."</span>
 </div></code></pre>
 </li>
-<li>PowerShell language keywords are written in <em>lowercase</em> (e.g. <code>if</code>, <code>foreach</code>), as well as operators such as <code>-eq</code> and <code>-match</code>.<pre><code class="language-powershell"><div>    <span class="hljs-keyword">if</span> (<span class="hljs-variable">$MyVariable</span> <span class="hljs-nomarkup">-eq</span> <span class="hljs-string">"AnyValue"</span>) {
-        <span class="hljs-comment"># ...</span>
+<li>PowerShell language keywords are written in <em>lowercase</em> (e.g. <code>if</code>, <code>foreach</code>), as well as operators such as <code>-eq</code> and <code>-match</code>.<pre><code class="language-powershell"><div><span class="hljs-keyword">if</span> (<span class="hljs-variable">$MyVariable</span> <span class="hljs-nomarkup">-eq</span> <span class="hljs-string">"AnyValue"</span>) {
+    <span class="hljs-comment"># ...</span>
 </div></code></pre>
 </li>
-<li>Keywords in comment-based help are written in <em>UPPERCASE</em> (e.g. <code>.SYNOPSIS</code>).<pre><code class="language-powershell"><div>    <span class="hljs-comment">&lt;#
-    <span class="hljs-doctag">.SYNOPSIS</span>
-        A short description...
-    #&gt;</span>
+<li>Keywords in comment-based help are written in <em>UPPERCASE</em> (e.g. <code>.SYNOPSIS</code>).<pre><code class="language-powershell"><div><span class="hljs-comment">&lt;#
+<span class="hljs-doctag">.SYNOPSIS</span>
+    A short description...
+#&gt;</span>
 </div></code></pre>
 </li>
 <li>Function names should follow PowerShell's <em>Verb-Noun</em> naming conventions, using <em>PascalCase</em> within both Verb and Noun (list allowed verbs with the cmdlet <code>Get-Verb</code>).<pre><code class="language-powershell"><div><span class="hljs-keyword">function</span> Invoke-HttpRequest {
@@ -69,17 +70,13 @@ All attributions and credits for <a href="https://poshcode.gitbooks.io/powershel
 </li>
 </ul>
 </li>
-<li>Start all scripts or functions with <code>[CmdletBinding()]</code>.<pre><code class="language-powershell"><div>    <span class="hljs-keyword">function</span> Invoke-HttpRequest {
-        [CmdletBinding()]
-        <span class="hljs-keyword">param</span> (
-            <span class="hljs-comment"># ...</span>
+<li>Start all scripts or functions with <code>[CmdletBinding()]</code>.<pre><code class="language-powershell"><div><span class="hljs-keyword">function</span> Invoke-HttpRequest {
+    [CmdletBinding()]
+    <span class="hljs-keyword">param</span> (
+        <span class="hljs-comment"># ...</span>
 </div></code></pre>
 </li>
-<li>Follow either the <em>Stroustrup</em> or the <em>One True Brace Style (1TBS or OTBS)</em> brace style
-<ul>
-<li>Write the opening brace always on the same line and the closing brace on a new line!</li>
-</ul>
-<pre><code class="language-powershell"><div><span class="hljs-keyword">function</span> Invoke-HttpRequest {
+<li>Follow either the <em>Stroustrup</em> or the <em>One True Brace Style (1TBS or OTBS)</em> brace style. Write the opening brace always on the same line and the closing brace on a new line!<pre><code class="language-powershell"><div><span class="hljs-keyword">function</span> Invoke-HttpRequest {
     <span class="hljs-comment"># ...</span>
     <span class="hljs-keyword">end</span> {
         <span class="hljs-keyword">if</span> (<span class="hljs-variable">$MyVariable</span> <span class="hljs-nomarkup">-eq</span> <span class="hljs-string">"AnyValue"</span>) {
@@ -214,13 +211,56 @@ gps Explorer
 <span class="hljs-variable">$Result</span> = &amp; <span class="hljs-string">".\Invoke-AnotherScript.ps1"</span> -Param1 <span class="hljs-string">"Value"</span>
 
 <span class="hljs-comment"># Good</span>
-[string] <span class="hljs-variable">$ScriptPath</span> = <span class="hljs-built_in">Split-Path</span> -Parent <span class="hljs-variable">$MyInvocation</span>.MyCommand.Definition
-<span class="hljs-variable">$Result</span> = &amp; <span class="hljs-string">"<span class="hljs-variable">$ScriptPath</span>\Invoke-AnotherScript.ps1"</span> -Param1 <span class="hljs-string">"Value"</span>
+<span class="hljs-variable">$Result</span> = &amp; <span class="hljs-string">"<span class="hljs-variable">$PSScriptRoot</span>\Invoke-AnotherScript.ps1"</span> -Param1 <span class="hljs-string">"Value"</span>
 </div></code></pre>
 </li>
-<li>Avoid using <code>~</code>, instead use <code>$env:USERPROFILE</code>.</li>
+<li>Avoid using <code>~</code>, instead use <code>$env:USERPROFILE</code> or <code>$HOME</code>.</li>
 </ul>
 <p>Read the full page <a href="https://poshcode.gitbooks.io/powershell-practice-and-style/Style-Guide/Naming-Conventions.html">Naming Conventions</a> for more information.</p>
+<h1 id="tips-and-common-pitfalls">Tips and Common Pitfalls</h1>
+<ul>
+<li>When creating a new file, ensure that the encoding is <em>UTF-8</em>. Be aware that the PowerShell ISE creates files with encoding <em>UTF-8 with BOM</em> by default. See also <a href="https://stackoverflow.com/questions/2223882/whats-the-difference-between-utf-8-and-utf-8-without-bom">What's the difference between UTF-8 and UTF-8 without BOM?</a>.</li>
+<li>See <code>Get-Verb</code> to list all approved PowerShell verbs, always use one of them for your functions.</li>
+<li><code>$ErrorActionPreference</code> is set to <code>Continue</code> by default, thus the script continues to run even after an error happens. Add the following code at the beginning of your script to change the default behavior:<pre><code class="language-powershell"><div><span class="hljs-keyword">if</span> (<span class="hljs-nomarkup">-not</span> <span class="hljs-variable">$PSCmdlet</span>.MyInvocation.BoundParameters.ErrorAction) {
+    <span class="hljs-variable">$ErrorActionPreference</span> = <span class="hljs-string">"Stop"</span>
+}
+</div></code></pre>
+</li>
+<li>The results of each statement are added to the output stream and thus returned as script output, not only the ones containing the <code>return</code> keyword.
+<ul>
+<li>Use <code>$null = {{statement}}</code> or <code>{{statement}} | Out-Null</code>, to ignore certain results.</li>
+</ul>
+</li>
+<li>When invoking other scripts within your script, use explicit not relative paths.
+<ul>
+<li>Since PowerShell 3.0 you can get the directory of the current script with <code>$PSScriptRoot</code>.</li>
+</ul>
+</li>
+<li>Avoid blocking/waiting statements, like <code>Read-Host</code> or <code>Get-Credential</code>, in scripts that are run as child processes or in background.</li>
+<li>When using <code>ConvertTo-Json</code> be aware that the default value for the parameter <code>-Depth</code> is only <code>2</code>.
+<blockquote>
+<p><em>-Depth [&lt;Int32&gt;]</em><br/>
+ <em>Specifies how many levels of contained objects are included in the JSON representation. The default value is 2.</em></p>
+</blockquote>
+</li>
+<li>Additionally <code>ConvertTo-Json</code> replaces special characters with <em>Unicode</em> escape characters. See also <a href="https://stackoverflow.com/questions/29306439/powershell-convertto-json-problem-containing-special-characters">ConvertTo-Json problem containing special characters</a>. If you need the unescaped characters, use the following code:<pre><code class="language-powershell"><div><span class="hljs-variable">$UnescapedJson</span> = [Regex]::Unescape(<span class="hljs-variable">$EscapedJson</span>)
+</div></code></pre>
+</li>
+<li>For returning/printing a string with a colon (<code>:</code>) or text right after a variable, use <code>&quot;${MyVariable}&quot;</code> instead of <code>&quot;$MyVariable&quot;</code>.<pre><code class="language-powershell"><div><span class="hljs-comment"># Error</span>
+<span class="hljs-built_in">Write-Verbose</span> <span class="hljs-string">"<span class="hljs-variable">$Result:</span> <span class="hljs-variable">$env:USERNAME_Will_Be_A_Pro</span>"</span>
+
+<span class="hljs-comment"># Good</span>
+<span class="hljs-built_in">Write-Verbose</span> <span class="hljs-string">"${Result}: ${env:USERNAME}_Will_Be_A_Pro"</span>
+</div></code></pre>
+</li>
+<li>Since PowerShell is a dynamically typed language, it won't return an empty array or an array with only one item, but either <code>$null</code> or the item on its own. See also <a href="https://stackoverflow.com/questions/18476634/powershell-doesnt-return-an-empty-array-as-an-array">PowerShell doesn't return an empty array as an array</a>. To return such an array, use the following code:<pre><code class="language-powershell"><div><span class="hljs-keyword">if</span> (<span class="hljs-variable">$Result</span>.Length <span class="hljs-nomarkup">-le</span> <span class="hljs-number">1</span>) {
+    , <span class="hljs-variable">$Result</span>  <span class="hljs-comment"># Force PowerShell to return $Result as array.</span>
+} <span class="hljs-keyword">else</span> {
+    <span class="hljs-variable">$Result</span>  <span class="hljs-comment"># $Result is an array anyway.</span>
+}
+</div></code></pre>
+</li>
+</ul>
 
     </body>
     </html>
