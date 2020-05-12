@@ -1,0 +1,11 @@
+# https://cloud-init.io/
+# https://cloudinit.readthedocs.io/
+# https://cloudinit.readthedocs.io/en/latest/topics/examples.html
+
+instance-id: ${instance_id}
+local-hostname: ${hostname}
+network:
+  version: 2
+  ethernets:
+    eth0:
+      dhcp4: true

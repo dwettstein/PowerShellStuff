@@ -1,0 +1,7 @@
+#cloud-config
+# https://cloud-init.io/
+# https://cloudinit.readthedocs.io/
+# https://cloudinit.readthedocs.io/en/latest/topics/examples.html
+
+# ssh_authorized_keys:
+#   - Contents of `cat $HOME/.ssh/id_rsa.pub`

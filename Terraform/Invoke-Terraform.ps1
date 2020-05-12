@@ -197,35 +197,40 @@ try {
     }
     $Command = "${BinaryDir}terraform.exe $Action"
 
-    if ($Action -ne "init") {
+    if ($Action -eq "init") {
+        if (-not [String]::IsNullOrEmpty($BinaryDir)) {
+            # The plugin cache dir can also be specified with the `TF_PLUGIN_CACHE_DIR` environment variable.
+            # export TF_PLUGIN_CACHE_DIR="$HOME/.terraform.d/plugin-cache"
+            $Command += " -plugin-dir='${BinaryDir}plugin-cache'"
+        }
+    } else {
+        # First get credentials.
         if ($Interactive) {
             $Cred = & "${FILE_DIR}Get-TerraformPSCredential" -Server $Server -Username $Username -Password $Password -Interactive -PswdDir $PswdDir -ErrorAction:Stop
         } else {
             $Cred = & "${FILE_DIR}Get-TerraformPSCredential" -Server $Server -Username $Username -Password $Password -PswdDir $PswdDir -ErrorAction:Stop
         }
 
-        $Command += " -var 'server=$Server' -var 'username=$($Cred.UserName)' -var 'password=$($Cred.GetNetworkCredential().Password)' -var 'allow_unverified_ssl=$("$ApproveAllCertificates".ToLower())'"
+        # Add them as Terraform input variables.
+        $Command += " -var 'server=$Server'"
+        $Command += " -var 'username=$($Cred.UserName)'"
+        $Command += " -var 'password=$($Cred.GetNetworkCredential().Password)'"
+        $Command += " -var 'allow_unverified_ssl=$("$ApproveAllCertificates".ToLower())'"
 
+        # Add other input variables.
         $Vars = ConvertFrom-Json $VarsJson
         foreach ($Var in (Get-Member -MemberType NoteProperty -InputObject $Vars)) {
             $VarName = $Var.Name
             $VarValue = $Vars."$VarName"
             $Command += " -var '$VarName=$VarValue'"
         }
+
+        if ($AutoApprove -and ($Action -eq "apply" -or $Action -eq "destroy")) {
+            $Command += " -auto-approve"
+        }
     }
 
-    # The plugin cache dir can also be specified with the `TF_PLUGIN_CACHE_DIR` environment variable.
-    # export TF_PLUGIN_CACHE_DIR="$HOME/.terraform.d/plugin-cache"
-    if (-not [String]::IsNullOrEmpty($BinaryDir) -and $Action -eq "init") {
-        $Command += " -plugin-dir='${BinaryDir}plugin-cache'"
-    }
-
-    if ($AutoApprove -and ($Action -eq "apply" -or $Action -eq "destroy")) {
-        $Command += " -auto-approve"
-    }
-
-    # Redirect stderr to stdout
-    $Command += " 2>&1"
+    $Command += " 2>&1"  # Redirect stderr to stdout
 
     Invoke-Expression -Command $Command
 } catch {

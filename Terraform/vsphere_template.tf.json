@@ -1,10 +1,23 @@
 {
+    "terraform": {
+        "required_version": ">= 0.12"
+    },
     "variable": {
         "server": {},
         "username": {},
         "password": {},
         "allow_unverified_ssl": {
             "default": false
+        },
+        "vm_template": {},
+        "vm_name": {
+            "default": ""
+        },
+        "vm_folder": {
+            "default": "Terraform"
+        },
+        "vm_count": {
+            "default": 1
         }
     },
     "provider": {
@@ -17,56 +30,61 @@
     },
     "data": {
         "vsphere_datacenter": {
-            "dc": {
+            "dc1": {
                 "name": ""
             }
         },
         "vsphere_compute_cluster": {
-            "cluster": {
+            "cl1": {
                 "name": "",
-                "datacenter_id": "${data.vsphere_datacenter.dc.id}"
+                "datacenter_id": "${data.vsphere_datacenter.dc1.id}"
             }
         },
         "vsphere_datastore": {
-            "datastore": {
+            "ds1": {
                 "name": "",
-                "datacenter_id": "${data.vsphere_datacenter.dc.id}"
+                "datacenter_id": "${data.vsphere_datacenter.dc1.id}"
             }
         },
         "vsphere_network": {
-            "network": {
+            "nw1": {
                 "name": "",
-                "datacenter_id": "${data.vsphere_datacenter.dc.id}"
+                "datacenter_id": "${data.vsphere_datacenter.dc1.id}"
             }
         },
         "vsphere_virtual_machine": {
-            "template": {
-                "name": "",
-                "datacenter_id": "${data.vsphere_datacenter.dc.id}"
+            "tpl1": {
+                "name": "${var.vm_template}",
+                "datacenter_id": "${data.vsphere_datacenter.dc1.id}"
             }
         }
+    },
+    "locals": {
+        "uuid": "${uuid()}"
     },
     "resource": {
         "vsphere_virtual_machine": {
             "vm": {
-                "name": "",
-                "guest_id": "${data.vsphere_virtual_machine.template.guest_id}",
-                "resource_pool_id": "${data.vsphere_compute_cluster.cluster.resource_pool_id}",
-                "datastore_id": "${data.vsphere_datastore.datastore.id}",
-                "folder": "",
-                "network_interface": {
-                    "network_id": "${data.vsphere_network.network.id}"
+                "count": "${var.vm_count}",
+                "name": "${var.vm_name != \"\" ? (var.vm_count > 1 ? format(\"%s-%s\", var.vm_name, (count.index + 1)) : var.vm_name) : format(\"vm-%s\", local.uuid)}",
+                "guest_id": "${data.vsphere_virtual_machine.tpl1.guest_id}",
+                "resource_pool_id": "${data.vsphere_compute_cluster.cl1.resource_pool_id}",
+                "datastore_id": "${data.vsphere_datastore.ds1.id}",
+                "folder": "${var.vm_folder}",
+                "clone": {
+                    "template_uuid": "${data.vsphere_virtual_machine.tpl1.id}"
                 },
                 "disk": {
                     "label": "disk0",
                     "unit_number": 0,
-                    "size": "${data.vsphere_virtual_machine.template.disks.0.size}",
-                    "eagerly_scrub": "${data.vsphere_virtual_machine.template.disks.0.eagerly_scrub}",
-                    "thin_provisioned": "${data.vsphere_virtual_machine.template.disks.0.thin_provisioned}"
+                    "size": "${data.vsphere_virtual_machine.tpl1.disks.0.size}",
+                    "eagerly_scrub": "${data.vsphere_virtual_machine.tpl1.disks.0.eagerly_scrub}",
+                    "thin_provisioned": "${data.vsphere_virtual_machine.tpl1.disks.0.thin_provisioned}"
                 },
-                "clone": {
-                    "template_uuid": "${data.vsphere_virtual_machine.template.id}"
+                "network_interface": {
+                    "network_id": "${data.vsphere_network.nw1.id}"
                 },
+                "wait_for_guest_net_timeout": 0,
                 "wait_for_guest_net_routable": false
             }
         }
