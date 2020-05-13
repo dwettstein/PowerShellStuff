@@ -9,12 +9,12 @@
         "allow_unverified_ssl": {
             "default": false
         },
-        "vm_template": {},
+        "template": {},
+        "folder": {
+            "default": "Terraform"
+        },
         "vm_name": {
             "default": ""
-        },
-        "vm_folder": {
-            "default": "Terraform"
         },
         "vm_count": {
             "default": 1
@@ -54,7 +54,7 @@
         },
         "vsphere_virtual_machine": {
             "tpl1": {
-                "name": "${var.vm_template}",
+                "name": "${var.template}",
                 "datacenter_id": "${data.vsphere_datacenter.dc1.id}"
             }
         }
@@ -72,7 +72,7 @@
                 "guest_id": "${data.vsphere_virtual_machine.tpl1.guest_id}",
                 "resource_pool_id": "${data.vsphere_compute_cluster.cl1.resource_pool_id}",
                 "datastore_id": "${data.vsphere_datastore.ds1.id}",
-                "folder": "${var.vm_folder}",
+                "folder": "${var.folder}",
                 "clone": {
                     "template_uuid": "${data.vsphere_virtual_machine.tpl1.id}"
                 },
