@@ -77,23 +77,18 @@
                 "name": "${var.vm_template}",
                 "datacenter_id": "${data.vsphere_datacenter.dc1.id}"
             }
-        },
-        "template_file": {
-            "//": "Can be removed if not needed.",
-            "userdata": {
-                "template": "${file(\"${path.module}/cloud-init/userdata.yaml\")}",
-                "vars": {}
-            }
         }
     },
-    "locals": {
-        "uuid": "${uuid()}"
-    },
     "resource": {
+        "random_uuid": {
+            "vm_uuid": {
+                "count": "${var.vm_count}"
+            }
+        },
         "vsphere_virtual_machine": {
             "vm": {
                 "count": "${var.vm_count}",
-                "name": "${var.vm_name != \"\" ? (var.vm_count > 1 ? format(\"%s-%s\", var.vm_name, (count.index + 1)) : var.vm_name) : format(\"vm-%s\", local.uuid)}",
+                "name": "${var.vm_name != \"\" ? (var.vm_count > 1 ? format(\"%s-%s\", var.vm_name, (count.index + 1)) : var.vm_name) : format(\"vm-%s\", random_uuid.vm_uuid[count.index].result)}",
                 "guest_id": "${data.vsphere_virtual_machine.tpl1.guest_id}",
                 "resource_pool_id": "${data.vsphere_compute_cluster.cl1.resource_pool_id}",
                 "host_system_id": "${data.vsphere_host.ho1.id}",
@@ -119,10 +114,10 @@
                 "wait_for_guest_net_routable": false,
                 "extra_config": {
                     "//": "Can be removed if not needed.",
-                    "guestinfo.metadata": "${base64gzip(templatefile(\"${path.module}/cloud-init/metadata.yaml\", { \"instance_id\" = local.uuid, \"hostname\" = (var.vm_name != \"\" ? (var.vm_count > 1 ? format(\"%s-%s\", var.vm_name, (count.index + 1)) : var.vm_name) : format(\"vm-%s\", local.uuid)) }))}",
+                    "guestinfo.metadata": "${base64gzip(templatefile(\"${path.module}/cloud-init/metadata.yaml\", { \"instance_id\" = random_uuid.vm_uuid[count.index].result, \"hostname\" = (var.vm_name != \"\" ? (var.vm_count > 1 ? format(\"%s-%s\", var.vm_name, (count.index + 1)) : var.vm_name) : format(\"vm-%s\", random_uuid.vm_uuid[count.index].result)) }))}",
                     "guestinfo.metadata.encoding": "gzip+base64",
-                    "guestinfo.userdata": "${filebase64(\"${path.module}/cloud-init/userdata.yaml\")}",
-                    "guestinfo.userdata.encoding": "base64"
+                    "guestinfo.userdata": "${base64gzip(templatefile(\"${path.module}/cloud-init/userdata.yaml\", { \"hostname\" = (var.vm_name != \"\" ? (var.vm_count > 1 ? format(\"%s-%s\", var.vm_name, (count.index + 1)) : var.vm_name) : format(\"vm-%s\", random_uuid.vm_uuid[count.index].result)) }))}",
+                    "guestinfo.userdata.encoding": "gzip+base64"
                 }
             }
         }

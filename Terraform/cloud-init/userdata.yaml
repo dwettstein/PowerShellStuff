@@ -3,5 +3,10 @@
 # https://cloudinit.readthedocs.io/
 # https://cloudinit.readthedocs.io/en/latest/topics/examples.html
 
+hostname: ${hostname}
+# users:
+#   - name: root
+#     lock-passwd: false
+#     passwd: Output of `openssl passwd -1 -salt any_salt`
 # ssh_authorized_keys:
 #   - Contents of `cat $HOME/.ssh/id_rsa.pub`

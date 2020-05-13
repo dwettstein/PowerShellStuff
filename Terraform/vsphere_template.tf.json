@@ -59,14 +59,16 @@
             }
         }
     },
-    "locals": {
-        "uuid": "${uuid()}"
-    },
     "resource": {
+        "random_uuid": {
+            "vm_uuid": {
+                "count": "${var.vm_count}"
+            }
+        },
         "vsphere_virtual_machine": {
             "vm": {
                 "count": "${var.vm_count}",
-                "name": "${var.vm_name != \"\" ? (var.vm_count > 1 ? format(\"%s-%s\", var.vm_name, (count.index + 1)) : var.vm_name) : format(\"vm-%s\", local.uuid)}",
+                "name": "${var.vm_name != \"\" ? (var.vm_count > 1 ? format(\"%s-%s\", var.vm_name, (count.index + 1)) : var.vm_name) : format(\"vm-%s\", random_uuid.vm_uuid[count.index].result)}",
                 "guest_id": "${data.vsphere_virtual_machine.tpl1.guest_id}",
                 "resource_pool_id": "${data.vsphere_compute_cluster.cl1.resource_pool_id}",
                 "datastore_id": "${data.vsphere_datastore.ds1.id}",
