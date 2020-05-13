@@ -1,12 +1,19 @@
 # EditorConfig helps developers define and maintain consistent
 # coding styles between different editors and IDEs
-# http://editorconfig.org
+# https://editorconfig.org
 
 root = true
 
 [*]
+# end_of_line = lf
 indent_style = space
 indent_size = 4
 charset = utf-8
 trim_trailing_whitespace = true
 insert_final_newline = true
+
+[*.{js,json,xml,yml,yaml]
+indent_size = 2
+
+# [*.{bat,vbs,ps1}]
+# end_of_line = crlf
