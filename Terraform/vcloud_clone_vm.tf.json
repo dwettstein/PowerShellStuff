@@ -1,0 +1,94 @@
+{
+    "terraform": {
+        "required_version": ">= 0.12"
+    },
+    "variable": {
+        "server": {},
+        "username": {},
+        "password": {},
+        "org": {},
+        "vdc": {},
+        "max_retry_timeout": {
+            "default": 60
+        },
+        "allow_unverified_ssl": {
+            "default": false
+        },
+        "network": {},
+        "catalog": {},
+        "template": {},
+        "vapp": {
+            "default": "Terraform"
+        },
+        "vm_name": {
+            "default": ""
+        },
+        "vm_cpu": {
+            "default": 1
+        },
+        "vm_cpu_cores_per_socket": {
+            "default": 1
+        },
+        "vm_memory_mb": {
+            "default": 256
+        },
+        "vm_count": {
+            "default": 1
+        }
+    },
+    "provider": {
+        "vcd": {
+            "url": "https://${var.server}/api",
+            "user": "${var.username}",
+            "password": "${var.password}",
+            "org": "${var.org}",
+            "vdc": "${var.vdc}",
+            "max_retry_timeout": "${var.max_retry_timeout}",
+            "allow_unverified_ssl": "${var.allow_unverified_ssl}"
+        }
+    },
+    "data": {},
+    "resource": {
+        "random_uuid": {
+            "vm_uuid": {
+                "count": "${var.vm_count}"
+            }
+        },
+        "vcd_vapp": {
+            "vapp": {
+                "name": "${var.vapp}"
+            }
+        },
+        "vcd_vapp_org_network": {
+            "vapp_nw": {
+                "vapp_name": "${var.vapp}",
+                "org_network_name": "${var.network}"
+            }
+        },
+        "vcd_vapp_vm": {
+            "vm": {
+                "count": "${var.vm_count}",
+                "vapp_name": "${var.vapp}",
+                "name": "${var.vm_name != \"\" ? (var.vm_count > 1 ? format(\"%s-%s\", var.vm_name, (count.index + 1)) : var.vm_name) : format(\"vm-%s\", random_uuid.vm_uuid[count.index].result)}",
+                "computer_name": "${var.vm_name != \"\" ? (var.vm_count > 1 ? format(\"%s-%s\", var.vm_name, (count.index + 1)) : var.vm_name) : format(\"vm-%s\", random_uuid.vm_uuid[count.index].result)}",
+                "catalog_name": "${var.catalog}",
+                "template_name": "${var.template}",
+                "cpus": "${var.vm_cpu}",
+                "cpu_cores": "${var.vm_cpu_cores_per_socket}",
+                "memory": "${var.vm_memory_mb}",
+                "network": {
+                    "type": "org",
+                    "name": "${vcd_vapp_org_network.vapp_nw.name}",
+                    "ip_allocation_mode": "dhcp"
+                },
+                "guest_properties": {
+                    "//": "Can be removed if not needed.",
+                    "guestinfo.metadata": "${base64gzip(templatefile(\"${path.module}/cloud-init/metadata.yaml\", { \"instance_id\" = random_uuid.vm_uuid[count.index].result, \"hostname\" = (var.vm_name != \"\" ? (var.vm_count > 1 ? format(\"%s-%s\", var.vm_name, (count.index + 1)) : var.vm_name) : format(\"vm-%s\", random_uuid.vm_uuid[count.index].result)) }))}",
+                    "guestinfo.metadata.encoding": "gzip+base64",
+                    "guestinfo.userdata": "${base64gzip(templatefile(\"${path.module}/cloud-init/userdata.yaml\", { \"hostname\" = (var.vm_name != \"\" ? (var.vm_count > 1 ? format(\"%s-%s\", var.vm_name, (count.index + 1)) : var.vm_name) : format(\"vm-%s\", random_uuid.vm_uuid[count.index].result)) }))}",
+                    "guestinfo.userdata.encoding": "gzip+base64"
+                }
+            }
+        }
+    }
+}
