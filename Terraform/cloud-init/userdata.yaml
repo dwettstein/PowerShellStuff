@@ -7,6 +7,9 @@ hostname: ${hostname}
 # users:
 #   - name: root
 #     lock-passwd: false
-#     passwd: Output of `openssl passwd -1 -salt any_salt`
+#     passwd: Output of `openssl passwd -6 -salt any_salt`
+# bootcmd:
+#   # Disable root password expiration (e.g. PhotonOS)
+#   - /bin/sed -E -i 's/^root:([^:]+):.*$/root:\1:99999:0:99999:0:::/' /etc/shadow
 # ssh_authorized_keys:
 #   - Contents of `cat $HOME/.ssh/id_rsa.pub`
