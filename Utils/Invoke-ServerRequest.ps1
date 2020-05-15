@@ -9,9 +9,10 @@
 
     File-Name:  Invoke-ServerRequest.ps1
     Author:     David Wettstein
-    Version:    v1.0.2
+    Version:    v1.1.0
 
     Changelog:
+                v1.1.0, 2020-05-15, David Wettstein: Sync input variables with cache.
                 v1.0.2, 2020-04-09, David Wettstein: Improve path handling.
                 v1.0.1, 2020-03-13, David Wettstein: Refactor and generalize cmdlet.
                 v1.0.0, 2019-05-30, David Wettstein: First implementation.
@@ -32,13 +33,12 @@
 [CmdletBinding()]
 [OutputType([Object])]
 param (
-    [Parameter(Mandatory = $true, Position = 0)]
-    [ValidateNotNullOrEmpty()]
-    [String] $Server
-    ,
-    [Parameter(Mandatory = $true, Position = 1)]
+    [Parameter(Mandatory = $true, ValueFromPipeline = $true, Position = 0)]
     [ValidateNotNullOrEmpty()]
     [String] $Endpoint
+    ,
+    [Parameter(Mandatory = $false, Position = 1)]
+    [String] $Server
     ,
     [Parameter(Mandatory = $false, Position = 2)]
     [ValidateSet('GET', 'POST', 'PUT', 'PATCH', 'UPDATE', 'DELETE')]
@@ -104,35 +104,18 @@ $ScriptOut = ""
 
 Write-Verbose "$($FILE_NAME): CALL."
 
-function Approve-AllCertificates {
-    $CSSource = @'
-using System.Net;
-
-public class ServerCertificate {
-    public static void approveAllCertificates() {
-        ServicePointManager.ServerCertificateValidationCallback = delegate { return true; };
-    }
-}
-'@
-    if (-not ([System.Management.Automation.PSTypeName]'ServerCertificate').Type) {
-        Add-Type -TypeDefinition $CSSource
-    }
-    # Ignore self-signed SSL certificates.
-    [ServerCertificate]::approveAllCertificates()
-    # Disable certificate revocation check.
-    [System.Net.ServicePointManager]::CheckCertificateRevocationList = $false;
-    # Allow all security protocols.
-    [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]'Ssl3,Tls,Tls11,Tls12'
-}
-
 #===============================================================================
 # Main
 #===============================================================================
 #trap { Write-Error $_; exit 1; break; }
 
 try {
+    $Server = & "${FILE_DIR}Sync-VariableCache" "Server" $Server -VariableCachePrefix "Utils" -IsMandatory
+    $AuthorizationToken = & "${FILE_DIR}Sync-VariableCache" "AuthorizationToken" $AuthorizationToken -VariableCachePrefix "Utils"
+    $ApproveAllCertificates = & "${FILE_DIR}Sync-VariableCache" "ApproveAllCertificates" $PSCmdlet.MyInvocation.BoundParameters.ApproveAllCertificates -VariableCachePrefix "Utils"
+
     if ($ApproveAllCertificates) {
-        Approve-AllCertificates
+        & "${FILE_DIR}Approve-AllCertificates"
     }
 
     $BaseUrl = "${Protocol}://$Server"

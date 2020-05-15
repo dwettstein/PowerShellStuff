@@ -34,12 +34,12 @@
 [CmdletBinding()]
 [OutputType([Object])]
 param (
-    [Parameter(Mandatory = $false, Position = 0)]
-    [String] $Server
-    ,
-    [Parameter(Mandatory = $true, Position = 1)]
+    [Parameter(Mandatory = $true, ValueFromPipeline = $true, Position = 0)]
     [ValidateNotNullOrEmpty()]
     [String] $Endpoint
+    ,
+    [Parameter(Mandatory = $false, Position = 1)]
+    [String] $Server
     ,
     [Parameter(Mandatory = $false, Position = 2)]
     [ValidateSet('GET', 'POST', 'PUT', 'PATCH', 'UPDATE', 'DELETE')]
