@@ -26,7 +26,7 @@
     https://github.com/dwettstein/PowerShell
 
 .EXAMPLE
-    $Result = & "Invoke-ServerRequest" "example.com" "/api/v1/version" -AuthorizationToken $AuthorizationToken
+    $Result = & "Invoke-ServerRequest" "/api/v1/version"
 
 .EXAMPLE
     [Xml] $Result = & "$PSScriptRoot\Invoke-ServerRequest" -Server "example.com" -Endpoint "/api/v1/version" -Method "GET" -MediaType "application/*+xml" -ApproveAllCertificates
