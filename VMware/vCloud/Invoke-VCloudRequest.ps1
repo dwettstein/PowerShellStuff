@@ -64,7 +64,7 @@ param (
     [String] $Protocol = "https"
     ,
     [Parameter(Mandatory = $false, Position = 8)]
-    [Switch] $ApproveAllCertificates = $false
+    [Switch] $ApproveAllCertificates
     ,
     [Parameter(Mandatory = $false, Position = 9)]
     [ValidateNotNullOrEmpty()]
@@ -116,7 +116,7 @@ Write-Verbose "$($FILE_NAME): CALL."
 try {
     $Server = & "${FILE_DIR}Sync-VCloudVariableCache" "Server" $Server -IsMandatory
     $AuthorizationToken = & "${FILE_DIR}Sync-VCloudVariableCache" "AuthorizationToken" $AuthorizationToken
-    $ApproveAllCertificates = & "${FILE_DIR}Sync-VCloudVariableCache" "ApproveAllCertificates" $ApproveAllCertificates
+    $ApproveAllCertificates = & "${FILE_DIR}Sync-VCloudVariableCache" "ApproveAllCertificates" $PSCmdlet.MyInvocation.BoundParameters.ApproveAllCertificates
 
     $BaseUrl = "${Protocol}://$Server"
     $EndpointUrl = "${BaseUrl}${Endpoint}"

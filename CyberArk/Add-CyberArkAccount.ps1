@@ -45,11 +45,9 @@ param (
     [String] $Address
     ,
     [Parameter(Mandatory = $false, Position = 1)]
-    [ValidateNotNullOrEmpty()]
     [String] $Safe
     ,
     [Parameter(Mandatory = $false, Position = 2)]
-    [ValidateNotNullOrEmpty()]
     [String] $PlatformId
     ,
     [Parameter(Mandatory = $false, Position = 3)]
@@ -57,7 +55,6 @@ param (
     [String] $DeviceType = "Application"
     ,
     [Parameter(Mandatory = $false, Position = 4)]
-    [ValidateNotNullOrEmpty()]
     [String] $Server
     ,
     [Parameter(Mandatory = $false, Position = 5)]
@@ -75,11 +72,10 @@ param (
     [Switch] $AsJson
     ,
     [Parameter(Mandatory = $false, Position = 9)]
-    [ValidateNotNullOrEmpty()]
     [String] $AuthorizationToken = $null  # secure string or plain text (not recommended)
     ,
     [Parameter(Mandatory = $false, Position = 10)]
-    [Switch] $ApproveAllCertificates = $false
+    [Switch] $ApproveAllCertificates
 )
 
 if (-not $PSCmdlet.MyInvocation.BoundParameters.ErrorAction) { $ErrorActionPreference = "Stop" }

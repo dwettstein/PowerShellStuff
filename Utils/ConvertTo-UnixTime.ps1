@@ -33,10 +33,10 @@ param (
     [DateTime] $DateTime = (Get-Date)  # Use current date as default value.
     ,
     [Parameter(Mandatory = $false, Position = 1)]
-    [Switch] $UniversalTime = $false
+    [Switch] $UniversalTime
     ,
     [Parameter(Mandatory = $false, Position = 2)]
-    [Switch] $Milliseconds = $false
+    [Switch] $Milliseconds
 )
 
 if (-not $PSCmdlet.MyInvocation.BoundParameters.ErrorAction) { $ErrorActionPreference = "Stop" }

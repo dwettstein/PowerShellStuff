@@ -52,10 +52,10 @@ param (
     [String] $Server
     ,
     [Parameter(Mandatory = $false, Position = 1)]
-    [Switch] $UseJWT = $false
+    [Switch] $UseJWT
     ,
     [Parameter(Mandatory = $false, Position = 2)]
-    [Switch] $AsPlainText = $false
+    [Switch] $AsPlainText
     ,
     [Parameter(Mandatory = $false, Position = 3)]
     [ValidateNotNullOrEmpty()]
@@ -72,7 +72,7 @@ param (
     [String] $PswdDir = "$HOME\.pscredentials"  # $HOME for Local System Account: C:\Windows\System32\config\systemprofile
     ,
     [Parameter(Mandatory = $false, Position = 7)]
-    [Switch] $ApproveAllCertificates = $false
+    [Switch] $ApproveAllCertificates
 )
 
 if (-not $PSCmdlet.MyInvocation.BoundParameters.ErrorAction) { $ErrorActionPreference = "Stop" }
@@ -140,7 +140,7 @@ public class ServerCertificate {
 
 try {
     $Server = & "${FILE_DIR}Sync-NsxVariableCache" "Server" $Server -IsMandatory
-    $ApproveAllCertificates = & "${FILE_DIR}Sync-NsxVariableCache" "ApproveAllCertificates" $ApproveAllCertificates
+    $ApproveAllCertificates = & "${FILE_DIR}Sync-NsxVariableCache" "ApproveAllCertificates" $PSCmdlet.MyInvocation.BoundParameters.ApproveAllCertificates
 
     if ($ApproveAllCertificates) {
         Approve-AllCertificates

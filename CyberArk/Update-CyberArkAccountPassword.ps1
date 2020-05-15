@@ -56,15 +56,13 @@ param (
     [Switch] $Interactive
     ,
     [Parameter(Mandatory = $false, Position = 4)]
-    [ValidateNotNullOrEmpty()]
     [String] $Server
     ,
     [Parameter(Mandatory = $false, Position = 5)]
-    [ValidateNotNullOrEmpty()]
     [String] $AuthorizationToken = $null  # secure string or plain text (not recommended)
     ,
     [Parameter(Mandatory = $false, Position = 6)]
-    [Switch] $ApproveAllCertificates = $false
+    [Switch] $ApproveAllCertificates
 )
 
 if (-not $PSCmdlet.MyInvocation.BoundParameters.ErrorAction) { $ErrorActionPreference = "Stop" }

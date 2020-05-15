@@ -33,10 +33,10 @@ param (
     [Double] $UnixTimestamp
     ,
     [Parameter(Mandatory = $false, Position = 1)]
-    [Switch] $UniversalTime = $false
+    [Switch] $UniversalTime
     ,
     [Parameter(Mandatory = $false, Position = 2)]
-    [Switch] $Iso8601 = $false
+    [Switch] $Iso8601
 )
 
 if (-not $PSCmdlet.MyInvocation.BoundParameters.ErrorAction) { $ErrorActionPreference = "Stop" }

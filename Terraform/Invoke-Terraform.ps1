@@ -103,7 +103,7 @@ param (
     [String] $VarsJson = "{}"
     ,
     [Parameter(Mandatory = $false, Position = 3)]
-    [Switch] $AutoApprove = $false
+    [Switch] $AutoApprove
     ,
     [Parameter(Mandatory = $false, Position = 4)]
     [ValidateNotNullOrEmpty()]
@@ -128,10 +128,10 @@ param (
     [String] $PswdDir = "$HOME\.pscredentials"  # $HOME for Local System Account: C:\Windows\System32\config\systemprofile
     ,
     [Parameter(Mandatory = $false, Position = 10)]
-    [Switch] $ApproveAllCertificates = $false
+    [Switch] $ApproveAllCertificates
     ,
     [Parameter(Mandatory = $false, Position = 11)]
-    [Switch] $Unsafe = $false
+    [Switch] $Unsafe
 )
 
 if (-not $PSCmdlet.MyInvocation.BoundParameters.ErrorAction) { $ErrorActionPreference = "Stop" }

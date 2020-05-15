@@ -64,7 +64,7 @@ param (
     [String] $Protocol = "https"
     ,
     [Parameter(Mandatory = $false, Position = 8)]
-    [Switch] $ApproveAllCertificates = $false
+    [Switch] $ApproveAllCertificates
 )
 
 if (-not $PSCmdlet.MyInvocation.BoundParameters.ErrorAction) { $ErrorActionPreference = "Stop" }
@@ -112,7 +112,7 @@ Write-Verbose "$($FILE_NAME): CALL."
 try {
     $Server = & "${FILE_DIR}Sync-CyberArkVariableCache" "Server" $Server -IsMandatory
     $AuthorizationToken = & "${FILE_DIR}Sync-CyberArkVariableCache" "AuthorizationToken" $AuthorizationToken
-    $ApproveAllCertificates = & "${FILE_DIR}Sync-CyberArkVariableCache" "ApproveAllCertificates" $ApproveAllCertificates
+    $ApproveAllCertificates = & "${FILE_DIR}Sync-CyberArkVariableCache" "ApproveAllCertificates" $PSCmdlet.MyInvocation.BoundParameters.ApproveAllCertificates
 
     $BaseUrl = "${Protocol}://$Server"
     $EndpointUrl = "${BaseUrl}${Endpoint}"

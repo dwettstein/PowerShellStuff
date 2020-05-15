@@ -38,14 +38,13 @@ param (
     [Switch] $AsXml
     ,
     [Parameter(Mandatory = $false, Position = 2)]
-    [ValidateNotNullOrEmpty()]
     [String] $Server
     ,
     [Parameter(Mandatory = $false, Position = 3)]
     [String] $AuthorizationToken = $null  # secure string or plain text (not recommended)
     ,
     [Parameter(Mandatory = $false, Position = 4)]
-    [Switch] $ApproveAllCertificates = $false
+    [Switch] $ApproveAllCertificates
 )
 
 if (-not $PSCmdlet.MyInvocation.BoundParameters.ErrorAction) { $ErrorActionPreference = "Stop" }

@@ -64,7 +64,7 @@ param (
     [String] $Protocol = "https"
     ,
     [Parameter(Mandatory = $false, Position = 8)]
-    [Switch] $ApproveAllCertificates = $false
+    [Switch] $ApproveAllCertificates
 )
 
 if (-not $PSCmdlet.MyInvocation.BoundParameters.ErrorAction) { $ErrorActionPreference = "Stop" }

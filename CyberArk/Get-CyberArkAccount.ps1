@@ -55,7 +55,6 @@ param (
     $Account  # Account ID or output from Get-CyberArkAccount
     ,
     [Parameter(Mandatory = $false, Position = 2)]
-    [ValidateNotNullOrEmpty()]
     [String] $Safe
     ,
     [Parameter(Mandatory = $false, Position = 3)]
@@ -68,14 +67,13 @@ param (
     [Switch] $AsJson
     ,
     [Parameter(Mandatory = $false, Position = 6)]
-    [ValidateNotNullOrEmpty()]
     [String] $Server
     ,
     [Parameter(Mandatory = $false, Position = 7)]
     [String] $AuthorizationToken = $null  # secure string or plain text (not recommended)
     ,
     [Parameter(Mandatory = $false, Position = 8)]
-    [Switch] $ApproveAllCertificates = $false
+    [Switch] $ApproveAllCertificates
 )
 
 if (-not $PSCmdlet.MyInvocation.BoundParameters.ErrorAction) { $ErrorActionPreference = "Stop" }
@@ -146,7 +144,7 @@ try {
         Add-Type -AssemblyName System.Web
         $EncodedQuery = [System.Web.HttpUtility]::UrlEncode($Query)
         $QueryEndpoint = "/PasswordVault/api/Accounts?search=$EncodedQuery"
-        if ($Safe) {
+        if (-not [String]::IsNullOrEmpty($Safe)) {
             $EncodedSafe = [System.Web.HttpUtility]::UrlEncode("safename eq $Safe")
             $QueryEndpoint += "&filter=$EncodedSafe"
         }

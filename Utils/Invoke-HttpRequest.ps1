@@ -47,7 +47,7 @@ param (
     [String] $Body
     ,
     [Parameter(Mandatory = $false, Position = 4)]
-    [Switch] $ApproveAllCertificates = $false
+    [Switch] $ApproveAllCertificates
 )
 
 if (-not $PSCmdlet.MyInvocation.BoundParameters.ErrorAction) { $ErrorActionPreference = "Stop" }

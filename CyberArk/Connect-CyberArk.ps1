@@ -53,7 +53,7 @@ param (
     [String] $Server
     ,
     [Parameter(Mandatory = $false, Position = 1)]
-    [Switch] $AsPlainText = $false
+    [Switch] $AsPlainText
     ,
     [Parameter(Mandatory = $false, Position = 2)]
     [ValidateNotNullOrEmpty()]
@@ -138,7 +138,7 @@ public class ServerCertificate {
 
 try {
     $Server = & "${FILE_DIR}Sync-CyberArkVariableCache" "Server" $Server -IsMandatory
-    $ApproveAllCertificates = & "${FILE_DIR}Sync-CyberArkVariableCache" "ApproveAllCertificates" $ApproveAllCertificates
+    $ApproveAllCertificates = & "${FILE_DIR}Sync-CyberArkVariableCache" "ApproveAllCertificates" $PSCmdlet.MyInvocation.BoundParameters.ApproveAllCertificates
 
     if ($ApproveAllCertificates) {
         Approve-AllCertificates
