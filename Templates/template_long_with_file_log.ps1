@@ -51,12 +51,8 @@ begin {
     #===============================================================================
     # Make sure the necessary modules are loaded.
     $Modules = @()
-    foreach ($Module in $Modules) {
-        if (Get-Module | Where-Object { $_.Name -eq $Module }) {
-            # Module already imported. Do nothing.
-        } else {
-            Import-Module $Module
-        }
+    $LoadedModules = Get-Module; $Modules | ForEach-Object {
+        if ($_ -notin $LoadedModules.Name) { Import-Module $_ -DisableNameChecking }
     }
 
     #===============================================================================
