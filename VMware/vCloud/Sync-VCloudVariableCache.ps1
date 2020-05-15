@@ -71,13 +71,15 @@ function Get-ModuleConfigVariable($VarName) {
         }
     }
     # Then, get the variable value if available.
-    if ($Script:ModuleConfig -and -not [String]::IsNullOrEmpty($Script:ModuleConfig."$VarName")) {
-        Write-Verbose "Found variable in module config: $VarName = $VarValue"
-        $VarValue = $Script:ModuleConfig."$VarName"
-        $VarValue
-    } else {
-        Write-Verbose "Variable was not found in module config: $VarName"
-        $null  # If variable not found in config, return null.
+    if ($Script:ModuleConfig) {
+        if (-not [String]::IsNullOrEmpty($Script:ModuleConfig."$VarName")) {
+            $VarValue = $Script:ModuleConfig."$VarName"
+            Write-Verbose "Found variable in module config: $VarName = $VarValue"
+            $VarValue
+        } else {
+            Write-Verbose "Variable was not found in module config: $VarName"
+            $null  # If variable not found in config, return null.
+        }
     }
 }
 
