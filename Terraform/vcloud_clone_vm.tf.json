@@ -47,7 +47,6 @@
             "allow_unverified_ssl": "${var.allow_unverified_ssl}"
         }
     },
-    "data": {},
     "resource": {
         "random_uuid": {
             "vm_uuid": {
@@ -61,14 +60,14 @@
         },
         "vcd_vapp_org_network": {
             "vapp_nw": {
-                "vapp_name": "${var.vapp}",
+                "vapp_name": "${vcd_vapp.vapp.name}",
                 "org_network_name": "${var.network}"
             }
         },
         "vcd_vapp_vm": {
             "vm": {
                 "count": "${var.vm_count}",
-                "vapp_name": "${var.vapp}",
+                "vapp_name": "${vcd_vapp.vapp.name}",
                 "name": "${var.vm_name != \"\" ? (var.vm_count > 1 ? format(\"%s-%s\", var.vm_name, (count.index + 1)) : var.vm_name) : format(\"vm-%s\", random_uuid.vm_uuid[count.index].result)}",
                 "computer_name": "${var.vm_name != \"\" ? (var.vm_count > 1 ? format(\"%s-%s\", var.vm_name, (count.index + 1)) : var.vm_name) : format(\"vm-%s\", random_uuid.vm_uuid[count.index].result)}",
                 "catalog_name": "${var.catalog}",
@@ -78,11 +77,12 @@
                 "memory": "${var.vm_memory_mb}",
                 "network": {
                     "type": "org",
-                    "name": "${vcd_vapp_org_network.vapp_nw.name}",
-                    "ip_allocation_mode": "dhcp"
+                    "name": "${var.network}",
+                    "ip_allocation_mode": "DHCP"
                 },
                 "guest_properties": {
                     "//": "Can be removed if not needed.",
+                    "guest.hostname": "${var.vm_name != \"\" ? (var.vm_count > 1 ? format(\"%s-%s\", var.vm_name, (count.index + 1)) : var.vm_name) : format(\"vm-%s\", random_uuid.vm_uuid[count.index].result)}",
                     "guestinfo.metadata": "${base64gzip(templatefile(\"${path.module}/cloud-init/metadata.yaml\", { \"instance_id\" = random_uuid.vm_uuid[count.index].result, \"hostname\" = (var.vm_name != \"\" ? (var.vm_count > 1 ? format(\"%s-%s\", var.vm_name, (count.index + 1)) : var.vm_name) : format(\"vm-%s\", random_uuid.vm_uuid[count.index].result)) }))}",
                     "guestinfo.metadata.encoding": "gzip+base64",
                     "guestinfo.userdata": "${base64gzip(templatefile(\"${path.module}/cloud-init/userdata.yaml\", { \"hostname\" = (var.vm_name != \"\" ? (var.vm_count > 1 ? format(\"%s-%s\", var.vm_name, (count.index + 1)) : var.vm_name) : format(\"vm-%s\", random_uuid.vm_uuid[count.index].result)) }))}",
