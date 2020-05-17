@@ -61,9 +61,10 @@
 
     File-Name:  Invoke-Terraform.ps1
     Author:     David Wettstein
-    Version:    v1.0.1
+    Version:    v1.0.2
 
     Changelog:
+                v1.0.2, 2020-05-17, David Wettstein: Improve command execution.
                 v1.0.1, 2020-04-09, David Wettstein: Improve path handling.
                 v1.0.0, 2020-03-21, David Wettstein: Refactor and improve credential handling.
                 v0.0.1, 2018-10-03, David Wettstein: First implementation.
@@ -189,15 +190,18 @@ try {
     }
 
     if (-not [String]::IsNullOrEmpty($BinaryDir)) {
+        if (-not (Test-Path $BinaryDir)) {
+            throw "Path $BinaryDir not found."
+        }
         $BinaryDir = Join-Path -Path $BinaryDir -ChildPath ""
     }
-    $Command = "${BinaryDir}terraform.exe $Action"
 
+    $Arguments = "$Action"
     if ($Action -eq "init") {
         if (-not [String]::IsNullOrEmpty($BinaryDir)) {
             # The plugin cache dir can also be specified with the `TF_PLUGIN_CACHE_DIR` environment variable.
             # export TF_PLUGIN_CACHE_DIR="$HOME/.terraform.d/plugin-cache"
-            $Command += " -plugin-dir='${BinaryDir}plugin-cache'"
+            $Arguments += " -plugin-dir='${BinaryDir}plugin-cache'"
         }
     } else {
         # First get credentials.
@@ -208,27 +212,26 @@ try {
         }
 
         # Add them as Terraform input variables.
-        $Command += " -var 'server=$Server'"
-        $Command += " -var 'username=$($Cred.UserName)'"
-        $Command += " -var 'password=$($Cred.GetNetworkCredential().Password)'"
-        $Command += " -var 'allow_unverified_ssl=$("$ApproveAllCertificates".ToLower())'"
+        $Arguments += " -var 'server=$Server'"
+        $Arguments += " -var 'username=$($Cred.UserName)'"
+        $Arguments += " -var 'password=$($Cred.GetNetworkCredential().Password)'"
+        $Arguments += " -var 'allow_unverified_ssl=$("$ApproveAllCertificates".ToLower())'"
 
         # Add other input variables.
         $Vars = ConvertFrom-Json $VarsJson
         foreach ($Var in (Get-Member -MemberType NoteProperty -InputObject $Vars)) {
             $VarName = $Var.Name
             $VarValue = $Vars."$VarName"
-            $Command += " -var '$VarName=$VarValue'"
+            $Arguments += " -var '$VarName=$VarValue'"
         }
 
         if ($AutoApprove -and ($Action -eq "apply" -or $Action -eq "destroy")) {
-            $Command += " -auto-approve"
+            $Arguments += " -auto-approve"
         }
     }
 
-    $Command += " 2>&1"  # Redirect stderr to stdout
-
-    Invoke-Expression -Command $Command
+    # & "${BinaryDir}terraform.exe" @Arguments
+    Invoke-Expression -Command "${BinaryDir}terraform.exe $Arguments"
 } catch {
     # Error in $_ or $Error[0] variable.
     Write-Warning "Exception occurred at line $($_.InvocationInfo.ScriptLineNumber): $($_.Exception.ToString())" -WarningAction Continue
