@@ -6,7 +6,8 @@
         1. Try with username and password, if provided.
         2. Try with PSCredential file "$Server-$Username.xml" in given directory (default "$HOME\.pscredentials").
         3. If interactive, get credentials from user with a prompt.
-        4. If not interactive, try with PSCredential file "$Username.xml".
+        4. If not interactive, try with `TF_VAR_username` and `TF_VAR_password` env vars.
+        5. If not interactive, try with PSCredential file "$Username.xml".
 
     Setup of Terraform binaries on Windows:
         1. Download Terrform from https://releases.hashicorp.com/
@@ -25,7 +26,8 @@
         1. Try with username and password, if provided.
         2. Try with PSCredential file "$Server-$Username.xml" in given directory (default "$HOME\.pscredentials").
         3. If interactive, get credentials from user with a prompt.
-        4. If not interactive, try with PSCredential file "$Username.xml".
+        4. If not interactive, try with `TF_VAR_username` and `TF_VAR_password` env vars.
+        5. If not interactive, try with PSCredential file "$Username.xml".
 
     Setup of Terraform binaries on Windows:
         1. Download Terrform from https://releases.hashicorp.com/
@@ -132,6 +134,9 @@ param (
     [Switch] $ApproveAllCertificates
     ,
     [Parameter(Mandatory = $false, Position = 11)]
+    [Switch] $CredAsCliArgs
+    ,
+    [Parameter(Mandatory = $false, Position = 12)]
     [Switch] $Unsafe
 )
 
@@ -176,11 +181,13 @@ $CurrentLocation = Get-Location
 #trap { Write-Error $_; exit 1; break; }
 
 try {
-    if (-not [String]::IsNullOrEmpty($env:TF_LOG) -or -not [String]::IsNullOrEmpty($env:TF_LOG_PATH)) {
-        $Message = "ATTENTION: Environment variable(s) TF_LOG: '${env:TF_LOG}' and/or TF_LOG_PATH: '${env:TF_LOG_PATH}' are set. Your credentials might be exposed and logged to a file. Use the param -Unsafe to proceed anyway."
-        Write-Verbose $Message
-        if (-not $Unsafe) {
-            throw "$Message"
+    if ($CredAsCliArgs) {
+        if (-not [String]::IsNullOrEmpty($env:TF_LOG) -or -not [String]::IsNullOrEmpty($env:TF_LOG_PATH)) {
+            $Message = "ATTENTION: Environment variable(s) TF_LOG: '${env:TF_LOG}' and/or TF_LOG_PATH: '${env:TF_LOG_PATH}' are set. Your credentials might be exposed and logged to a file. Use the param -Unsafe to proceed anyway."
+            Write-Verbose $Message
+            if (-not $Unsafe) {
+                throw "$Message"
+            }
         }
     }
 
@@ -204,18 +211,36 @@ try {
             $Arguments += " -plugin-dir='${BinaryDir}plugin-cache'"
         }
     } else {
-        # First get credentials.
+        # Add Terraform input variables.
+        $Arguments += " -var 'server=$Server'"
+        if ($PSCmdlet.MyInvocation.BoundParameters.ApproveAllCertificates) {
+            $Arguments += " -var 'allow_unverified_ssl=$("$ApproveAllCertificates".ToLower())'"
+        }
+
+        # Get credentials.
         if ($Interactive) {
             $Cred = & "${FILE_DIR}Get-TerraformPSCredential" -Server $Server -Username $Username -Password $Password -Interactive -PswdDir $PswdDir -ErrorAction:Stop
+        } elseif (-not [String]::IsNullOrEmpty($env:TF_VAR_username) -and -not [String]::IsNullOrEmpty($env:TF_VAR_password)) {
+            # 1. Try with username and password from TF_ENV_ if available.
+            try {
+                $PasswordSecureString = ConvertTo-SecureString -String $env:TF_VAR_password
+            } catch {
+                # Password was likely given as plain text, convert it to SecureString.
+                $PasswordSecureString = ConvertTo-SecureString -AsPlainText -Force $env:TF_VAR_password
+            }
+            $Cred = New-Object System.Management.Automation.PSCredential ($env:TF_VAR_username, $PasswordSecureString)
         } else {
             $Cred = & "${FILE_DIR}Get-TerraformPSCredential" -Server $Server -Username $Username -Password $Password -PswdDir $PswdDir -ErrorAction:Stop
         }
 
-        # Add them as Terraform input variables.
-        $Arguments += " -var 'server=$Server'"
-        $Arguments += " -var 'username=$($Cred.UserName)'"
-        $Arguments += " -var 'password=$($Cred.GetNetworkCredential().Password)'"
-        $Arguments += " -var 'allow_unverified_ssl=$("$ApproveAllCertificates".ToLower())'"
+        # Hand them over to Terraform, either as session ENV or CLI var.
+        if ($CredAsCliArgs) {
+            $Arguments += " -var 'username=$($Cred.UserName)'"
+            $Arguments += " -var 'password=$($Cred.GetNetworkCredential().Password)'"
+        } else {
+            $env:TF_VAR_username = $Cred.UserName
+            $env:TF_VAR_password = $Cred.GetNetworkCredential().Password
+        }
 
         # Add other input variables.
         $Vars = ConvertFrom-Json $VarsJson
@@ -238,6 +263,10 @@ try {
     $ErrorOut = "$($_.Exception.Message)"
     $ExitCode = 1
 } finally {
+    # Restore session ENV vars
+    $env:TF_VAR_username = [System.Environment]::GetEnvironmentVariable("TF_VAR_username")
+    $env:TF_VAR_password = [System.Environment]::GetEnvironmentVariable("TF_VAR_password")
+
     if (-not [String]::IsNullOrEmpty($ConfigDir)) {
         $null = Set-Location $CurrentLocation
     }
