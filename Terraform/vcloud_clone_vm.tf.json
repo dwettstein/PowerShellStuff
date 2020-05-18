@@ -80,18 +80,10 @@
                     "name": "${var.network}",
                     "ip_allocation_mode": "DHCP"
                 },
-                "customization": {
-                    "//": "Can be removed if not needed.",
-                    "enabled": true,
-                    "initscript": "${file(\"${path.module}/cloud-init/vcloud_initscript.sh\")}"
-                },
                 "guest_properties": {
                     "//": "Can be removed if not needed.",
-                    "guest.hostname": "${var.vm_name != \"\" ? (var.vm_count > 1 ? format(\"%s-%s\", var.vm_name, (count.index + 1)) : var.vm_name) : format(\"vm-%s\", random_uuid.vm_uuid[count.index].result)}",
-                    "guestinfo.metadata": "${base64gzip(templatefile(\"${path.module}/cloud-init/metadata.yaml\", { \"instance_id\" = random_uuid.vm_uuid[count.index].result, \"hostname\" = (var.vm_name != \"\" ? (var.vm_count > 1 ? format(\"%s-%s\", var.vm_name, (count.index + 1)) : var.vm_name) : format(\"vm-%s\", random_uuid.vm_uuid[count.index].result)) }))}",
-                    "guestinfo.metadata.encoding": "gzip+base64",
-                    "guestinfo.userdata": "${base64gzip(templatefile(\"${path.module}/cloud-init/userdata.yaml\", { \"hostname\" = (var.vm_name != \"\" ? (var.vm_count > 1 ? format(\"%s-%s\", var.vm_name, (count.index + 1)) : var.vm_name) : format(\"vm-%s\", random_uuid.vm_uuid[count.index].result)) }))}",
-                    "guestinfo.userdata.encoding": "gzip+base64"
+                    "hostname": "${var.vm_name != \"\" ? (var.vm_count > 1 ? format(\"%s-%s\", var.vm_name, (count.index + 1)) : var.vm_name) : format(\"vm-%s\", random_uuid.vm_uuid[count.index].result)}",
+                    "user-data": "${base64encode(templatefile(\"${path.module}/cloud-init/user-data.yaml\", { \"instance_id\" = random_uuid.vm_uuid[count.index].result, \"hostname\" = (var.vm_name != \"\" ? (var.vm_count > 1 ? format(\"%s-%s\", var.vm_name, (count.index + 1)) : var.vm_name) : format(\"vm-%s\", random_uuid.vm_uuid[count.index].result)) }))}"
                 }
             }
         }

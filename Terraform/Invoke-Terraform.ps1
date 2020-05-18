@@ -174,6 +174,8 @@ $ScriptOut = ""
 Write-Verbose "$($FILE_NAME): CALL."
 
 $CurrentLocation = Get-Location
+$CurrentTfVarUsername = [System.Environment]::GetEnvironmentVariable("TF_VAR_username")
+$CurrentTfVarPassword = [System.Environment]::GetEnvironmentVariable("TF_VAR_password")
 
 #===============================================================================
 # Main
@@ -263,10 +265,9 @@ try {
     $ErrorOut = "$($_.Exception.Message)"
     $ExitCode = 1
 } finally {
-    # Restore session ENV vars
-    $env:TF_VAR_username = [System.Environment]::GetEnvironmentVariable("TF_VAR_username")
-    $env:TF_VAR_password = [System.Environment]::GetEnvironmentVariable("TF_VAR_password")
-
+    # Reset session
+    $env:TF_VAR_username = $CurrentTfVarUsername
+    $env:TF_VAR_password = $CurrentTfVarPassword
     if (-not [String]::IsNullOrEmpty($ConfigDir)) {
         $null = Set-Location $CurrentLocation
     }

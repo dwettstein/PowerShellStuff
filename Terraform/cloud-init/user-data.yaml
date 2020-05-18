@@ -5,6 +5,13 @@
 # https://cloudinit.readthedocs.io/en/latest/topics/examples.html
 
 hostname: ${hostname}
+local-hostname: ${hostname}
+instance-id: ${instance_id}
+# network:
+#   version: 2
+#   ethernets:
+#     eth0:
+#       dhcp4: true
 # users:
 #   - name: root
 #     lock-passwd: false
