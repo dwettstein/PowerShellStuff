@@ -92,7 +92,7 @@ try {
         # 1. Try with username and password, if provided.
         try {
             $PasswordSecureString = ConvertTo-SecureString -String $Password
-        } catch [System.FormatException] {
+        } catch {
             # Password was likely given as plain text, convert it to SecureString.
             $PasswordSecureString = ConvertTo-SecureString -AsPlainText -Force $Password
         }
