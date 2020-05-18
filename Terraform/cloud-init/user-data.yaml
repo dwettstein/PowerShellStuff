@@ -12,6 +12,8 @@ instance-id: ${instance_id}
 #   ethernets:
 #     eth0:
 #       dhcp4: true
+# ssh_authorized_keys:
+#   - Contents of `cat $HOME/.ssh/id_rsa.pub`
 # users:
 #   - name: root
 #     lock-passwd: false
@@ -19,5 +21,4 @@ instance-id: ${instance_id}
 # bootcmd:
 #   # Disable root password expiration (e.g. PhotonOS)
 #   - /bin/sed -E -i 's/^root:([^:]+):.*$/root:\1:99999:0:99999:0:::/' /etc/shadow
-# ssh_authorized_keys:
-#   - Contents of `cat $HOME/.ssh/id_rsa.pub`
+final_message: "System successfully customized using cloud-init after $UPTIME seconds."

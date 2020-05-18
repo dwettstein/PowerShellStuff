@@ -114,6 +114,8 @@
                 "wait_for_guest_net_routable": false,
                 "extra_config": {
                     "//": "Can be removed if not needed.",
+                    "guestinfo.hostname": "${var.vm_name != \"\" ? (var.vm_count > 1 ? format(\"%s-%s\", var.vm_name, (count.index + 1)) : var.vm_name) : format(\"vm-%s\", random_uuid.vm_uuid[count.index].result)}",
+                    "guestinfo.instance-id": "${random_uuid.vm_uuid[count.index].result}",
                     "guestinfo.userdata": "${base64encode(templatefile(\"${path.module}/cloud-init/user-data.yaml\", { \"instance_id\" = random_uuid.vm_uuid[count.index].result, \"hostname\" = (var.vm_name != \"\" ? (var.vm_count > 1 ? format(\"%s-%s\", var.vm_name, (count.index + 1)) : var.vm_name) : format(\"vm-%s\", random_uuid.vm_uuid[count.index].result)) }))}",
                     "guestinfo.userdata.encoding": "base64"
                 }
