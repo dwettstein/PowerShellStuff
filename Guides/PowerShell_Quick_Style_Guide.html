@@ -3,6 +3,8 @@
     <head>
         <meta charset="UTF-8">
         <title>PowerShell Quick Style Guide</title>
+        <style>
+</style>
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.10.2/dist/katex.min.css" integrity="sha384-yFRtMMDnQtDRO8rLpMIKrtPCD5jdktao2TV19YiZYWMDkUR5GQZR/NOVTdquEx1j" crossorigin="anonymous">
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/markdown.css">
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/highlight.css">
@@ -19,6 +21,7 @@
         </style>
         
         <script src="https://cdn.jsdelivr.net/npm/katex-copytex@latest/dist/katex-copytex.min.js"></script>
+        
     </head>
     <body class="vscode-light">
         <h1 id="powershell-quick-style-guide">PowerShell Quick Style Guide</h1>
@@ -219,7 +222,7 @@ gps Explorer
 <p>Read the full page <a href="https://poshcode.gitbooks.io/powershell-practice-and-style/Style-Guide/Naming-Conventions.html">Naming Conventions</a> for more information.</p>
 <h1 id="tips-and-common-pitfalls">Tips and Common Pitfalls</h1>
 <ul>
-<li>When creating a new file, ensure that the encoding is <em>UTF-8</em>. Be aware that the PowerShell ISE creates files with encoding <em>UTF-8 with BOM</em> by default. See also <a href="https://stackoverflow.com/questions/2223882/whats-the-difference-between-utf-8-and-utf-8-without-bom">What's the difference between UTF-8 and UTF-8 without BOM?</a>.</li>
+<li>When creating a new file, ensure that the encoding is <em>UTF-8</em>. Be aware that PowerShell creates files with encoding <em>UTF-8 with BOM</em> by default. See also <a href="https://stackoverflow.com/questions/2223882/whats-the-difference-between-utf-8-and-utf-8-without-bom">What's the difference between UTF-8 and UTF-8 without BOM?</a> and <a href="https://stackoverflow.com/questions/5596982/using-powershell-to-write-a-file-in-utf-8-without-the-bom">Using PowerShell to write a file in UTF-8 without the BOM</a>.</li>
 <li>See <code>Get-Verb</code> to list all approved PowerShell verbs, always use one of them for your functions.</li>
 <li><code>$ErrorActionPreference</code> is set to <code>Continue</code> by default, thus the script continues to run even after an error happens. Add the following code at the beginning of your script to change the default behavior:<pre><code class="language-powershell"><div><span class="hljs-keyword">if</span> (<span class="hljs-nomarkup">-not</span> <span class="hljs-variable">$PSCmdlet</span>.MyInvocation.BoundParameters.ErrorAction) {
     <span class="hljs-variable">$ErrorActionPreference</span> = <span class="hljs-string">"Stop"</span>

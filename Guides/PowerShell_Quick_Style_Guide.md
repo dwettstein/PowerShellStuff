@@ -199,7 +199,7 @@ Read the full page [Naming Conventions](https://poshcode.gitbooks.io/powershell-
 
 # Tips and Common Pitfalls
 
-- When creating a new file, ensure that the encoding is _UTF-8_. Be aware that the PowerShell ISE creates files with encoding _UTF-8 with BOM_ by default. See also [What's the difference between UTF-8 and UTF-8 without BOM?](https://stackoverflow.com/questions/2223882/whats-the-difference-between-utf-8-and-utf-8-without-bom).
+- When creating a new file, ensure that the encoding is _UTF-8_. Be aware that PowerShell creates files with encoding _UTF-8 with BOM_ by default. See also [What's the difference between UTF-8 and UTF-8 without BOM?](https://stackoverflow.com/questions/2223882/whats-the-difference-between-utf-8-and-utf-8-without-bom) and [Using PowerShell to write a file in UTF-8 without the BOM](https://stackoverflow.com/questions/5596982/using-powershell-to-write-a-file-in-utf-8-without-the-bom).
 - See `Get-Verb` to list all approved PowerShell verbs, always use one of them for your functions.
 - `$ErrorActionPreference` is set to `Continue` by default, thus the script continues to run even after an error happens. Add the following code at the beginning of your script to change the default behavior:
     ```powershell
