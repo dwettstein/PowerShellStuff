@@ -79,6 +79,10 @@
                     "name": "${var.network}",
                     "ip_allocation_mode": "DHCP"
                 },
+                "customization": {
+                    "allow_local_admin_password": false,
+                    "auto_generate_password": false
+                },
                 "guest_properties": {
                     "//": "Can be removed if not needed.",
                     "hostname": "${var.vm_name != \"\" ? (var.vm_count > 1 ? format(\"%s-%s\", var.vm_name, (count.index + 1)) : var.vm_name) : format(\"vm-%s\", random_uuid.vm_uuid[count.index].result)}",
