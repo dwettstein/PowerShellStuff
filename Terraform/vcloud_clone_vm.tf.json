@@ -17,9 +17,6 @@
         "network": {},
         "catalog": {},
         "template": {},
-        "vapp": {
-            "default": "Terraform"
-        },
         "vm_name": {
             "default": ""
         },
@@ -55,19 +52,21 @@
         },
         "vcd_vapp": {
             "vapp": {
-                "name": "${var.vapp}"
+                "count": "${var.vm_count}",
+                "name": "${var.vm_name != \"\" ? (var.vm_count > 1 ? format(\"%s-%s\", var.vm_name, (count.index + 1)) : var.vm_name) : format(\"vm-%s\", random_uuid.vm_uuid[count.index].result)}"
             }
         },
         "vcd_vapp_org_network": {
             "vapp_nw": {
-                "vapp_name": "${vcd_vapp.vapp.name}",
+                "count": "${var.vm_count}",
+                "vapp_name": "${vcd_vapp.vapp[count.index].name}",
                 "org_network_name": "${var.network}"
             }
         },
         "vcd_vapp_vm": {
             "vm": {
                 "count": "${var.vm_count}",
-                "vapp_name": "${vcd_vapp.vapp.name}",
+                "vapp_name": "${vcd_vapp.vapp[count.index].name}",
                 "name": "${var.vm_name != \"\" ? (var.vm_count > 1 ? format(\"%s-%s\", var.vm_name, (count.index + 1)) : var.vm_name) : format(\"vm-%s\", random_uuid.vm_uuid[count.index].result)}",
                 "computer_name": "${var.vm_name != \"\" ? (var.vm_count > 1 ? format(\"%s-%s\", var.vm_name, (count.index + 1)) : var.vm_name) : format(\"vm-%s\", random_uuid.vm_uuid[count.index].result)}",
                 "catalog_name": "${var.catalog}",
