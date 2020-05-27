@@ -19,4 +19,7 @@ hostname: ${hostname}
 # bootcmd:
 #   # Disable root password expiration (e.g. PhotonOS)
 #   - /bin/sed -E -i 's/^root:([^:]+):.*$/root:\1:99999:0:99999:0:::/' /etc/shadow
-final_message: "System successfully customized using cloud-init after $UPTIME seconds."
+# runcmd:
+#   # Allow ping
+#   - iptables -A INPUT -p icmp --icmp-type echo-request -j ACCEPT
+#   - iptables -A OUTPUT -p icmp --icmp-type echo-reply -j ACCEPT
