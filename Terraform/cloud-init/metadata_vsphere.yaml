@@ -1,0 +1,7 @@
+# Copyright (c) David Wettstein, licensed under the MIT License
+# https://cloud-init.io/
+# https://cloudinit.readthedocs.io/
+# https://cloudinit.readthedocs.io/en/latest/topics/examples.html
+
+local-hostname: ${hostname}
+instance-id: ${instance_id}
