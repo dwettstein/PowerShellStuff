@@ -75,7 +75,7 @@ $private:OFS = ","
 try {
     # If username is given as SecureString string, convert it to plain text.
     try {
-        $UsernameSecureString = ConvertTo-SecureString -String $Username
+        $UsernameSecureString = ConvertTo-SecureString -String $Username -ErrorAction:SilentlyContinue
         $BSTR = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($UsernameSecureString)
         $Username = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($BSTR)
         $null = [System.Runtime.InteropServices.Marshal]::ZeroFreeBSTR($BSTR)
