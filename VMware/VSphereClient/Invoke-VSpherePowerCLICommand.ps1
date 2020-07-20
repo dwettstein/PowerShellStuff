@@ -5,11 +5,12 @@
 .DESCRIPTION
     Wrapper cmdlet for directly invoking any PowerCLI command using the provided credentials, an existing PSCredential or Windows SSPI for authentication.
 
-    File-Name:  Invoke-PowerCliCommand.ps1
+    File-Name:  Invoke-VSpherePowerCLICommand.ps1
     Author:     David Wettstein
     Version:    v1.1.2
 
     Changelog:
+                v2.0.0, 2020-07-20, David Wettstein: Rename script and variables.
                 v1.1.2, 2020-05-07, David Wettstein: Reorganize input params.
                 v1.1.1, 2020-04-09, David Wettstein: Improve path handling.
                 v1.1.0, 2020-04-07, David Wettstein: Sync input variables with cache.
@@ -24,10 +25,10 @@
     https://github.com/dwettstein/PowerShell
 
 .EXAMPLE
-    $Result = & "Invoke-PowerCliCommand" "Get-VM -Name 'vm_name'"
+    $Result = & "Invoke-VSpherePowerCLICommand" "Get-VM -Name 'vm_name'"
 
 .EXAMPLE
-    $Result = & "$PSScriptRoot\Invoke-PowerCliCommand" -Server "vcenter.vsphere.local" -Command "Get-VM -Name 'vm_name'" -Username "user" -Password "changeme"
+    $Result = & "$PSScriptRoot\Invoke-VSpherePowerCLICommand" -Server "vcenter.vsphere.local" -Command "Get-VM -Name 'vm_name'" -Username "user" -Password "changeme"
 #>
 [CmdletBinding()]
 [OutputType([Object])]
@@ -42,16 +43,10 @@ param (
     [String] $Server
     ,
     [Parameter(Mandatory = $false, Position = 3)]
-    [Object] $VCenterConnection
+    [Object] $VSphereConnection
     ,
     [Parameter(Mandatory = $false, Position = 4)]
-    [Switch] $DisconnectVCenter
-    ,
-    [Parameter(Mandatory = $false, Position = 5)]
-    [String] $Username  # secure string or plain text (not recommended)
-    ,
-    [Parameter(Mandatory = $false, Position = 6)]
-    [String] $Password  # secure string or plain text (not recommended)
+    [Switch] $Disconnect
 )
 
 if (-not $PSCmdlet.MyInvocation.BoundParameters.ErrorAction) { $ErrorActionPreference = "Stop" }
@@ -96,7 +91,7 @@ Write-Verbose "$($FILE_NAME): CALL."
 
 try {
     $Server = & "${FILE_DIR}Sync-VSphereVariableCache" "Server" $Server -IsMandatory
-    $VCenterConnection = & "${FILE_DIR}Sync-VSphereVariableCache" "VCenterConnection" $VCenterConnection
+    $VSphereConnection = & "${FILE_DIR}Sync-VSphereVariableCache" "VSphereConnection" $VSphereConnection
 
     # First check if given command is from PowerCLI module.
     $Cmdlet = $Command.Split(' ')[0]
@@ -106,8 +101,8 @@ try {
         throw "Only cmdlets from the following modules are allowed to be invoked: $($Modules -join ',')"
     }
 
-    if (-not $VCenterConnection) {
-        $VCenterConnection = & "${FILE_DIR}Connect-VCenter" -Server $Server -Username $Username -Password $Password
+    if (-not $VSphereConnection) {
+        $VSphereConnection = & "${FILE_DIR}Connect-VSphere" -Server $Server
     }
 
     Write-Verbose "Execute command: $Command"
@@ -142,8 +137,8 @@ try {
     $ErrorOut = "$($_.Exception.Message)"
     $ExitCode = 1
 } finally {
-    if ($DisconnectVCenter -and $VCenterConnection) {
-        $null = Disconnect-VIServer -Server $VCenterConnection -Confirm:$false
+    if ($Disconnect -and $VSphereConnection) {
+        $null = Disconnect-VIServer -Server $VSphereConnection -Confirm:$false
     }
 
     $EndDate = [DateTime]::Now

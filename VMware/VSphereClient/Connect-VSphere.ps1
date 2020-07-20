@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-    Login to a vCenter server using the following order and return a PowerCLI connection:
+    Login to a vSphere server using the following order and return a PowerCLI connection:
         1. Try with username and password, if provided.
         2. Try with PSCredential file "$Server-$Username.xml" in given directory (default "$HOME\.pscredentials").
         3. If interactive, get credentials from user with a prompt.
@@ -8,18 +8,19 @@
         5. If nothing provided from above, try with PowerCLI and Windows SSPI authentication.
 
 .DESCRIPTION
-    Login to a vCenter server using the following order and return a PowerCLI connection:
+    Login to a vSphere server using the following order and return a PowerCLI connection:
         1. Try with username and password, if provided.
         2. Try with PSCredential file "$Server-$Username.xml" in given directory (default "$HOME\.pscredentials").
         3. If interactive, get credentials from user with a prompt.
         4. If not interactive, try with PSCredential file "$Username.xml".
         5. If nothing provided from above, try with PowerCLI and Windows SSPI authentication.
 
-    File-Name:  Connect-VCenter.ps1
+    File-Name:  Connect-VSphere.ps1
     Author:     David Wettstein
     Version:    v1.2.2
 
     Changelog:
+                v2.0.0, 2020-07-20, David Wettstein: Rename script and variables.
                 v1.2.2, 2020-05-07, David Wettstein: Reorganize input params.
                 v1.2.1, 2020-04-09, David Wettstein: Improve path handling.
                 v1.2.0, 2020-04-07, David Wettstein: Sync input variables with cache.
@@ -37,10 +38,10 @@
     https://github.com/dwettstein/PowerShell
 
 .EXAMPLE
-    $VCenterConnection = & "Connect-VCenter" "vcenter.vsphere.local"
+    $VSphereConnection = & "Connect-VSphere" "vcenter.vsphere.local"
 
 .EXAMPLE
-    $VCenterConnection = & "$PSScriptRoot\Connect-VCenter" -Server "vcenter.vsphere.local" -Username "user" -Password "changeme"
+    $VSphereConnection = & "$PSScriptRoot\Connect-VSphere" -Server "vcenter.vsphere.local" -Username "user" -Password "changeme"
 #>
 [CmdletBinding()]
 [OutputType([Object])]
@@ -112,17 +113,16 @@ try {
         $Cred = & "${FILE_DIR}Get-VSpherePSCredential" -Server $Server -Username $Username -Password $Password -PswdDir $PswdDir -ErrorAction:Continue
     }
 
-
     if ($Cred -and -not [String]::IsNullOrEmpty($Cred.GetNetworkCredential().Password)) {
-        $VCenterConnection = Connect-VIServer -Server $Server -Credential $Cred
+        $VSphereConnection = Connect-VIServer -Server $Server -Credential $Cred
     } else {
         # If no credentials provided, try with PowerCLI and Windows SSPI authentication.
-        $VCenterConnection = Connect-VIServer -Server $Server
+        $VSphereConnection = Connect-VIServer -Server $Server
     }
 
-    $null = & "${FILE_DIR}Sync-VSphereVariableCache" "VCenterConnection" $VCenterConnection
+    $null = & "${FILE_DIR}Sync-VSphereVariableCache" "VSphereConnection" $VSphereConnection
 
-    $ScriptOut = $VCenterConnection
+    $ScriptOut = $VSphereConnection
 } catch {
     # Error in $_ or $Error[0] variable.
     Write-Warning "Exception occurred at line $($_.InvocationInfo.ScriptLineNumber): $($_.Exception.ToString())" -WarningAction Continue
