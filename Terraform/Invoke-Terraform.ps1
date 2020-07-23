@@ -94,7 +94,7 @@
 [OutputType([String])]
 param (
     [Parameter(Mandatory = $true, Position = 0)]
-    [ValidateSet("init", "plan", "apply", "refresh", "destroy")]
+    [ValidateSet("init", "plan", "apply", "refresh", "state", "destroy")]
     [String] $Action = "plan"
     ,
     [Parameter(Mandatory = $true, ValueFromPipeline = $true, Position = 1)]
@@ -109,34 +109,44 @@ param (
     [Switch] $AutoApprove
     ,
     [Parameter(Mandatory = $false, Position = 4)]
-    [ValidateNotNullOrEmpty()]
-    [String] $ConfigDir = ""  # Dir for Terraform `.tf` or `.tf.json` config files
+    [Switch] $NoRefresh
     ,
     [Parameter(Mandatory = $false, Position = 5)]
-    [ValidateNotNullOrEmpty()]
-    [String] $BinaryDir = "${env:TF_HOME}"  # Dir for Terraform binary and plugins (subfolder `plugin-cache`)
+    [Array] $Targets = @()
     ,
     [Parameter(Mandatory = $false, Position = 6)]
     [ValidateNotNullOrEmpty()]
-    [String] $Username = "${env:USERNAME}"  # secure string or plain text (not recommended)
+    [String] $Args = ""
     ,
     [Parameter(Mandatory = $false, Position = 7)]
-    [String] $Password = $null  # secure string or plain text (not recommended)
+    [ValidateNotNullOrEmpty()]
+    [String] $ConfigDir = ""  # Dir for Terraform `.tf` or `.tf.json` config files
     ,
     [Parameter(Mandatory = $false, Position = 8)]
-    [Switch] $Interactive
+    [ValidateNotNullOrEmpty()]
+    [String] $BinaryDir = "${env:TF_HOME}"  # Dir for Terraform binary and plugins (subfolder `plugin-cache`)
     ,
     [Parameter(Mandatory = $false, Position = 9)]
     [ValidateNotNullOrEmpty()]
-    [String] $PswdDir = "$HOME\.pscredentials"  # $HOME for Local System Account: C:\Windows\System32\config\systemprofile
+    [String] $Username = "${env:USERNAME}"  # secure string or plain text (not recommended)
     ,
     [Parameter(Mandatory = $false, Position = 10)]
-    [Switch] $ApproveAllCertificates
+    [String] $Password = $null  # secure string or plain text (not recommended)
     ,
     [Parameter(Mandatory = $false, Position = 11)]
-    [Switch] $CredAsCliArgs
+    [Switch] $Interactive
     ,
     [Parameter(Mandatory = $false, Position = 12)]
+    [ValidateNotNullOrEmpty()]
+    [String] $PswdDir = "$HOME\.pscredentials"  # $HOME for Local System Account: C:\Windows\System32\config\systemprofile
+    ,
+    [Parameter(Mandatory = $false, Position = 13)]
+    [Switch] $ApproveAllCertificates
+    ,
+    [Parameter(Mandatory = $false, Position = 14)]
+    [Switch] $CredAsCliArgs
+    ,
+    [Parameter(Mandatory = $false, Position = 15)]
     [Switch] $Unsafe
 )
 
@@ -206,12 +216,18 @@ try {
     }
 
     $Arguments = "$Action"
+    if (-not [String]::IsNullOrEmpty($Args)) {
+        $Arguments += " $Args"
+    }
+
     if ($Action -eq "init") {
         if (-not [String]::IsNullOrEmpty($BinaryDir)) {
             # The plugin cache dir can also be specified with the `TF_PLUGIN_CACHE_DIR` environment variable.
             # export TF_PLUGIN_CACHE_DIR="$HOME/.terraform.d/plugin-cache"
             $Arguments += " -plugin-dir='${BinaryDir}plugin-cache'"
         }
+    } elseif ($Action -eq "state") {
+        # Advanced (local) state management. No additional args needed.
     } else {
         # Add Terraform input variables.
         $Arguments += " -var 'server=$Server'"
@@ -255,10 +271,25 @@ try {
         if ($AutoApprove -and ($Action -eq "apply" -or $Action -eq "destroy")) {
             $Arguments += " -auto-approve"
         }
+
+        if ($NoRefresh) {
+            $Arguments += " -refresh=false"
+        }
+
+        foreach ($Target in $Targets) {
+            $Arguments += " -target=$Target"
+        }
     }
 
-    # & "${BinaryDir}terraform.exe" @Arguments
-    Invoke-Expression -Command "${BinaryDir}terraform.exe $Arguments"
+    if ($Action -eq "state") {
+        # Advanced (local) state management. Execute TF for each given target.
+        foreach ($Target in $Targets) {
+            Invoke-Expression -Command "${BinaryDir}terraform.exe $Arguments $Target"
+        }
+    } else  {
+        # & "${BinaryDir}terraform.exe" @Arguments
+        Invoke-Expression -Command "${BinaryDir}terraform.exe $Arguments"
+    }
 } catch {
     # Error in $_ or $Error[0] variable.
     Write-Warning "Exception occurred at line $($_.InvocationInfo.ScriptLineNumber): $($_.Exception.ToString())" -WarningAction Continue
