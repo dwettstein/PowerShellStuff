@@ -26,7 +26,7 @@
     licensed under the MIT License (https://dwettstein.mit-license.org/)
 
 .LINK
-    https://github.com/dwettstein/PowerShell
+    https://github.com/dwettstein/PowerShellStuff
 #>
 if (-not $PSCmdlet.MyInvocation.BoundParameters.ErrorAction) { $ErrorActionPreference = "Stop" }
 if (-not $PSCmdlet.MyInvocation.BoundParameters.WarningAction) { $WarningPreference = "SilentlyContinue" }

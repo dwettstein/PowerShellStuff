@@ -23,7 +23,7 @@
     licensed under the MIT License (https://dwettstein.mit-license.org/)
 
 .LINK
-    https://github.com/dwettstein/PowerShell
+    https://github.com/dwettstein/PowerShellStuff
 
 .EXAMPLE
     $Result = & "Invoke-ServerRequest" "/api/v1/version"

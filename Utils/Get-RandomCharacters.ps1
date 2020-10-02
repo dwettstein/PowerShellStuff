@@ -21,7 +21,7 @@
     licensed under the MIT License (https://dwettstein.mit-license.org/)
 
 .LINK
-    https://github.com/dwettstein/PowerShell
+    https://github.com/dwettstein/PowerShellStuff
 
 .EXAMPLE
     Get-RandomCharacters -Length 32
