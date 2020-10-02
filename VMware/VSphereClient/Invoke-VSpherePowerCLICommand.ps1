@@ -7,9 +7,10 @@
 
     File-Name:  Invoke-VSpherePowerCLICommand.ps1
     Author:     David Wettstein
-    Version:    v1.1.2
+    Version:    v2.0.1
 
     Changelog:
+                v2.0.1, 2020-10-02, David Wettstein: Check for semicolon and pipes in Command.
                 v2.0.0, 2020-07-20, David Wettstein: Rename script and variables.
                 v1.1.2, 2020-05-07, David Wettstein: Reorganize input params.
                 v1.1.1, 2020-04-09, David Wettstein: Improve path handling.
@@ -47,6 +48,9 @@ param (
     ,
     [Parameter(Mandatory = $false, Position = 4)]
     [Switch] $Disconnect
+    ,
+    [Parameter(Mandatory = $false, Position = 5)]
+    [Switch] $ApproveAllCertificates
 )
 
 if (-not $PSCmdlet.MyInvocation.BoundParameters.ErrorAction) { $ErrorActionPreference = "Stop" }
@@ -92,17 +96,25 @@ Write-Verbose "$($FILE_NAME): CALL."
 try {
     $Server = & "${FILE_DIR}Sync-VSphereVariableCache" "Server" $Server -IsMandatory
     $VSphereConnection = & "${FILE_DIR}Sync-VSphereVariableCache" "VSphereConnection" $VSphereConnection
+    $ApproveAllCertificates = & "${FILE_DIR}Sync-VSphereVariableCache" "ApproveAllCertificates" $PSCmdlet.MyInvocation.BoundParameters.ApproveAllCertificates
 
-    # First check if given command is from PowerCLI module.
-    $Cmdlet = $Command.Split(' ')[0]
-    $CmdletModule = (Get-Command $Cmdlet).ModuleName
-    Write-Verbose "Given cmdlet '$Cmdlet' is from module '$CmdletModule'."
-    if (-not $Modules.Contains($CmdletModule)) {
-        throw "Only cmdlets from the following modules are allowed to be invoked: $($Modules -join ',')"
+    # First check if all given commands are from PowerCLI module.
+    $Cmdlets = $Command.Split(';').Split('|').Trim()
+    foreach ($Cmdlet in $Cmdlets) {
+        $Cmdlet = $Cmdlet.Split(' ')[0]
+        $CmdletModule = (Get-Command $Cmdlet).ModuleName
+        Write-Verbose "Given cmdlet '$Cmdlet' is from module '$CmdletModule'."
+        if (-not $Modules.Contains($CmdletModule)) {
+            throw "Only cmdlets from the following modules are allowed to be invoked: $($Modules -join ',')"
+        }
     }
 
     if (-not $VSphereConnection) {
-        $VSphereConnection = & "${FILE_DIR}Connect-VSphere" -Server $Server
+        if ($ApproveAllCertificates) {
+            $VSphereConnection = & "${FILE_DIR}Connect-VSphere" -Server $Server -ApproveAllCertificates
+        } else {
+            $VSphereConnection = & "${FILE_DIR}Connect-VSphere" -Server $Server
+        }
     }
 
     Write-Verbose "Execute command: $Command"

@@ -17,9 +17,10 @@
 
     File-Name:  Connect-VSphere.ps1
     Author:     David Wettstein
-    Version:    v1.2.2
+    Version:    v2.0.1
 
     Changelog:
+                v2.0.1, 2020-10-02, David Wettstein: Add param ApproveAllCertificates.
                 v2.0.0, 2020-07-20, David Wettstein: Rename script and variables.
                 v1.2.2, 2020-05-07, David Wettstein: Reorganize input params.
                 v1.2.1, 2020-04-09, David Wettstein: Improve path handling.
@@ -62,6 +63,9 @@ param (
     [Parameter(Mandatory = $false, Position = 4)]
     [ValidateNotNullOrEmpty()]
     [String] $PswdDir = "$HOME\.pscredentials"  # $HOME for Local System Account: C:\Windows\System32\config\systemprofile
+    ,
+    [Parameter(Mandatory = $false, Position = 5)]
+    [Switch] $ApproveAllCertificates
 )
 
 if (-not $PSCmdlet.MyInvocation.BoundParameters.ErrorAction) { $ErrorActionPreference = "Stop" }
@@ -106,6 +110,11 @@ Write-Verbose "$($FILE_NAME): CALL."
 
 try {
     $Server = & "${FILE_DIR}Sync-VSphereVariableCache" "Server" $Server -IsMandatory
+    $ApproveAllCertificates = & "${FILE_DIR}Sync-VSphereVariableCache" "ApproveAllCertificates" $PSCmdlet.MyInvocation.BoundParameters.ApproveAllCertificates
+
+    if ($ApproveAllCertificates) {
+        $null = Set-PowerCLIConfiguration -InvalidCertificateAction "Ignore" -Confirm:$false
+    }
 
     if ($Interactive) {
         $Cred = & "${FILE_DIR}Get-VSpherePSCredential" -Server $Server -Username $Username -Password $Password -Interactive -PswdDir $PswdDir -ErrorAction:Continue
@@ -114,10 +123,10 @@ try {
     }
 
     if ($Cred -and -not [String]::IsNullOrEmpty($Cred.GetNetworkCredential().Password)) {
-        $VSphereConnection = Connect-VIServer -Server $Server -Credential $Cred
+        $VSphereConnection = Connect-VIServer -Server $Server -Credential $Cred -WarningAction SilentlyContinue
     } else {
         # If no credentials provided, try with PowerCLI and Windows SSPI authentication.
-        $VSphereConnection = Connect-VIServer -Server $Server
+        $VSphereConnection = Connect-VIServer -Server $Server -WarningAction SilentlyContinue
     }
 
     $null = & "${FILE_DIR}Sync-VSphereVariableCache" "VSphereConnection" $VSphereConnection
