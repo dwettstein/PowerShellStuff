@@ -125,5 +125,5 @@ try {
     }
     $Cred
 } catch {
-    Write-Error "Failed to get credentials. Error: $($_.Exception.ToString())"
+    Write-Error "Failed to get credentials. Error: $($_.Exception)"
 }

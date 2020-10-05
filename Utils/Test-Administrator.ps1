@@ -39,6 +39,6 @@ try {
     $CurrentPrincipal = ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent())
     $IsAdmin = $CurrentPrincipal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
 } catch {
-    Write-Verbose "Failed to test if the current principal is in the Administrator group. Error: $($_.Exception.ToString())"
+    Write-Verbose "Failed to test if the current principal is in the Administrator group. Error: $($_.Exception)"
 }
 $IsAdmin

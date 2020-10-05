@@ -86,7 +86,7 @@ function Get-ResponseBody {
             $ResponseBody = ([xml] $ResponseString).DocumentElement
         }
     } catch {
-        # Write-Warning "The response string was not JSON or XML, unable to convert. Exception: $($_.Exception.ToString())"
+        # Write-Warning "The response string was not JSON or XML, unable to convert. Exception: $($_.Exception)"
         $ResponseBody = $ResponseString
     }
     $ResponseBody
@@ -227,12 +227,13 @@ try {
     $ScriptOut = $ResultObj
 } catch {
     # Error in $_ or $Error[0] variable.
-    Write-Warning "Exception occurred at line $($_.InvocationInfo.ScriptLineNumber): $($_.Exception.ToString())" -WarningAction Continue
-    $ErrorOut = "$($_.Exception.Message)"
+    Write-Warning "Exception occurred at $($_.InvocationInfo.ScriptName):$($_.InvocationInfo.ScriptLineNumber)`n$($_.Exception)" -WarningAction Continue
+    $Ex = $_.Exception
+    if ($Ex.InnerException) { $Ex = $Ex.InnerException }
+    $ErrorOut = "$($Ex.Message)"
     $ExitCode = 1
 } finally {
-    $EndDate = [DateTime]::Now
-    Write-Verbose ("$($FILE_NAME): ExitCode: {0}. Execution time: {1} ms. Started: {2}." -f $ExitCode, ($EndDate - $StartDate).TotalMilliseconds, $StartDate.ToString('yyyy-MM-dd HH:mm:ss.fffzzz'))
+    Write-Verbose ("$($FILE_NAME): ExitCode: {0}. Execution time: {1} ms. Started: {2}." -f $ExitCode, ([DateTime]::Now - $StartDate).TotalMilliseconds, $StartDate.ToString('yyyy-MM-dd HH:mm:ss.fffzzz'))
 
     if ($ExitCode -eq 0) {
         $ScriptOut  # Write ScriptOut to output stream.
