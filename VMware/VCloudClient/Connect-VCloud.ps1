@@ -15,9 +15,10 @@
 
     File-Name:  Connect-VCloud.ps1
     Author:     David Wettstein
-    Version:    v1.2.2
+    Version:    v1.2.3
 
     Changelog:
+                v1.2.3, 2020-10-05, David Wettstein: Add param AuthorizationHeader.
                 v1.2.2, 2020-05-07, David Wettstein: Reorganize input params.
                 v1.2.1, 2020-04-09, David Wettstein: Improve path handling.
                 v1.2.0, 2020-04-07, David Wettstein: Sync input variables with cache.
@@ -56,23 +57,27 @@ param (
     [String] $APIVersion = "31.0"
     ,
     [Parameter(Mandatory = $false, Position = 3)]
-    [Switch] $AsPlainText = $false
+    [ValidateNotNullOrEmpty()]
+    [String] $AuthorizationHeader = "x-vcloud-authorization"
     ,
     [Parameter(Mandatory = $false, Position = 4)]
+    [Switch] $AsPlainText = $false
+    ,
+    [Parameter(Mandatory = $false, Position = 5)]
     [ValidateNotNullOrEmpty()]
     [String] $Username = "${env:USERNAME}"  # secure string or plain text (not recommended)
     ,
-    [Parameter(Mandatory = $false, Position = 5)]
+    [Parameter(Mandatory = $false, Position = 6)]
     [String] $Password = $null  # secure string or plain text (not recommended)
     ,
-    [Parameter(Mandatory = $false, Position = 6)]
+    [Parameter(Mandatory = $false, Position = 7)]
     [Switch] $Interactive
     ,
-    [Parameter(Mandatory = $false, Position = 7)]
+    [Parameter(Mandatory = $false, Position = 8)]
     [ValidateNotNullOrEmpty()]
     [String] $PswdDir = "$HOME\.pscredentials"  # $HOME for Local System Account: C:\Windows\System32\config\systemprofile
     ,
-    [Parameter(Mandatory = $false, Position = 8)]
+    [Parameter(Mandatory = $false, Position = 9)]
     [Alias("Insecure")]
     [Switch] $ApproveAllCertificates
 )
@@ -163,7 +168,7 @@ try {
     }
 
     $Response = Invoke-WebRequest -Method Post -Headers $Headers -Uri $EndpointUrl
-    $AuthorizationToken = $Response.Headers.'x-vcloud-authorization'
+    $AuthorizationToken = $Response.Headers.$AuthorizationHeader
     $AuthorizationTokenSecureString = (ConvertTo-SecureString -AsPlainText -Force $AuthorizationToken | ConvertFrom-SecureString)
 
     $null = & "${FILE_DIR}Sync-VCloudVariableCache" "AuthorizationToken" $AuthorizationTokenSecureString
