@@ -50,6 +50,7 @@ param (
     [Switch] $Disconnect
     ,
     [Parameter(Mandatory = $false, Position = 5)]
+    [Alias("Insecure")]
     [Switch] $ApproveAllCertificates
 )
 

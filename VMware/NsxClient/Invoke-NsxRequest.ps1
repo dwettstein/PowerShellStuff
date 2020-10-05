@@ -65,6 +65,7 @@ param (
     [String] $Protocol = "https"
     ,
     [Parameter(Mandatory = $false, Position = 8)]
+    [Alias("Insecure")]
     [Switch] $ApproveAllCertificates
 )
 

@@ -47,6 +47,7 @@ param (
     [String] $Body
     ,
     [Parameter(Mandatory = $false, Position = 4)]
+    [Alias("Insecure")]
     [Switch] $ApproveAllCertificates
 )
 

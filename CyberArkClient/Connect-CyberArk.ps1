@@ -70,7 +70,8 @@ param (
     [String] $PswdDir = "$HOME\.pscredentials"  # $HOME for Local System Account: C:\Windows\System32\config\systemprofile
     ,
     [Parameter(Mandatory = $false, Position = 6)]
-    [Switch] $ApproveAllCertificates = $false
+    [Alias("Insecure")]
+    [Switch] $ApproveAllCertificates
 )
 
 if (-not $PSCmdlet.MyInvocation.BoundParameters.ErrorAction) { $ErrorActionPreference = "Stop" }

@@ -32,6 +32,7 @@ param (
     ,
     [Parameter(Mandatory = $false, Position = 1)]
     [ValidateSet(0, 1, 2)]
+    [Alias("Var2")]
     [Int] $Param2
 )
 

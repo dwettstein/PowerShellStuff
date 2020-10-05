@@ -49,6 +49,7 @@ param (
     [String] $AuthorizationToken = $null
     ,
     [Parameter(Mandatory=$false, Position=5)]
+    [Alias("Insecure")]
     [Switch] $ApproveAllCertificates
 )
 

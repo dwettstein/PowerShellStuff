@@ -72,6 +72,7 @@ param (
     [String] $PswdDir = "$HOME\.pscredentials"  # $HOME for Local System Account: C:\Windows\System32\config\systemprofile
     ,
     [Parameter(Mandatory = $false, Position = 7)]
+    [Alias("Insecure")]
     [Switch] $ApproveAllCertificates
 )
 
