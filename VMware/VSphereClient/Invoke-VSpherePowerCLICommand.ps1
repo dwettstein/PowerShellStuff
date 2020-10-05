@@ -7,9 +7,10 @@
 
     File-Name:  Invoke-VSpherePowerCLICommand.ps1
     Author:     David Wettstein
-    Version:    v2.0.1
+    Version:    v2.0.2
 
     Changelog:
+                v2.0.2, 2020-10-05, David Wettstein: Add Core and Utility to allowed modules.
                 v2.0.1, 2020-10-02, David Wettstein: Check for semicolon and pipes in Command.
                 v2.0.0, 2020-07-20, David Wettstein: Rename script and variables.
                 v1.1.2, 2020-05-07, David Wettstein: Reorganize input params.
@@ -99,14 +100,19 @@ try {
     $VSphereConnection = & "${FILE_DIR}Sync-VSphereVariableCache" "VSphereConnection" $VSphereConnection
     $ApproveAllCertificates = & "${FILE_DIR}Sync-VSphereVariableCache" "ApproveAllCertificates" $PSCmdlet.MyInvocation.BoundParameters.ApproveAllCertificates
 
-    # First check if all given commands are from PowerCLI module.
+    # First check if all given commands are from allowed modules.
+    $AllowedModules = @(
+        "Microsoft.PowerShell.Core",
+        "Microsoft.PowerShell.Utility"
+    )
+    $AllowedModules += $Modules
     $Cmdlets = $Command.Split(';').Split('|').Trim()
     foreach ($Cmdlet in $Cmdlets) {
         $Cmdlet = $Cmdlet.Split(' ')[0]
         $CmdletModule = (Get-Command $Cmdlet).ModuleName
         Write-Verbose "Given cmdlet '$Cmdlet' is from module '$CmdletModule'."
-        if (-not $Modules.Contains($CmdletModule)) {
-            throw "Only cmdlets from the following modules are allowed to be invoked: $($Modules -join ',')"
+        if (-not $AllowedModules.Contains($CmdletModule)) {
+            throw "Only cmdlets from the following modules are allowed to be invoked: $($AllowedModules -join ',')"
         }
     }
 
