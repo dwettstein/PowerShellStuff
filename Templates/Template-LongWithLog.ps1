@@ -5,7 +5,7 @@
 .DESCRIPTION
     Long description
 
-    File-Name:  template_long_with_file_log.ps1
+    File-Name:  Template-LongWithLog.ps1
     Author:     David Wettstein
     Version:    v0.0.1
 
