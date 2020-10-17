@@ -5,7 +5,7 @@
 .DESCRIPTION
     Get all VMs of a vCloud server.
 
-    File-Name:  Get-VCloudOrgVdcVms.ps1
+    File-Name:  Get-VCloudOrgVdcVMs.ps1
     Author:     David Wettstein
     Version:    v1.0.2
 
@@ -85,16 +85,12 @@ try {
     if (-not [String]::IsNullOrEmpty($OrgVdc)) {
         $Filter = "(vdc==$OrgVdc)"
     }
-    if ($ApproveAllCertificates) {
-        $ScriptOut = & "${FILE_DIR}Search-VCloud" -Server $Server -Type "adminVM" -ResultType "AdminVmRecord" -Filter $Filter -AuthorizationToken $AuthorizationToken -ApproveAllCertificates
-    } else {
-        $ScriptOut = & "${FILE_DIR}Search-VCloud" -Server $Server -Type "adminVM" -ResultType "AdminVmRecord" -Filter $Filter -AuthorizationToken $AuthorizationToken
-    }
+    $ScriptOut = & "${FILE_DIR}Search-VCloud" -Server $Server -Type "adminVM" -ResultType "AdminVmRecord" -Filter $Filter -AuthorizationToken $AuthorizationToken -ApproveAllCertificates:$ApproveAllCertificates
 } catch {
     # Error in $_ or $Error[0] variable.
     Write-Warning "Exception occurred at $($_.InvocationInfo.ScriptName):$($_.InvocationInfo.ScriptLineNumber)`n$($_.Exception)" -WarningAction Continue
     $Ex = $_.Exception
-    if ($Ex.InnerException) { $Ex = $Ex.InnerException }
+    while ($Ex.InnerException) { $Ex = $Ex.InnerException }
     $ErrorOut = "$($Ex.Message)"
     $ExitCode = 1
 } finally {

@@ -46,6 +46,7 @@
 #>
 [CmdletBinding()]
 [OutputType([Object])]
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingPlainTextForPassword', 'Password')]
 param (
     [Parameter(Mandatory = $false, ValueFromPipeline = $true, Position = 0)]
     [String] $Server
@@ -117,11 +118,7 @@ try {
         $null = Set-PowerCLIConfiguration -InvalidCertificateAction "Ignore" -Confirm:$false
     }
 
-    if ($Interactive) {
-        $Cred = & "${FILE_DIR}Get-VSpherePSCredential" -Server $Server -Username $Username -Password $Password -Interactive -PswdDir $PswdDir -ErrorAction:Continue
-    } else {
-        $Cred = & "${FILE_DIR}Get-VSpherePSCredential" -Server $Server -Username $Username -Password $Password -PswdDir $PswdDir -ErrorAction:Continue
-    }
+    $Cred = & "${FILE_DIR}Get-VSpherePSCredential" -Server $Server -Username $Username -Password $Password -Interactive:$Interactive -PswdDir $PswdDir -ErrorAction:Continue
 
     if ($Cred -and -not [String]::IsNullOrEmpty($Cred.GetNetworkCredential().Password)) {
         $VSphereConnection = Connect-VIServer -Server $Server -Credential $Cred -WarningAction SilentlyContinue
@@ -137,7 +134,7 @@ try {
     # Error in $_ or $Error[0] variable.
     Write-Warning "Exception occurred at $($_.InvocationInfo.ScriptName):$($_.InvocationInfo.ScriptLineNumber)`n$($_.Exception)" -WarningAction Continue
     $Ex = $_.Exception
-    if ($Ex.InnerException) { $Ex = $Ex.InnerException }
+    while ($Ex.InnerException) { $Ex = $Ex.InnerException }
     $ErrorOut = "$($Ex.Message)"
     $ExitCode = 1
 } finally {

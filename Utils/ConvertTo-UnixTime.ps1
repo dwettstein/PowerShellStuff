@@ -48,8 +48,9 @@ if ($UniversalTime) {
     $DateTime = $DateTime.ToUniversalTime()
 }
 
+$TimeSpan = New-TimeSpan -Start ([DateTime]::ParseExact("19700101", "yyyyMMdd", $null)) -End $DateTime
 if ($Milliseconds) {
-    [System.Math]::Floor((New-TimeSpan -Start ([DateTime]::ParseExact("19700101", "yyyyMMdd", $null)) -End $DateTime).TotalMilliseconds)
+    [System.Math]::Floor($TimeSpan.TotalMilliseconds)
 } else {
-    [System.Math]::Floor((New-TimeSpan -Start ([DateTime]::ParseExact("19700101", "yyyyMMdd", $null)) -End $DateTime).TotalSeconds)
+    [System.Math]::Floor($TimeSpan.TotalSeconds)
 }

@@ -85,16 +85,12 @@ try {
     if (-not [String]::IsNullOrEmpty($Org)) {
         $Filter = "(org==$Org)"
     }
-    if ($ApproveAllCertificates) {
-        $ScriptOut = & "${FILE_DIR}Search-VCloud" -Server $Server -Type "adminOrgVdc" -ResultType "AdminVdcRecord" -Filter $Filter -AuthorizationToken $AuthorizationToken -ApproveAllCertificates
-    } else {
-        $ScriptOut = & "${FILE_DIR}Search-VCloud" -Server $Server -Type "adminOrgVdc" -ResultType "AdminVdcRecord" -Filter $Filter -AuthorizationToken $AuthorizationToken
-    }
+    $ScriptOut = & "${FILE_DIR}Search-VCloud" -Server $Server -Type "adminOrgVdc" -ResultType "AdminVdcRecord" -Filter $Filter -AuthorizationToken $AuthorizationToken -ApproveAllCertificates:$ApproveAllCertificates
 } catch {
     # Error in $_ or $Error[0] variable.
     Write-Warning "Exception occurred at $($_.InvocationInfo.ScriptName):$($_.InvocationInfo.ScriptLineNumber)`n$($_.Exception)" -WarningAction Continue
     $Ex = $_.Exception
-    if ($Ex.InnerException) { $Ex = $Ex.InnerException }
+    while ($Ex.InnerException) { $Ex = $Ex.InnerException }
     $ErrorOut = "$($Ex.Message)"
     $ExitCode = 1
 } finally {

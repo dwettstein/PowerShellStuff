@@ -84,7 +84,7 @@ try {
     # Error in $_ or $Error[0] variable.
     Write-Warning "Exception occurred at $($_.InvocationInfo.ScriptName):$($_.InvocationInfo.ScriptLineNumber)`n$($_.Exception)" -WarningAction Continue
     $Ex = $_.Exception
-    if ($Ex.InnerException) { $Ex = $Ex.InnerException }
+    while ($Ex.InnerException) { $Ex = $Ex.InnerException }
     $ErrorOut = "$($Ex.Message)"
     $ExitCode = 1
 } finally {

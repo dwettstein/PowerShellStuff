@@ -103,11 +103,7 @@ try {
         $AccountId = $Account.id
     }
     $Endpoint = "/PasswordVault/api/Accounts/$AccountId"
-    if ($ApproveAllCertificates) {
-        $Response = & "${FILE_DIR}Invoke-CyberArkRequest" -Server $Server -Method "DELETE" -Endpoint $Endpoint -AuthorizationToken $AuthorizationToken -ApproveAllCertificates
-    } else {
-        $Response = & "${FILE_DIR}Invoke-CyberArkRequest" -Server $Server -Method "DELETE" -Endpoint $Endpoint -AuthorizationToken $AuthorizationToken
-    }
+    $Response = & "${FILE_DIR}Invoke-CyberArkRequest" -Server $Server -Method "DELETE" -Endpoint $Endpoint -AuthorizationToken $AuthorizationToken -ApproveAllCertificates:$ApproveAllCertificates
     if ($Response.StatusCode -lt 200 -or $Response.StatusCode -ge 300) {
         throw "Failed to invoke $($Endpoint): $($Response.StatusCode) - $($Response.Content)"
     }
@@ -116,7 +112,7 @@ try {
     # Error in $_ or $Error[0] variable.
     Write-Warning "Exception occurred at $($_.InvocationInfo.ScriptName):$($_.InvocationInfo.ScriptLineNumber)`n$($_.Exception)" -WarningAction Continue
     $Ex = $_.Exception
-    if ($Ex.InnerException) { $Ex = $Ex.InnerException }
+    while ($Ex.InnerException) { $Ex = $Ex.InnerException }
     $ErrorOut = "$($Ex.Message)"
     $ExitCode = 1
 } finally {

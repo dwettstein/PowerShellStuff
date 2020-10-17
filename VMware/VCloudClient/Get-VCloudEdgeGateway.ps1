@@ -82,17 +82,13 @@ Write-Verbose "$($FILE_NAME): CALL."
 
 try {
     $EdgeGatewayId = & "${FILE_DIR}Split-VCloudId" -UrnOrHref $EdgeGateway
-    if ($ApproveAllCertificates) {
-        [Xml] $Response = & "${FILE_DIR}Invoke-VCloudRequest" -Server $Server -Method "GET" -Endpoint "/api/admin/edgeGateway/$EdgeGatewayId" -AuthorizationToken $AuthorizationToken -ApproveAllCertificates
-    } else {
-        [Xml] $Response = & "${FILE_DIR}Invoke-VCloudRequest" -Server $Server -Method "GET" -Endpoint "/api/admin/edgeGateway/$EdgeGatewayId" -AuthorizationToken $AuthorizationToken
-    }
+    [Xml] $Response = & "${FILE_DIR}Invoke-VCloudRequest" -Server $Server -Method "GET" -Endpoint "/api/admin/edgeGateway/$EdgeGatewayId" -AuthorizationToken $AuthorizationToken -ApproveAllCertificates:$ApproveAllCertificates
     $ScriptOut = $Response.EdgeGateway
 } catch {
     # Error in $_ or $Error[0] variable.
     Write-Warning "Exception occurred at $($_.InvocationInfo.ScriptName):$($_.InvocationInfo.ScriptLineNumber)`n$($_.Exception)" -WarningAction Continue
     $Ex = $_.Exception
-    if ($Ex.InnerException) { $Ex = $Ex.InnerException }
+    while ($Ex.InnerException) { $Ex = $Ex.InnerException }
     $ErrorOut = "$($Ex.Message)"
     $ExitCode = 1
 } finally {

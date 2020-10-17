@@ -92,6 +92,7 @@
 #>
 [CmdletBinding()]
 [OutputType([String])]
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingPlainTextForPassword', 'Password')]
 param (
     [Parameter(Mandatory = $true, Position = 0)]
     [ValidateSet("init", "plan", "apply", "refresh", "state", "destroy")]
@@ -180,7 +181,7 @@ if ($PSVersionTable.PSVersion.Major -lt 3 -or [String]::IsNullOrEmpty($PSScriptR
 
 $ExitCode = 0
 $ErrorOut = ""
-$ScriptOut = ""
+# $ScriptOut = ""
 
 Write-Verbose "$($FILE_NAME): CALL."
 
@@ -237,9 +238,7 @@ try {
         }
 
         # Get credentials.
-        if ($Interactive) {
-            $Cred = & "${FILE_DIR}Get-TerraformPSCredential" -Server $Server -Username $Username -Password $Password -Interactive -PswdDir $PswdDir -ErrorAction:Stop
-        } elseif (-not [String]::IsNullOrEmpty($env:TF_VAR_username) -and -not [String]::IsNullOrEmpty($env:TF_VAR_password)) {
+        if (-not [String]::IsNullOrEmpty($env:TF_VAR_username) -and -not [String]::IsNullOrEmpty($env:TF_VAR_password)) {
             # 1. Try with username and password from TF_ENV_ if available.
             try {
                 $PasswordSecureString = ConvertTo-SecureString -String $env:TF_VAR_password
@@ -249,7 +248,7 @@ try {
             }
             $Cred = New-Object System.Management.Automation.PSCredential ($env:TF_VAR_username, $PasswordSecureString)
         } else {
-            $Cred = & "${FILE_DIR}Get-TerraformPSCredential" -Server $Server -Username $Username -Password $Password -PswdDir $PswdDir -ErrorAction:Stop
+            $Cred = & "${FILE_DIR}Get-TerraformPSCredential" -Server $Server -Username $Username -Password $Password -Interactive:$Interactive -PswdDir $PswdDir -ErrorAction:Stop
         }
 
         # Hand them over to Terraform, either as session ENV or CLI var.
@@ -295,7 +294,7 @@ try {
     # Error in $_ or $Error[0] variable.
     Write-Warning "Exception occurred at $($_.InvocationInfo.ScriptName):$($_.InvocationInfo.ScriptLineNumber)`n$($_.Exception)" -WarningAction Continue
     $Ex = $_.Exception
-    if ($Ex.InnerException) { $Ex = $Ex.InnerException }
+    while ($Ex.InnerException) { $Ex = $Ex.InnerException }
     $ErrorOut = "$($Ex.Message)"
     $ExitCode = 1
 } finally {

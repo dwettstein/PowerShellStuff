@@ -126,11 +126,7 @@ try {
 
     # If no AuthorizationToken is given, try to get it.
     if ([String]::IsNullOrEmpty($AuthorizationToken)) {
-        if ($ApproveAllCertificates) {
-            $AuthorizationToken = & "${FILE_DIR}Connect-VCloud" -Server $Server -ApproveAllCertificates
-        } else {
-            $AuthorizationToken = & "${FILE_DIR}Connect-VCloud" -Server $Server
-        }
+        $AuthorizationToken = & "${FILE_DIR}Connect-VCloud" -Server $Server -ApproveAllCertificates:$ApproveAllCertificates
     }
     # If AuthorizationToken is given as SecureString string, convert it to plain text.
     try {
@@ -156,7 +152,7 @@ try {
     # Error in $_ or $Error[0] variable.
     Write-Warning "Exception occurred at $($_.InvocationInfo.ScriptName):$($_.InvocationInfo.ScriptLineNumber)`n$($_.Exception)" -WarningAction Continue
     $Ex = $_.Exception
-    if ($Ex.InnerException) { $Ex = $Ex.InnerException }
+    while ($Ex.InnerException) { $Ex = $Ex.InnerException }
     $ErrorOut = "$($Ex.Message)"
     $ExitCode = 1
 } finally {

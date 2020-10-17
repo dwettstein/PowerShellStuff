@@ -23,7 +23,7 @@
     ConvertFrom-UnixTime -UnixTimestamp 1502798835021
 
 .EXAMPLE
-    $DateTime = & "$PSScriptRoot\Utils\ConvertFrom-UnixTime" -UnixTimestamp 1502798835021 -UniversalTime -Iso8601
+    $DateTime = & "$PSScriptRoot\Utils\ConvertFrom-UnixTime" -UnixTimestamp 1502798835021 -UniversalTime -ISO8601
 #>
 [CmdletBinding()]
 [OutputType([DateTime])]
@@ -36,7 +36,7 @@ param (
     [Switch] $UniversalTime
     ,
     [Parameter(Mandatory = $false, Position = 2)]
-    [Switch] $Iso8601
+    [Switch] $ISO8601
 )
 
 if (-not $PSCmdlet.MyInvocation.BoundParameters.ErrorAction) { $ErrorActionPreference = "Stop" }

@@ -125,11 +125,7 @@ try {
             $AccountId = $Account.id
         }
         $Endpoint = "/PasswordVault/api/Accounts/$AccountId"
-        if ($ApproveAllCertificates) {
-            $Response = & "${FILE_DIR}Invoke-CyberArkRequest" -Server $Server -Method "GET" -Endpoint $Endpoint -AuthorizationToken $AuthorizationToken -ApproveAllCertificates
-        } else {
-            $Response = & "${FILE_DIR}Invoke-CyberArkRequest" -Server $Server -Method "GET" -Endpoint $Endpoint -AuthorizationToken $AuthorizationToken
-        }
+        $Response = & "${FILE_DIR}Invoke-CyberArkRequest" -Server $Server -Method "GET" -Endpoint $Endpoint -AuthorizationToken $AuthorizationToken -ApproveAllCertificates:$ApproveAllCertificates
         Write-Verbose "Account $AccountId successfully found: $($Response.StatusCode)"
         $ResponseObj = ConvertFrom-Json $Response.Content
         $Accounts = @()
@@ -145,12 +141,7 @@ try {
             $EncodedSafe = [System.Web.HttpUtility]::UrlEncode("safename eq $Safe")
             $QueryEndpoint += "&filter=$EncodedSafe"
         }
-
-        if ($ApproveAllCertificates) {
-            $Response = & "${FILE_DIR}Invoke-CyberArkRequest" -Server $Server -Method "GET" -Endpoint $QueryEndpoint -AuthorizationToken $AuthorizationToken -ApproveAllCertificates
-        } else {
-            $Response = & "${FILE_DIR}Invoke-CyberArkRequest" -Server $Server -Method "GET" -Endpoint $QueryEndpoint -AuthorizationToken $AuthorizationToken
-        }
+        $Response = & "${FILE_DIR}Invoke-CyberArkRequest" -Server $Server -Method "GET" -Endpoint $QueryEndpoint -AuthorizationToken $AuthorizationToken -ApproveAllCertificates:$ApproveAllCertificates
         $ResponseObj = ConvertFrom-Json $Response.Content
         Write-Verbose "Found $($ResponseObj.count) account(s) matching the query '$Query'."
         $Accounts = $ResponseObj.value
@@ -158,11 +149,7 @@ try {
 
     foreach ($Account in $Accounts) {
         $RetrieveEndpoint = "/PasswordVault/api/Accounts/$($Account.id)/Password/Retrieve"
-        if ($ApproveAllCertificates) {
-            $RetrieveResponse = & "${FILE_DIR}Invoke-CyberArkRequest" -Server $Server -Method "POST" -Endpoint $RetrieveEndpoint -AuthorizationToken $AuthorizationToken -ApproveAllCertificates
-        } else {
-            $RetrieveResponse = & "${FILE_DIR}Invoke-CyberArkRequest" -Server $Server -Method "POST" -Endpoint $RetrieveEndpoint -AuthorizationToken $AuthorizationToken
-        }
+        $RetrieveResponse = & "${FILE_DIR}Invoke-CyberArkRequest" -Server $Server -Method "POST" -Endpoint $RetrieveEndpoint -AuthorizationToken $AuthorizationToken -ApproveAllCertificates:$ApproveAllCertificates
         $Password = $RetrieveResponse.Content.Trim('"')
 
         if ($AsPlainText) {
@@ -201,7 +188,7 @@ try {
     # Error in $_ or $Error[0] variable.
     Write-Warning "Exception occurred at $($_.InvocationInfo.ScriptName):$($_.InvocationInfo.ScriptLineNumber)`n$($_.Exception)" -WarningAction Continue
     $Ex = $_.Exception
-    if ($Ex.InnerException) { $Ex = $Ex.InnerException }
+    while ($Ex.InnerException) { $Ex = $Ex.InnerException }
     $ErrorOut = "$($Ex.Message)"
     $ExitCode = 1
 } finally {

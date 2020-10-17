@@ -47,6 +47,7 @@
 #>
 [CmdletBinding()]
 [OutputType([PSCredential])]
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingPlainTextForPassword', 'Password')]
 param (
     [Parameter(Mandatory = $false, ValueFromPipeline = $true, Position = 0)]
     [ValidateNotNullOrEmpty()]

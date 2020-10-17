@@ -47,6 +47,7 @@
 #>
 [CmdletBinding()]
 [OutputType([String])]
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingPlainTextForPassword', 'Password')]
 param (
     [Parameter(Mandatory = $false, ValueFromPipeline = $true, Position = 0)]
     [String] $Server
@@ -143,11 +144,7 @@ try {
         Approve-AllCertificates
     }
 
-    if ($Interactive) {
-        $Cred = & "${FILE_DIR}Get-NsxPSCredential" -Server $Server -Username $Username -Password $Password -Interactive -PswdDir $PswdDir -ErrorAction:Stop
-    } else {
-        $Cred = & "${FILE_DIR}Get-NsxPSCredential" -Server $Server -Username $Username -Password $Password -PswdDir $PswdDir -ErrorAction:Stop
-    }
+    $Cred = & "${FILE_DIR}Get-NsxPSCredential" -Server $Server -Username $Username -Password $Password -Interactive:$Interactive -PswdDir $PswdDir -ErrorAction:Stop
 
     $BaseUrl = "https://$Server"
     $EndpointUrl = "$BaseUrl/api/2.0/services/auth/token"
@@ -164,7 +161,7 @@ try {
 
         $Response = Invoke-WebRequest -Method Post -Headers $Headers -Uri $EndpointUrl
         [Xml] $ResponseXml = $Response.Content
-        $AuthorizationToken = "AUTHTOKEN $($Response.authToken.value)"
+        $AuthorizationToken = "AUTHTOKEN $($ResponseXml.authToken.value)"
     } else {
         $AuthorizationToken = "Basic $CredStringInBase64"
     }
@@ -181,7 +178,7 @@ try {
     # Error in $_ or $Error[0] variable.
     Write-Warning "Exception occurred at $($_.InvocationInfo.ScriptName):$($_.InvocationInfo.ScriptLineNumber)`n$($_.Exception)" -WarningAction Continue
     $Ex = $_.Exception
-    if ($Ex.InnerException) { $Ex = $Ex.InnerException }
+    while ($Ex.InnerException) { $Ex = $Ex.InnerException }
     $ErrorOut = "$($Ex.Message)"
     $ExitCode = 1
 } finally {

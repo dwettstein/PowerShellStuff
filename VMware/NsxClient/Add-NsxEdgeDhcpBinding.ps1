@@ -199,11 +199,7 @@ try {
 
     # Invoke API with this body
     $Endpoint = "/api/4.0/edges/$EdgeId/dhcp/config/bindings"
-    if ($ApproveAllCertificates) {
-        $Response = & "${FILE_DIR}Invoke-NsxRequest" -Server $Server -Method "POST" -Endpoint $Endpoint -Body $Body.OuterXml -AuthorizationToken $AuthorizationToken -ApproveAllCertificates
-    } else {
-        $Response = & "${FILE_DIR}Invoke-NsxRequest" -Server $Server -Method "POST" -Endpoint $Endpoint -Body $Body.OuterXml -AuthorizationToken $AuthorizationToken
-    }
+    $Response = & "${FILE_DIR}Invoke-NsxRequest" -Server $Server -Method "POST" -Endpoint $Endpoint -Body $Body.OuterXml -AuthorizationToken $AuthorizationToken -ApproveAllCertificates:$ApproveAllCertificates
     if ($Response.StatusCode -lt 200 -or $Response.StatusCode -ge 300) {
         throw "Failed to invoke $($Endpoint): $($Response.StatusCode) - $($Response.Content)"
     }
@@ -218,7 +214,7 @@ try {
     # Error in $_ or $Error[0] variable.
     Write-Warning "Exception occurred at $($_.InvocationInfo.ScriptName):$($_.InvocationInfo.ScriptLineNumber)`n$($_.Exception)" -WarningAction Continue
     $Ex = $_.Exception
-    if ($Ex.InnerException) { $Ex = $Ex.InnerException }
+    while ($Ex.InnerException) { $Ex = $Ex.InnerException }
     $ErrorOut = "$($Ex.Message)"
     $ExitCode = 1
 } finally {

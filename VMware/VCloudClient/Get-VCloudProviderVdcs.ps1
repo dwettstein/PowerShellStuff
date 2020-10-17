@@ -80,20 +80,12 @@ Write-Verbose "$($FILE_NAME): CALL."
 #trap { Write-Error $_; exit 1; break; }
 
 try {
-    if ($ApproveAllCertificates) {
-        [Xml] $Response = & "${FILE_DIR}Invoke-VCloudRequest" -Server $Server -Method "GET" -Endpoint "/api/admin/extension/providerVdcReferences" -AuthorizationToken $AuthorizationToken -ApproveAllCertificates
-    } else {
-        [Xml] $Response = & "${FILE_DIR}Invoke-VCloudRequest" -Server $Server -Method "GET" -Endpoint "/api/admin/extension/providerVdcReferences" -AuthorizationToken $AuthorizationToken
-    }
+    [Xml] $Response = & "${FILE_DIR}Invoke-VCloudRequest" -Server $Server -Method "GET" -Endpoint "/api/admin/extension/providerVdcReferences" -AuthorizationToken $AuthorizationToken -ApproveAllCertificates:$ApproveAllCertificates
     $ScriptOut = $Response.VMWProviderVdcReferences.ProviderVdcReference
 
     if ($IncludeResourcePools) {
         foreach ($ProviderVdc in $ScriptOut) {
-            if ($ApproveAllCertificates) {
-                $ProviderVdcResourcePools = & "${FILE_DIR}Get-VCloudProviderVdcResourcePools" -Server $Server -ProviderVdc $ProviderVdc.id -AuthorizationToken $AuthorizationToken -ApproveAllCertificates
-            } else {
-                $ProviderVdcResourcePools = & "${FILE_DIR}Get-VCloudProviderVdcResourcePools" -Server $Server -ProviderVdc $ProviderVdc.id -AuthorizationToken $AuthorizationToken
-            }
+            $ProviderVdcResourcePools = & "${FILE_DIR}Get-VCloudProviderVdcResourcePools" -Server $Server -ProviderVdc $ProviderVdc.id -AuthorizationToken $AuthorizationToken -ApproveAllCertificates:$ApproveAllCertificates
             Add-Member -InputObject $ProviderVdc -NotePropertyName "resourcePools" -NotePropertyValue $ProviderVdcResourcePools -Force
         }
     }
@@ -101,7 +93,7 @@ try {
     # Error in $_ or $Error[0] variable.
     Write-Warning "Exception occurred at $($_.InvocationInfo.ScriptName):$($_.InvocationInfo.ScriptLineNumber)`n$($_.Exception)" -WarningAction Continue
     $Ex = $_.Exception
-    if ($Ex.InnerException) { $Ex = $Ex.InnerException }
+    while ($Ex.InnerException) { $Ex = $Ex.InnerException }
     $ErrorOut = "$($Ex.Message)"
     $ExitCode = 1
 } finally {

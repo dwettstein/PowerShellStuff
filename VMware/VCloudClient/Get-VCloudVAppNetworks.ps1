@@ -91,11 +91,7 @@ try {
     if (-not [String]::IsNullOrEmpty($VApp)) {
         $Filter = "(vApp==$VApp)"
     }
-    if ($ApproveAllCertificates) {
-        $VAppNetworks = & "${FILE_DIR}Search-VCloud" -Server $Server -Type "adminVAppNetwork" -ResultType "AdminVAppNetworkRecord" -Filter $Filter -AuthorizationToken $AuthorizationToken -ApproveAllCertificates
-    } else {
-        $VAppNetworks = & "${FILE_DIR}Search-VCloud" -Server $Server -Type "adminVAppNetwork" -ResultType "AdminVAppNetworkRecord" -Filter $Filter -AuthorizationToken $AuthorizationToken
-    }
+    $VAppNetworks = & "${FILE_DIR}Search-VCloud" -Server $Server -Type "adminVAppNetwork" -ResultType "AdminVAppNetworkRecord" -Filter $Filter -AuthorizationToken $AuthorizationToken -ApproveAllCertificates:$ApproveAllCertificates
 
     $ScriptOut = @()
     foreach ($VAppNetwork in $VAppNetworks) {
@@ -113,7 +109,7 @@ try {
     # Error in $_ or $Error[0] variable.
     Write-Warning "Exception occurred at $($_.InvocationInfo.ScriptName):$($_.InvocationInfo.ScriptLineNumber)`n$($_.Exception)" -WarningAction Continue
     $Ex = $_.Exception
-    if ($Ex.InnerException) { $Ex = $Ex.InnerException }
+    while ($Ex.InnerException) { $Ex = $Ex.InnerException }
     $ErrorOut = "$($Ex.Message)"
     $ExitCode = 1
 } finally {
