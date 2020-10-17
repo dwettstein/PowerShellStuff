@@ -13,9 +13,10 @@
 
     File-Name:  Repair-Scoop.ps1
     Author:     David Wettstein
-    Version:    v1.0.0
+    Version:    v1.1.0
 
     Changelog:
+                v1.1.0, 2020-10-17, David Wettstein: Add switch to install Scoop as usual.
                 v1.0.0, 2020-05-13, David Wettstein: First implementation.
 
 .NOTES
@@ -38,30 +39,33 @@
 [OutputType([String])]
 param (
     [Parameter(Mandatory = $false, Position = 0)]
-    [Switch] $Symlink
+    [Switch] $Install
     ,
     [Parameter(Mandatory = $false, Position = 1)]
-    [Switch] $ResetAll
+    [Switch] $Symlink
     ,
     [Parameter(Mandatory = $false, Position = 2)]
+    [Switch] $ResetAll
+    ,
+    [Parameter(Mandatory = $false, Position = 3)]
     [ValidateNotNullOrEmpty()]
     [String] $UnzipFromPath = $null
     ,
-    [Parameter(Mandatory = $false, Position = 3)]
+    [Parameter(Mandatory = $false, Position = 4)]
     [String] $Proxy = $null
     ,
-    [Parameter(Mandatory = $false, Position = 4)]
-    [PSCredential] $ProxyCredential = $null
-    ,
     [Parameter(Mandatory = $false, Position = 5)]
-    [ValidateNotNullOrEmpty()]
-    [String] $ScoopHome = "$HOME\scoop\apps\scoop\"
+    [PSCredential] $ProxyCredential = $null
     ,
     [Parameter(Mandatory = $false, Position = 6)]
     [ValidateNotNullOrEmpty()]
-    [String] $ScoopVersion = "master"
+    [String] $ScoopHome = "$HOME\scoop\apps\scoop\"
     ,
     [Parameter(Mandatory = $false, Position = 7)]
+    [ValidateNotNullOrEmpty()]
+    [String] $ScoopVersion = "master"
+    ,
+    [Parameter(Mandatory = $false, Position = 8)]
     [ValidateNotNullOrEmpty()]
     [String] $ScoopVersionPrefix = "scoop-"
 )
@@ -80,6 +84,10 @@ if ($PSVersionTable.PSVersion.Major -lt 3 -or [String]::IsNullOrEmpty($PSScriptR
 }
 if ($MyInvocation.MyCommand.Module) {
     $FILE_DIR = ""  # If this script is part of a module, we want to call module functions not files.
+}
+
+if ($Install -and [String]::IsNullOrEmpty($UnzipFromPath)) {
+    Invoke-Expression (New-Object System.Net.WebClient).DownloadString('https://get.scoop.sh')
 }
 
 if (-not [String]::IsNullOrEmpty($UnzipFromPath)) {
