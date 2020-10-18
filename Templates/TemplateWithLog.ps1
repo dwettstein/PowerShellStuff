@@ -5,7 +5,7 @@
 .DESCRIPTION
     Long description
 
-    File-Name:  Template-LongWithLog.ps1
+    File-Name:  TemplateWithLog.ps1
     Author:     David Wettstein
     Version:    v0.0.1
 
@@ -28,13 +28,11 @@
 [CmdletBinding()]
 [OutputType([String])]
 param (
-    # Param1 help description
     [Parameter(Mandatory = $true, ValueFromPipeline = $true, Position = 0)]
     [ValidateNotNullOrEmpty()]
     # [ValidatePattern('.*[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}.*')]
     [String] $Param1
     ,
-    # Param2 help description
     [Parameter(Mandatory = $false, Position = 1)]
     [ValidateSet(0, 1, 2)]
     [Alias("Var2")]
@@ -47,19 +45,8 @@ begin {
     # Use comma as output field separator (special variable $OFS).
     $private:OFS = ","
 
-    #===============================================================================
-    # Modules
-    #===============================================================================
-    # Make sure the necessary modules are loaded.
-    $Modules = @()
-    $LoadedModules = Get-Module; $Modules | ForEach-Object {
-        if ($_ -notin $LoadedModules.Name) { Import-Module $_ -DisableNameChecking }
-    }
-
-    #===============================================================================
-    # Variables
-    #===============================================================================
     $StartDate = [DateTime]::Now
+    $ExitCode = 0
 
     [String] $FILE_NAME = $MyInvocation.MyCommand.Name
     if ($PSVersionTable.PSVersion.Major -lt 3 -or [String]::IsNullOrEmpty($PSScriptRoot)) {
@@ -71,14 +58,6 @@ begin {
     # if ($MyInvocation.MyCommand.Module) {
     #     $FILE_DIR = ""  # If this script is part of a module, we want to call module functions not files.
     # }
-
-    $ExitCode = 0
-    $ErrorOut = ""
-    $ScriptOut = ""
-
-    #===============================================================================
-    # Functions
-    #===============================================================================
 
     function Write-Log {
         <#
@@ -153,17 +132,19 @@ begin {
         Remove-Variable Stream, Message
     }
 
-    #===============================================================================
-    # Initialization
-    #===============================================================================
     Write-Log Verbose "$($FILE_NAME): CALL."
+
+    # Make sure the necessary modules are loaded.
+    $Modules = @()
+    $LoadedModules = Get-Module; $Modules | ForEach-Object {
+        if ($_ -notin $LoadedModules.Name) { Import-Module $_ -DisableNameChecking }
+    }
 }
 
-#===============================================================================
-# Main
-#===============================================================================
 process {
-    #trap { Write-Error $_; $ExitCode = 1; break; }
+    #trap { Write-Error "$($_.Exception)"; $ExitCode = 1; break; }
+    $ScriptOut = ""
+    $ErrorOut = ""
 
     try {
         # Do whatever you have to...
@@ -174,25 +155,21 @@ process {
     } catch {
         # Error in $_ or $Error[0] variable.
         Write-Warning "Exception occurred at $($_.InvocationInfo.ScriptName):$($_.InvocationInfo.ScriptLineNumber)`n$($_.Exception)" -WarningAction Continue
-        $Ex = $_.Exception
-        while ($Ex.InnerException) { $Ex = $Ex.InnerException }
+        $Ex = $_.Exception; while ($Ex.InnerException) { $Ex = $Ex.InnerException }
         $ErrorOut = "$($Ex.Message)"
         $ExitCode = 1
     } finally {
+        if ([String]::IsNullOrEmpty($ErrorOut)) {
+            Write-Log Output $ScriptOut  # Write ScriptOut to output stream.
+            # Delete log file if no error.
+            #Remove-Item $logFileName
+        } else {
+            Write-Log Error "$ErrorOut"  # Use Write-Error only here.
+        }
     }
 }
 
 end {
-    Write-Log Verbose ("$($FILE_NAME): ExitCode: {0}. Execution time: {1} ms. Started: {2}." -f $ExitCode, ([DateTime]::Now - $StartDate).TotalMilliseconds, $StartDate.ToString('yyyy-MM-dd HH:mm:ss.fffzzz'))
-
-    if ($ExitCode -eq 0) {
-        Write-Log Output "$ScriptOut"
-        $ScriptOut  # Write ScriptOut to output stream.
-        # Delete log file if no error.
-        #Remove-Item $logFileName;
-    } else {
-        Write-Log Error "$ErrorOut"
-        Write-Error "$ErrorOut"  # Use Write-Error only here.
-    }
+    Write-Log Verbose "$($FILE_NAME): ExitCode: $ExitCode. Execution time: $(([DateTime]::Now - $StartDate).TotalMilliseconds) ms. Started: $($StartDate.ToString('yyyy-MM-dd HH:mm:ss.fffzzz'))."
     # exit $ExitCode
 }
