@@ -13,9 +13,10 @@
         7. Delete the temporary file.
 
     Author:     David Wettstein
-    Version:    v1.1.1
+    Version:    v1.1.2
 
     Changelog:
+                v1.1.2, 2020-10-19, David Wettstein: Load ps1 files recursively.
                 v1.1.1, 2020-04-09, David Wettstein: Improve path handling.
                 v1.1.0, 2020-04-07, David Wettstein: Load module config from XML file.
                 v1.0.1, 2020-03-13, David Wettstein: Use $env:TEMP.
@@ -41,7 +42,7 @@ if ($PSVersionTable.PSVersion.Major -lt 3 -or [String]::IsNullOrEmpty($PSScriptR
     [String] $FILE_DIR = Join-Path $PSScriptRoot ""
 }
 
-$ChildItems = Get-ChildItem -Path "${FILE_DIR}*.ps1"
+$ChildItems = Get-ChildItem -Path "${FILE_DIR}" -Recurse -File -Filter "*.ps1"
 
 foreach ($Item in $ChildItems) {
     $FunctionName = [System.IO.Path]::GetFileNameWithoutExtension($Item.FullName)
