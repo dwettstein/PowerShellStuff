@@ -7,9 +7,10 @@
 
     File-Name:  Test-Administrator.ps1
     Author:     David Wettstein
-    Version:    v1.0.0
+    Version:    v1.0.1
 
     Changelog:
+                v1.0.1, 2020-10-20, David Wettstein: Add function blocks.
                 v1.0.0, 2020-06-02, David Wettstein: First implementation.
 
 .NOTES
@@ -29,16 +30,22 @@
 [OutputType([Boolean])]
 param ()
 
-if (-not $PSCmdlet.MyInvocation.BoundParameters.ErrorAction) { $ErrorActionPreference = "Stop" }
-if (-not $PSCmdlet.MyInvocation.BoundParameters.WarningAction) { $WarningPreference = "SilentlyContinue" }
-# Use comma as output field separator (special variable $OFS).
-$private:OFS = ","
-
-$IsAdmin = $False
-try {
-    $CurrentPrincipal = ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent())
-    $IsAdmin = $CurrentPrincipal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
-} catch {
-    Write-Verbose "Failed to test if the current principal is in the Administrator group. Error: $($_.Exception)"
+begin {
+    if (-not $PSCmdlet.MyInvocation.BoundParameters.ErrorAction) { $ErrorActionPreference = "Stop" }
+    if (-not $PSCmdlet.MyInvocation.BoundParameters.WarningAction) { $WarningPreference = "SilentlyContinue" }
+    # Use comma as output field separator (special variable $OFS).
+    $private:OFS = ","
 }
-$IsAdmin
+
+process {
+    $IsAdmin = $False
+    try {
+        $CurrentPrincipal = ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent())
+        $IsAdmin = $CurrentPrincipal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+    } catch {
+        Write-Verbose "Failed to test if the current principal is in the Administrator group. Error: $($_.Exception)"
+    }
+    $IsAdmin
+}
+
+end {}

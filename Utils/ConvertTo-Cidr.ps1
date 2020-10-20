@@ -9,9 +9,10 @@
 
     File-Name:  ConvertTo-Cidr.ps1
     Author:     David Wettstein
-    Version:    v1.0.0
+    Version:    v1.0.1
 
     Changelog:
+                v1.0.1, 2020-10-20, David Wettstein: Add function blocks.
                 v1.0.0, 2020-01-03, David Wettstein: First implementation.
 
 .NOTES
@@ -39,13 +40,19 @@ param (
     [String] $SubnetMask = "255.255.255.0"
 )
 
-if (-not $PSCmdlet.MyInvocation.BoundParameters.ErrorAction) { $ErrorActionPreference = "Stop" }
-if (-not $PSCmdlet.MyInvocation.BoundParameters.WarningAction) { $WarningPreference = "SilentlyContinue" }
-# Use comma as output field separator (special variable $OFS).
-$private:OFS = ","
+begin {
+    if (-not $PSCmdlet.MyInvocation.BoundParameters.ErrorAction) { $ErrorActionPreference = "Stop" }
+    if (-not $PSCmdlet.MyInvocation.BoundParameters.WarningAction) { $WarningPreference = "SilentlyContinue" }
+    # Use comma as output field separator (special variable $OFS).
+    $private:OFS = ","
+}
 
-$SubnetMaskBinary = [Convert]::ToString(([IpAddress]$SubnetMask).Address, 2)
-$CidrSuffix = ($SubnetMaskBinary -replace 0, $null).Length  # Only count the 1's, remove the 0's.
+process {
+    $SubnetMaskBinary = [Convert]::ToString(([IpAddress]$SubnetMask).Address, 2)
+    $CidrSuffix = ($SubnetMaskBinary -replace 0, $null).Length  # Only count the 1's, remove the 0's.
 
-$CidrAddress = "$IpAddress/$CidrSuffix"
-$CidrAddress
+    $CidrAddress = "$IpAddress/$CidrSuffix"
+    $CidrAddress
+}
+
+end {}

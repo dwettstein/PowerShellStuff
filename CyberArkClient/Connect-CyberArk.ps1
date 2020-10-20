@@ -17,9 +17,10 @@
 
     File-Name:  Connect-CyberArk.ps1
     Author:     David Wettstein
-    Version:    v1.1.2
+    Version:    v1.1.3
 
     Changelog:
+                v1.1.3, 2020-10-20, David Wettstein: Add function blocks.
                 v1.1.2, 2020-05-07, David Wettstein: Reorganize input params.
                 v1.1.1, 2020-04-09, David Wettstein: Improve path handling.
                 v1.1.0, 2020-04-07, David Wettstein: Sync input variables with cache.
@@ -75,41 +76,36 @@ param (
     [Switch] $ApproveAllCertificates
 )
 
-if (-not $PSCmdlet.MyInvocation.BoundParameters.ErrorAction) { $ErrorActionPreference = "Stop" }
-if (-not $PSCmdlet.MyInvocation.BoundParameters.WarningAction) { $WarningPreference = "SilentlyContinue" }
-# Use comma as output field separator (special variable $OFS).
-$private:OFS = ","
+begin {
+    if (-not $PSCmdlet.MyInvocation.BoundParameters.ErrorAction) { $ErrorActionPreference = "Stop" }
+    if (-not $PSCmdlet.MyInvocation.BoundParameters.WarningAction) { $WarningPreference = "SilentlyContinue" }
+    # Use comma as output field separator (special variable $OFS).
+    $private:OFS = ","
 
-#===============================================================================
-# Initialization and Functions
-#===============================================================================
-# Make sure the necessary modules are loaded.
-$Modules = @()
-$LoadedModules = Get-Module; $Modules | ForEach-Object {
-    if ($_ -notin $LoadedModules.Name) { Import-Module $_ -DisableNameChecking }
-}
+    $StartDate = [DateTime]::Now
+    $ExitCode = 0
 
-$StartDate = [DateTime]::Now
+    [String] $FILE_NAME = $MyInvocation.MyCommand.Name
+    if ($PSVersionTable.PSVersion.Major -lt 3 -or [String]::IsNullOrEmpty($PSScriptRoot)) {
+        # Join-Path with empty child path is used to append a path separator.
+        [String] $FILE_DIR = Join-Path (Split-Path -Parent $MyInvocation.MyCommand.Definition) ""
+    } else {
+        [String] $FILE_DIR = Join-Path $PSScriptRoot ""
+    }
+    if ($MyInvocation.MyCommand.Module) {
+        $FILE_DIR = ""  # If this script is part of a module, we want to call module functions not files.
+    }
 
-[String] $FILE_NAME = $MyInvocation.MyCommand.Name
-if ($PSVersionTable.PSVersion.Major -lt 3 -or [String]::IsNullOrEmpty($PSScriptRoot)) {
-    # Join-Path with empty child path is used to append a path separator.
-    [String] $FILE_DIR = Join-Path (Split-Path -Parent $MyInvocation.MyCommand.Definition) ""
-} else {
-    [String] $FILE_DIR = Join-Path $PSScriptRoot ""
-}
-if ($MyInvocation.MyCommand.Module) {
-    $FILE_DIR = ""  # If this script is part of a module, we want to call module functions not files.
-}
+    Write-Verbose "$($FILE_NAME): CALL."
 
-$ExitCode = 0
-$ErrorOut = ""
-$ScriptOut = ""
+    # Make sure the necessary modules are loaded.
+    $Modules = @()
+    $LoadedModules = Get-Module; $Modules | ForEach-Object {
+        if ($_ -notin $LoadedModules.Name) { Import-Module $_ -DisableNameChecking }
+    }
 
-Write-Verbose "$($FILE_NAME): CALL."
-
-function Approve-AllCertificates {
-    $CSSource = @'
+    function Approve-AllCertificates {
+        $CSSource = @'
 using System.Net;
 
 public class ServerCertificate {
@@ -118,71 +114,74 @@ public class ServerCertificate {
     }
 }
 '@
-    if (-not ([System.Management.Automation.PSTypeName]'ServerCertificate').Type) {
-        Add-Type -TypeDefinition $CSSource
+        if (-not ([System.Management.Automation.PSTypeName]'ServerCertificate').Type) {
+            Add-Type -TypeDefinition $CSSource
+        }
+        # Ignore self-signed SSL certificates.
+        [ServerCertificate]::approveAllCertificates()
+        # Disable certificate revocation check.
+        [System.Net.ServicePointManager]::CheckCertificateRevocationList = $false;
+        # Allow all security protocols.
+        [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]'Ssl3,Tls,Tls11,Tls12'
     }
-    # Ignore self-signed SSL certificates.
-    [ServerCertificate]::approveAllCertificates()
-    # Disable certificate revocation check.
-    [System.Net.ServicePointManager]::CheckCertificateRevocationList = $false;
-    # Allow all security protocols.
-    [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]'Ssl3,Tls,Tls11,Tls12'
 }
 
-#===============================================================================
-# Main
-#===============================================================================
-#trap { Write-Error $_; exit 1; break; }
+process {
+    #trap { Write-Error "$($_.Exception)"; $ExitCode = 1; break; }
+    $ScriptOut = ""
+    $ErrorOut = ""
 
-try {
-    $Server = & "${FILE_DIR}Sync-CyberArkVariableCache" "Server" $Server -IsMandatory
-    $ApproveAllCertificates = & "${FILE_DIR}Sync-CyberArkVariableCache" "ApproveAllCertificates" $PSCmdlet.MyInvocation.BoundParameters.ApproveAllCertificates
+    try {
+        $Server = & "${FILE_DIR}Sync-CyberArkVariableCache" "Server" $Server -IsMandatory
+        $ApproveAllCertificates = & "${FILE_DIR}Sync-CyberArkVariableCache" "ApproveAllCertificates" $PSCmdlet.MyInvocation.BoundParameters.ApproveAllCertificates
 
-    if ($ApproveAllCertificates) {
-        Approve-AllCertificates
+        if ($ApproveAllCertificates) {
+            Approve-AllCertificates
+        }
+
+        $Cred = & "${FILE_DIR}Get-CyberArkPSCredential" -Server $Server -Username $Username -Password $Password -Interactive:$Interactive -PswdDir $PswdDir -ErrorAction:Stop
+
+        $BaseUrl = "https://$Server"
+        $EndpointUrl = "$BaseUrl/PasswordVault/api/auth/LDAP/Logon"
+
+        $Headers = @{
+            "Accept" = "application/json"
+            "Content-Type" = "application/json"
+            "Cache-Control" = "no-cache"
+        }
+
+        $Body = @{
+            "username" = $Cred.UserName
+            "password" = $Cred.GetNetworkCredential().Password
+        }
+
+        $Response = Invoke-WebRequest -Method Post -Headers $Headers -Body (ConvertTo-Json $Body) -Uri $EndpointUrl
+        $AuthorizationToken = $Response.Content.Trim('"')
+        $AuthorizationTokenSecureString = (ConvertTo-SecureString -AsPlainText -Force $AuthorizationToken | ConvertFrom-SecureString)
+
+        $null = & "${FILE_DIR}Sync-CyberArkVariableCache" "AuthorizationToken" $AuthorizationTokenSecureString
+
+        if ($AsPlainText) {
+            $ScriptOut = $AuthorizationToken
+        } else {
+            $ScriptOut = $AuthorizationTokenSecureString
+        }
+    } catch {
+        # Error in $_ or $Error[0] variable.
+        Write-Warning "Exception occurred at $($_.InvocationInfo.ScriptName):$($_.InvocationInfo.ScriptLineNumber)`n$($_.Exception)" -WarningAction Continue
+        $Ex = $_.Exception; while ($Ex.InnerException) { $Ex = $Ex.InnerException }
+        $ErrorOut = "$($Ex.Message)"
+        $ExitCode = 1
+    } finally {
+        if ([String]::IsNullOrEmpty($ErrorOut)) {
+            $ScriptOut  # Write ScriptOut to output stream.
+        } else {
+            Write-Error "$ErrorOut"  # Use Write-Error only here.
+        }
     }
+}
 
-    $Cred = & "${FILE_DIR}Get-CyberArkPSCredential" -Server $Server -Username $Username -Password $Password -Interactive:$Interactive -PswdDir $PswdDir -ErrorAction:Stop
-
-    $BaseUrl = "https://$Server"
-    $EndpointUrl = "$BaseUrl/PasswordVault/api/auth/LDAP/Logon"
-
-    $Headers = @{
-        "Accept" = "application/json"
-        "Content-Type" = "application/json"
-        "Cache-Control" = "no-cache"
-    }
-
-    $Body = @{
-        "username" = $Cred.UserName
-        "password" = $Cred.GetNetworkCredential().Password
-    }
-
-    $Response = Invoke-WebRequest -Method Post -Headers $Headers -Body (ConvertTo-Json $Body) -Uri $EndpointUrl
-    $AuthorizationToken = $Response.Content.Trim('"')
-    $AuthorizationTokenSecureString = (ConvertTo-SecureString -AsPlainText -Force $AuthorizationToken | ConvertFrom-SecureString)
-
-    $null = & "${FILE_DIR}Sync-CyberArkVariableCache" "AuthorizationToken" $AuthorizationTokenSecureString
-
-    if ($AsPlainText) {
-        $ScriptOut = $AuthorizationToken
-    } else {
-        $ScriptOut = $AuthorizationTokenSecureString
-    }
-} catch {
-    # Error in $_ or $Error[0] variable.
-    Write-Warning "Exception occurred at $($_.InvocationInfo.ScriptName):$($_.InvocationInfo.ScriptLineNumber)`n$($_.Exception)" -WarningAction Continue
-    $Ex = $_.Exception
-    while ($Ex.InnerException) { $Ex = $Ex.InnerException }
-    $ErrorOut = "$($Ex.Message)"
-    $ExitCode = 1
-} finally {
-    Write-Verbose ("$($FILE_NAME): ExitCode: {0}. Execution time: {1} ms. Started: {2}." -f $ExitCode, ([DateTime]::Now - $StartDate).TotalMilliseconds, $StartDate.ToString('yyyy-MM-dd HH:mm:ss.fffzzz'))
-
-    if ($ExitCode -eq 0) {
-        $ScriptOut  # Write ScriptOut to output stream.
-    } else {
-        Write-Error "$ErrorOut"  # Use Write-Error only here.
-    }
+end {
+    Write-Verbose "$($FILE_NAME): ExitCode: $ExitCode. Execution time: $(([DateTime]::Now - $StartDate).TotalMilliseconds) ms. Started: $($StartDate.ToString('yyyy-MM-dd HH:mm:ss.fffzzz'))."
     # exit $ExitCode
 }

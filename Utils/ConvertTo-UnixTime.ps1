@@ -7,9 +7,10 @@
 
     File-Name:  ConvertTo-UnixTime.ps1
     Author:     David Wettstein
-    Version:    v1.0.0
+    Version:    v1.0.1
 
     Changelog:
+                v1.0.1, 2020-10-20, David Wettstein: Add function blocks.
                 v1.0.0, 2018-08-01, David Wettstein: First implementation.
 
 .NOTES
@@ -39,18 +40,23 @@ param (
     [Switch] $Milliseconds
 )
 
-if (-not $PSCmdlet.MyInvocation.BoundParameters.ErrorAction) { $ErrorActionPreference = "Stop" }
-if (-not $PSCmdlet.MyInvocation.BoundParameters.WarningAction) { $WarningPreference = "SilentlyContinue" }
-# Use comma as output field separator (special variable $OFS).
-$private:OFS = ","
-
-if ($UniversalTime) {
-    $DateTime = $DateTime.ToUniversalTime()
+begin {
+    if (-not $PSCmdlet.MyInvocation.BoundParameters.ErrorAction) { $ErrorActionPreference = "Stop" }
+    if (-not $PSCmdlet.MyInvocation.BoundParameters.WarningAction) { $WarningPreference = "SilentlyContinue" }
+    # Use comma as output field separator (special variable $OFS).
+    $private:OFS = ","
 }
 
-$TimeSpan = New-TimeSpan -Start ([DateTime]::ParseExact("19700101", "yyyyMMdd", $null)) -End $DateTime
-if ($Milliseconds) {
-    [System.Math]::Floor($TimeSpan.TotalMilliseconds)
-} else {
-    [System.Math]::Floor($TimeSpan.TotalSeconds)
+process {
+    if ($UniversalTime) {
+        $DateTime = $DateTime.ToUniversalTime()
+    }
+    $TimeSpan = New-TimeSpan -Start ([DateTime]::ParseExact("19700101", "yyyyMMdd", $null)) -End $DateTime
+    if ($Milliseconds) {
+        [System.Math]::Floor($TimeSpan.TotalMilliseconds)
+    } else {
+        [System.Math]::Floor($TimeSpan.TotalSeconds)
+    }
 }
+
+end {}

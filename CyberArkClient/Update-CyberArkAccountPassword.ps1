@@ -11,9 +11,10 @@
 
     File-Name:  Update-CyberArkAccountPassword.ps1
     Author:     David Wettstein
-    Version:    v1.0.2
+    Version:    v1.0.3
 
     Changelog:
+                v1.0.3, 2020-10-20, David Wettstein: Add function blocks.
                 v1.0.2, 2020-05-07, David Wettstein: Reorganize input params.
                 v1.0.1, 2020-04-09, David Wettstein: Improve path handling.
                 v1.0.0, 2020-03-19, David Wettstein: First implementation.
@@ -67,105 +68,103 @@ param (
     [Switch] $ApproveAllCertificates
 )
 
-if (-not $PSCmdlet.MyInvocation.BoundParameters.ErrorAction) { $ErrorActionPreference = "Stop" }
-if (-not $PSCmdlet.MyInvocation.BoundParameters.WarningAction) { $WarningPreference = "SilentlyContinue" }
-# Use comma as output field separator (special variable $OFS).
-$private:OFS = ","
+begin {
+    if (-not $PSCmdlet.MyInvocation.BoundParameters.ErrorAction) { $ErrorActionPreference = "Stop" }
+    if (-not $PSCmdlet.MyInvocation.BoundParameters.WarningAction) { $WarningPreference = "SilentlyContinue" }
+    # Use comma as output field separator (special variable $OFS).
+    $private:OFS = ","
 
-#===============================================================================
-# Initialization and Functions
-#===============================================================================
-# Make sure the necessary modules are loaded.
-$Modules = @()
-$LoadedModules = Get-Module; $Modules | ForEach-Object {
-    if ($_ -notin $LoadedModules.Name) { Import-Module $_ -DisableNameChecking }
-}
+    $StartDate = [DateTime]::Now
+    $ExitCode = 0
 
-$StartDate = [DateTime]::Now
-
-[String] $FILE_NAME = $MyInvocation.MyCommand.Name
-if ($PSVersionTable.PSVersion.Major -lt 3 -or [String]::IsNullOrEmpty($PSScriptRoot)) {
-    # Join-Path with empty child path is used to append a path separator.
-    [String] $FILE_DIR = Join-Path (Split-Path -Parent $MyInvocation.MyCommand.Definition) ""
-} else {
-    [String] $FILE_DIR = Join-Path $PSScriptRoot ""
-}
-if ($MyInvocation.MyCommand.Module) {
-    $FILE_DIR = ""  # If this script is part of a module, we want to call module functions not files.
-}
-
-$ExitCode = 0
-$ErrorOut = ""
-$ScriptOut = ""
-
-Write-Verbose "$($FILE_NAME): CALL."
-
-#===============================================================================
-# Main
-#===============================================================================
-#trap { Write-Error $_; exit 1; break; }
-
-try {
-    if ($Account.GetType() -eq [String]) {
-        $AccountId = $Account
+    [String] $FILE_NAME = $MyInvocation.MyCommand.Name
+    if ($PSVersionTable.PSVersion.Major -lt 3 -or [String]::IsNullOrEmpty($PSScriptRoot)) {
+        # Join-Path with empty child path is used to append a path separator.
+        [String] $FILE_DIR = Join-Path (Split-Path -Parent $MyInvocation.MyCommand.Definition) ""
     } else {
-        $AccountId = $Account.id
+        [String] $FILE_DIR = Join-Path $PSScriptRoot ""
     }
-    # If username is given as SecureString string, convert it to plain text.
+    if ($MyInvocation.MyCommand.Module) {
+        $FILE_DIR = ""  # If this script is part of a module, we want to call module functions not files.
+    }
+
+    Write-Verbose "$($FILE_NAME): CALL."
+
+    # Make sure the necessary modules are loaded.
+    $Modules = @()
+    $LoadedModules = Get-Module; $Modules | ForEach-Object {
+        if ($_ -notin $LoadedModules.Name) { Import-Module $_ -DisableNameChecking }
+    }
+}
+
+process {
+    #trap { Write-Error "$($_.Exception)"; $ExitCode = 1; break; }
+    $ScriptOut = ""
+    $ErrorOut = ""
+
     try {
-        $UsernameSecureString = ConvertTo-SecureString -String $Username -ErrorAction:SilentlyContinue
-        $BSTR = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($UsernameSecureString)
-        $Username = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($BSTR)
-        $null = [System.Runtime.InteropServices.Marshal]::ZeroFreeBSTR($BSTR)
-    } catch {
-        # Username was already given as plain text.
-    }
-    $Cred = $null
-    if (-not [String]::IsNullOrEmpty($Username) -and -not [String]::IsNullOrEmpty($Password)) {
-        # 1. Try with username and password, if provided.
+        if ($Account.GetType() -eq [String]) {
+            $AccountId = $Account
+        } else {
+            $AccountId = $Account.id
+        }
+        # If username is given as SecureString string, convert it to plain text.
         try {
-            $PasswordSecureString = ConvertTo-SecureString -String $Password
-        } catch [System.FormatException] {
-            # Password was likely given as plain text, convert it to SecureString.
-            $PasswordSecureString = ConvertTo-SecureString -AsPlainText -Force $Password
+            $UsernameSecureString = ConvertTo-SecureString -String $Username -ErrorAction:SilentlyContinue
+            $BSTR = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($UsernameSecureString)
+            $Username = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($BSTR)
+            $null = [System.Runtime.InteropServices.Marshal]::ZeroFreeBSTR($BSTR)
+        } catch {
+            # Username was already given as plain text.
         }
-        $Cred = New-Object System.Management.Automation.PSCredential ($Username, $PasswordSecureString)
-    } elseif ($Interactive) {
-        # 2. If interactive, get credentials from user with a prompt.
-        $Cred = Get-Credential -Message $AccountId -UserName $Username
-        if (-not $Cred -or [String]::IsNullOrEmpty($Cred.GetNetworkCredential().Password)) {
-            throw "Password is null or empty."
+        $Cred = $null
+        if (-not [String]::IsNullOrEmpty($Username) -and -not [String]::IsNullOrEmpty($Password)) {
+            # 1. Try with username and password, if provided.
+            try {
+                $PasswordSecureString = ConvertTo-SecureString -String $Password
+            } catch [System.FormatException] {
+                # Password was likely given as plain text, convert it to SecureString.
+                $PasswordSecureString = ConvertTo-SecureString -AsPlainText -Force $Password
+            }
+            $Cred = New-Object System.Management.Automation.PSCredential ($Username, $PasswordSecureString)
+        } elseif ($Interactive) {
+            # 2. If interactive, get credentials from user with a prompt.
+            $Cred = Get-Credential -Message $AccountId -UserName $Username
+            if (-not $Cred -or [String]::IsNullOrEmpty($Cred.GetNetworkCredential().Password)) {
+                throw "Password is null or empty."
+            }
+        } else {
+            throw "No credentials found. Please use the input parameters or interactive mode."
         }
-    } else {
-        throw "No credentials found. Please use the input parameters or interactive mode."
-    }
 
-    $Body = @{
-        "ChangeEntireGroup" = $false
-        "NewCredentials" = $Cred.GetNetworkCredential().Password
-    }
-    $BodyJson = ConvertTo-Json -Depth 10 $Body -Compress
-    $Endpoint = "/PasswordVault/api/Accounts/$AccountId/Password/Update"
-    $Response = & "${FILE_DIR}Invoke-CyberArkRequest" -Server $Server -Method "POST" -Endpoint $Endpoint -Body $BodyJson -AuthorizationToken $AuthorizationToken -ApproveAllCertificates:$ApproveAllCertificates
+        $Body = @{
+            "ChangeEntireGroup" = $false
+            "NewCredentials" = $Cred.GetNetworkCredential().Password
+        }
+        $BodyJson = ConvertTo-Json -Depth 10 $Body -Compress
+        $Endpoint = "/PasswordVault/api/Accounts/$AccountId/Password/Update"
+        $Response = & "${FILE_DIR}Invoke-CyberArkRequest" -Server $Server -Method "POST" -Endpoint $Endpoint -Body $BodyJson -AuthorizationToken $AuthorizationToken -ApproveAllCertificates:$ApproveAllCertificates
 
-    if ($Response.StatusCode -lt 200 -or $Response.StatusCode -ge 300) {
-        throw "Failed to invoke $($Endpoint): $($Response.StatusCode) - $($Response.Content)"
+        if ($Response.StatusCode -lt 200 -or $Response.StatusCode -ge 300) {
+            throw "Failed to invoke $($Endpoint): $($Response.StatusCode) - $($Response.Content)"
+        }
+        Write-Verbose "Password of account $AccountId successfully updated: $($Response.StatusCode)"
+    } catch {
+        # Error in $_ or $Error[0] variable.
+        Write-Warning "Exception occurred at $($_.InvocationInfo.ScriptName):$($_.InvocationInfo.ScriptLineNumber)`n$($_.Exception)" -WarningAction Continue
+        $Ex = $_.Exception; while ($Ex.InnerException) { $Ex = $Ex.InnerException }
+        $ErrorOut = "$($Ex.Message)"
+        $ExitCode = 1
+    } finally {
+        if ([String]::IsNullOrEmpty($ErrorOut)) {
+            $ScriptOut  # Write ScriptOut to output stream.
+        } else {
+            Write-Error "$ErrorOut"  # Use Write-Error only here.
+        }
     }
-    Write-Verbose "Password of account $AccountId successfully updated: $($Response.StatusCode)"
-} catch {
-    # Error in $_ or $Error[0] variable.
-    Write-Warning "Exception occurred at $($_.InvocationInfo.ScriptName):$($_.InvocationInfo.ScriptLineNumber)`n$($_.Exception)" -WarningAction Continue
-    $Ex = $_.Exception
-    while ($Ex.InnerException) { $Ex = $Ex.InnerException }
-    $ErrorOut = "$($Ex.Message)"
-    $ExitCode = 1
-} finally {
-    Write-Verbose ("$($FILE_NAME): ExitCode: {0}. Execution time: {1} ms. Started: {2}." -f $ExitCode, ([DateTime]::Now - $StartDate).TotalMilliseconds, $StartDate.ToString('yyyy-MM-dd HH:mm:ss.fffzzz'))
+}
 
-    if ($ExitCode -eq 0) {
-        $ScriptOut  # Write ScriptOut to output stream.
-    } else {
-        Write-Error "$ErrorOut"  # Use Write-Error only here.
-    }
+end {
+    Write-Verbose "$($FILE_NAME): ExitCode: $ExitCode. Execution time: $(([DateTime]::Now - $StartDate).TotalMilliseconds) ms. Started: $($StartDate.ToString('yyyy-MM-dd HH:mm:ss.fffzzz'))."
     # exit $ExitCode
 }

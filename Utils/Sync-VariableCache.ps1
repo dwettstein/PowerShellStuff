@@ -17,9 +17,10 @@
 
     File-Name:  Sync-VariableCache.ps1
     Author:     David Wettstein
-    Version:    v1.1.0
+    Version:    v1.1.1
 
     Changelog:
+                v1.1.1, 2020-10-20, David Wettstein: Add function blocks.
                 v1.1.0, 2020-05-07, David Wettstein: Always update cache if not null.
                 v1.0.0, 2020-04-07, David Wettstein: First implementation.
 
@@ -55,60 +56,68 @@ param (
     [Switch] $IsMandatory
 )
 
-if (-not $PSCmdlet.MyInvocation.BoundParameters.ErrorAction) { $ErrorActionPreference = "Stop" }
-if (-not $PSCmdlet.MyInvocation.BoundParameters.WarningAction) { $WarningPreference = "SilentlyContinue" }
-# Use comma as output field separator (special variable $OFS).
-$private:OFS = ","
+begin {
+    if (-not $PSCmdlet.MyInvocation.BoundParameters.ErrorAction) { $ErrorActionPreference = "Stop" }
+    if (-not $PSCmdlet.MyInvocation.BoundParameters.WarningAction) { $WarningPreference = "SilentlyContinue" }
+    # Use comma as output field separator (special variable $OFS).
+    $private:OFS = ","
 
-function Get-ModuleConfigVariable($VarName) {
-    # First, get ModuleConfig variable if not done yet.
-    if ($MyInvocation.MyCommand.Module -and -not $Script:ModuleConfig) {
-        $ModulePrivateData = $MyInvocation.MyCommand.Module.PrivateData
-        Write-Verbose "$($ModulePrivateData.GetEnumerator() | ForEach-Object { "$($_.Name)=$($_.Value)" })"
-        if ($ModulePrivateData.ModuleConfig) {
-            $Script:ModuleConfig = Get-Variable -Name $ModulePrivateData.ModuleConfig -ValueOnly
-            Write-Verbose "$($Script:ModuleConfig.GetEnumerator() | ForEach-Object { "$($_.Name)=$($_.Value)" })"
+    function Get-ModuleConfigVariable($VarName) {
+        # First, get ModuleConfig variable if not done yet.
+        if ($MyInvocation.MyCommand.Module -and -not $Script:ModuleConfig) {
+            $ModulePrivateData = $MyInvocation.MyCommand.Module.PrivateData
+            Write-Verbose "$($ModulePrivateData.GetEnumerator() | ForEach-Object { "$($_.Name)=$($_.Value)" })"
+            if ($ModulePrivateData.ModuleConfig) {
+                $Script:ModuleConfig = Get-Variable -Name $ModulePrivateData.ModuleConfig -ValueOnly
+                Write-Verbose "$($Script:ModuleConfig.GetEnumerator() | ForEach-Object { "$($_.Name)=$($_.Value)" })"
+            }
+        }
+        # Then, get the variable value if available.
+        if ($Script:ModuleConfig) {
+            if (-not [String]::IsNullOrEmpty($Script:ModuleConfig."$VarName")) {
+                $VarValue = $Script:ModuleConfig."$VarName"
+                Write-Verbose "Found variable in module config: $VarName = $VarValue"
+                $VarValue
+            } else {
+                Write-Verbose "Variable was not found in module config: $VarName"
+                $null  # If variable not found in config, return null.
+            }
         }
     }
-    # Then, get the variable value if available.
-    if ($Script:ModuleConfig) {
-        if (-not [String]::IsNullOrEmpty($Script:ModuleConfig."$VarName")) {
-            $VarValue = $Script:ModuleConfig."$VarName"
-            Write-Verbose "Found variable in module config: $VarName = $VarValue"
-            $VarValue
+}
+
+process {
+    #trap { Write-Error "$($_.Exception)"; $ExitCode = 1; break; }
+
+    if (-not (Test-Path Variable:\$($VariableCachePrefix + "VariableCache"))) {  # Don't overwrite the variable if it already exists.
+        Set-Variable -Name ($VariableCachePrefix + "VariableCache") -Value @{} -Scope "Global"
+    }
+    $VariableCache = Get-Variable -Name ($VariableCachePrefix + "VariableCache") -ValueOnly
+
+    if ([String]::IsNullOrEmpty($VarValue)) {
+        Write-Verbose "Variable $VarName is null or empty. Try to use value from cache or module config. Mandatory variable? $IsMandatory"
+        if (-not [String]::IsNullOrEmpty($VariableCache."$VarName")) {
+            $VarValue = $VariableCache."$VarName"
+            Write-Verbose "Found variable in cache: $VarName = $VarValue"
         } else {
-            Write-Verbose "Variable was not found in module config: $VarName"
-            $null  # If variable not found in config, return null.
+            $VarValue = Get-ModuleConfigVariable $VarName
+        }
+
+        if ($IsMandatory -and -not $VarValue) {
+            throw "Variable $VarName is null or empty. Please use the input parameters or the module config."
         }
     }
-}
 
-if (-not (Test-Path Variable:\$($VariableCachePrefix + "VariableCache"))) {  # Don't overwrite the variable if it already exists.
-    Set-Variable -Name ($VariableCachePrefix + "VariableCache") -Value @{} -Scope "Global"
-}
-$VariableCache = Get-Variable -Name ($VariableCachePrefix + "VariableCache") -ValueOnly
-
-if ([String]::IsNullOrEmpty($VarValue)) {
-    Write-Verbose "Variable $VarName is null or empty. Try to use value from cache or module config. Mandatory variable? $IsMandatory"
-    if (-not [String]::IsNullOrEmpty($VariableCache."$VarName")) {
-        $VarValue = $VariableCache."$VarName"
-        Write-Verbose "Found variable in cache: $VarName = $VarValue"
-    } else {
-        $VarValue = Get-ModuleConfigVariable $VarName
+    if (-not [String]::IsNullOrEmpty($VarValue)) {
+        Write-Verbose "Update cache with variable: $VarName = $VarValue."
+        if ([String]::IsNullOrEmpty($VariableCache."$VarName")) {
+            $null = Add-Member -InputObject $VariableCache -MemberType NoteProperty -Name $VarName -Value $VarValue -Force
+        } else {
+            $VariableCache."$VarName" = $VarValue
+        }
     }
 
-    if ($IsMandatory -and -not $VarValue) {
-        throw "Variable $VarName is null or empty. Please use the input parameters or the module config."
-    }
+    $VarValue
 }
 
-if (-not [String]::IsNullOrEmpty($VarValue)) {
-    Write-Verbose "Update cache with variable: $VarName = $VarValue."
-    if ([String]::IsNullOrEmpty($VariableCache."$VarName")) {
-        $null = Add-Member -InputObject $VariableCache -MemberType NoteProperty -Name $VarName -Value $VarValue -Force
-    } else {
-        $VariableCache."$VarName" = $VarValue
-    }
-}
-
-$VarValue
+end {}

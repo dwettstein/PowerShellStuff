@@ -9,9 +9,10 @@
 
     File-Name:  Invoke-ServerRequest.ps1
     Author:     David Wettstein
-    Version:    v1.1.0
+    Version:    v1.1.1
 
     Changelog:
+                v1.1.1, 2020-10-20, David Wettstein: Add function blocks.
                 v1.1.0, 2020-05-15, David Wettstein: Sync input variables with cache.
                 v1.0.2, 2020-04-09, David Wettstein: Improve path handling.
                 v1.0.1, 2020-03-13, David Wettstein: Refactor and generalize cmdlet.
@@ -68,106 +69,104 @@ param (
     [Switch] $ApproveAllCertificates
 )
 
-if (-not $PSCmdlet.MyInvocation.BoundParameters.ErrorAction) { $ErrorActionPreference = "Stop" }
-if (-not $PSCmdlet.MyInvocation.BoundParameters.WarningAction) { $WarningPreference = "SilentlyContinue" }
-# Use comma as output field separator (special variable $OFS).
-$private:OFS = ","
+begin {
+    if (-not $PSCmdlet.MyInvocation.BoundParameters.ErrorAction) { $ErrorActionPreference = "Stop" }
+    if (-not $PSCmdlet.MyInvocation.BoundParameters.WarningAction) { $WarningPreference = "SilentlyContinue" }
+    # Use comma as output field separator (special variable $OFS).
+    $private:OFS = ","
 
-#===============================================================================
-# Initialization and Functions
-#===============================================================================
-# Make sure the necessary modules are loaded.
-$Modules = @()
-$LoadedModules = Get-Module; $Modules | ForEach-Object {
-    if ($_ -notin $LoadedModules.Name) { Import-Module $_ -DisableNameChecking }
-}
+    $StartDate = [DateTime]::Now
+    $ExitCode = 0
 
-$StartDate = [DateTime]::Now
-
-[String] $FILE_NAME = $MyInvocation.MyCommand.Name
-if ($PSVersionTable.PSVersion.Major -lt 3 -or [String]::IsNullOrEmpty($PSScriptRoot)) {
-    # Join-Path with empty child path is used to append a path separator.
-    [String] $FILE_DIR = Join-Path (Split-Path -Parent $MyInvocation.MyCommand.Definition) ""
-} else {
-    [String] $FILE_DIR = Join-Path $PSScriptRoot ""
-}
-if ($MyInvocation.MyCommand.Module) {
-    $FILE_DIR = ""  # If this script is part of a module, we want to call module functions not files.
-}
-
-$ExitCode = 0
-$ErrorOut = ""
-$ScriptOut = ""
-
-Write-Verbose "$($FILE_NAME): CALL."
-
-#===============================================================================
-# Main
-#===============================================================================
-#trap { Write-Error $_; exit 1; break; }
-
-try {
-    $Server = & "${FILE_DIR}Sync-VariableCache" "Server" $Server -VariableCachePrefix "Utils" -IsMandatory
-    $AuthorizationToken = & "${FILE_DIR}Sync-VariableCache" "AuthorizationToken" $AuthorizationToken -VariableCachePrefix "Utils"
-    $ApproveAllCertificates = & "${FILE_DIR}Sync-VariableCache" "ApproveAllCertificates" $PSCmdlet.MyInvocation.BoundParameters.ApproveAllCertificates -VariableCachePrefix "Utils"
-
-    if ($ApproveAllCertificates) {
-        & "${FILE_DIR}Approve-AllCertificates"
+    [String] $FILE_NAME = $MyInvocation.MyCommand.Name
+    if ($PSVersionTable.PSVersion.Major -lt 3 -or [String]::IsNullOrEmpty($PSScriptRoot)) {
+        # Join-Path with empty child path is used to append a path separator.
+        [String] $FILE_DIR = Join-Path (Split-Path -Parent $MyInvocation.MyCommand.Definition) ""
+    } else {
+        [String] $FILE_DIR = Join-Path $PSScriptRoot ""
+    }
+    if ($MyInvocation.MyCommand.Module) {
+        $FILE_DIR = ""  # If this script is part of a module, we want to call module functions not files.
     }
 
-    $BaseUrl = "${Protocol}://$Server"
-    $EndpointUrl = "${BaseUrl}${Endpoint}"
+    Write-Verbose "$($FILE_NAME): CALL."
 
-    $Headers = @{
-        "Accept" = "$MediaType"
-        "Content-Type" = "$MediaType"
-        "Cache-Control" = "no-cache"
+    # Make sure the necessary modules are loaded.
+    $Modules = @()
+    $LoadedModules = Get-Module; $Modules | ForEach-Object {
+        if ($_ -notin $LoadedModules.Name) { Import-Module $_ -DisableNameChecking }
     }
+}
 
-    # If no AuthorizationToken is given, try to get it.
-    if ([String]::IsNullOrEmpty($AuthorizationToken)) {
+process {
+    #trap { Write-Error "$($_.Exception)"; $ExitCode = 1; break; }
+    $ScriptOut = ""
+    $ErrorOut = ""
+
+    try {
+        $Server = & "${FILE_DIR}Sync-VariableCache" "Server" $Server -VariableCachePrefix "Utils" -IsMandatory
+        $AuthorizationToken = & "${FILE_DIR}Sync-VariableCache" "AuthorizationToken" $AuthorizationToken -VariableCachePrefix "Utils"
+        $ApproveAllCertificates = & "${FILE_DIR}Sync-VariableCache" "ApproveAllCertificates" $PSCmdlet.MyInvocation.BoundParameters.ApproveAllCertificates -VariableCachePrefix "Utils"
+
+        if ($ApproveAllCertificates) {
+            & "${FILE_DIR}Approve-AllCertificates"
+        }
+
+        $BaseUrl = "${Protocol}://$Server"
+        $EndpointUrl = "${BaseUrl}${Endpoint}"
+
+        $Headers = @{
+            "Accept" = "$MediaType"
+            "Content-Type" = "$MediaType"
+            "Cache-Control" = "no-cache"
+        }
+
+        # If no AuthorizationToken is given, try to get it.
+        if ([String]::IsNullOrEmpty($AuthorizationToken)) {
+            try {
+                $AuthorizationCred = & "${FILE_DIR}Get-PSCredential" -Server $Server
+                $AuthorizationToken = ConvertFrom-SecureString $AuthorizationCred.Password
+            } catch {
+                Write-Verbose "$($_.Exception)"
+                # Ignore errors and try the request unauthorized.
+            }
+        }
+        # If AuthorizationToken is given as SecureString string, convert it to plain text.
         try {
-            $AuthorizationCred = & "${FILE_DIR}Get-PSCredential" -Server $Server
-            $AuthorizationToken = ConvertFrom-SecureString $AuthorizationCred.Password
+            $AuthorizationTokenSecureString = ConvertTo-SecureString -String $AuthorizationToken
+            $BSTR = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($AuthorizationTokenSecureString)
+            $AuthorizationToken = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($BSTR)
+            $null = [System.Runtime.InteropServices.Marshal]::ZeroFreeBSTR($BSTR)
         } catch {
-            Write-Verbose "$($_.Exception)"
-            # Ignore errors and try the request unauthorized.
+            # AuthorizationToken was already given as plain text.
+        }
+        if (-not [String]::IsNullOrEmpty($AuthorizationToken)) {
+            $Headers."$AuthorizationHeader" = "$AuthorizationToken"
+        }
+
+        if ($Body) {
+            $Response = Invoke-WebRequest -Method $Method -Headers $Headers -Uri $EndpointUrl -Body $Body
+        } else {
+            $Response = Invoke-WebRequest -Method $Method -Headers $Headers -Uri $EndpointUrl
+        }
+
+        $ScriptOut = $Response
+    } catch {
+        # Error in $_ or $Error[0] variable.
+        Write-Warning "Exception occurred at $($_.InvocationInfo.ScriptName):$($_.InvocationInfo.ScriptLineNumber)`n$($_.Exception)" -WarningAction Continue
+        $Ex = $_.Exception; while ($Ex.InnerException) { $Ex = $Ex.InnerException }
+        $ErrorOut = "$($Ex.Message)"
+        $ExitCode = 1
+    } finally {
+        if ([String]::IsNullOrEmpty($ErrorOut)) {
+            $ScriptOut  # Write ScriptOut to output stream.
+        } else {
+            Write-Error "$ErrorOut"  # Use Write-Error only here.
         }
     }
-    # If AuthorizationToken is given as SecureString string, convert it to plain text.
-    try {
-        $AuthorizationTokenSecureString = ConvertTo-SecureString -String $AuthorizationToken
-        $BSTR = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($AuthorizationTokenSecureString)
-        $AuthorizationToken = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($BSTR)
-        $null = [System.Runtime.InteropServices.Marshal]::ZeroFreeBSTR($BSTR)
-    } catch {
-        # AuthorizationToken was already given as plain text.
-    }
-    if (-not [String]::IsNullOrEmpty($AuthorizationToken)) {
-        $Headers."$AuthorizationHeader" = "$AuthorizationToken"
-    }
+}
 
-    if ($Body) {
-        $Response = Invoke-WebRequest -Method $Method -Headers $Headers -Uri $EndpointUrl -Body $Body
-    } else {
-        $Response = Invoke-WebRequest -Method $Method -Headers $Headers -Uri $EndpointUrl
-    }
-
-    $ScriptOut = $Response
-} catch {
-    # Error in $_ or $Error[0] variable.
-    Write-Warning "Exception occurred at $($_.InvocationInfo.ScriptName):$($_.InvocationInfo.ScriptLineNumber)`n$($_.Exception)" -WarningAction Continue
-    $Ex = $_.Exception
-    while ($Ex.InnerException) { $Ex = $Ex.InnerException }
-    $ErrorOut = "$($Ex.Message)"
-    $ExitCode = 1
-} finally {
-    Write-Verbose ("$($FILE_NAME): ExitCode: {0}. Execution time: {1} ms. Started: {2}." -f $ExitCode, ([DateTime]::Now - $StartDate).TotalMilliseconds, $StartDate.ToString('yyyy-MM-dd HH:mm:ss.fffzzz'))
-
-    if ($ExitCode -eq 0) {
-        $ScriptOut  # Write ScriptOut to output stream.
-    } else {
-        Write-Error "$ErrorOut"  # Use Write-Error only here.
-    }
+end {
+    Write-Verbose "$($FILE_NAME): ExitCode: $ExitCode. Execution time: $(([DateTime]::Now - $StartDate).TotalMilliseconds) ms. Started: $($StartDate.ToString('yyyy-MM-dd HH:mm:ss.fffzzz'))."
     # exit $ExitCode
 }

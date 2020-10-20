@@ -7,9 +7,10 @@
 
     File-Name:  ConvertFrom-UnixTime.ps1
     Author:     David Wettstein
-    Version:    v1.0.0
+    Version:    v1.0.1
 
     Changelog:
+                v1.0.1, 2020-10-20, David Wettstein: Add function blocks.
                 v1.0.0, 2018-08-01, David Wettstein: First implementation.
 
 .NOTES
@@ -39,24 +40,30 @@ param (
     [Switch] $ISO8601
 )
 
-if (-not $PSCmdlet.MyInvocation.BoundParameters.ErrorAction) { $ErrorActionPreference = "Stop" }
-if (-not $PSCmdlet.MyInvocation.BoundParameters.WarningAction) { $WarningPreference = "SilentlyContinue" }
-# Use comma as output field separator (special variable $OFS).
-$private:OFS = ","
-
-$DateTime = $null
-if ($UnixTimestamp.ToString().Length -eq 13) {
-    $DateTime = [DateTime]::ParseExact("19700101", "yyyyMMdd", $null).AddMilliseconds($UnixTimestamp)
-} else {
-    $DateTime = [DateTime]::ParseExact("19700101", "yyyyMMdd", $null).AddSeconds($UnixTimestamp)
+begin {
+    if (-not $PSCmdlet.MyInvocation.BoundParameters.ErrorAction) { $ErrorActionPreference = "Stop" }
+    if (-not $PSCmdlet.MyInvocation.BoundParameters.WarningAction) { $WarningPreference = "SilentlyContinue" }
+    # Use comma as output field separator (special variable $OFS).
+    $private:OFS = ","
 }
 
-if ($UniversalTime) {
-    $DateTime = $DateTime.ToLocalTime()
+process {
+    $DateTime = $null
+    if ($UnixTimestamp.ToString().Length -eq 13) {
+        $DateTime = [DateTime]::ParseExact("19700101", "yyyyMMdd", $null).AddMilliseconds($UnixTimestamp)
+    } else {
+        $DateTime = [DateTime]::ParseExact("19700101", "yyyyMMdd", $null).AddSeconds($UnixTimestamp)
+    }
+
+    if ($UniversalTime) {
+        $DateTime = $DateTime.ToLocalTime()
+    }
+
+    if ($Iso8601) {
+        $DateTime.ToString("yyyy-MM-ddTHH:mm:ss.fffzzz")
+    } else {
+        $DateTime
+    }
 }
 
-if ($Iso8601) {
-    $DateTime.ToString("yyyy-MM-ddTHH:mm:ss.fffzzz")
-} else {
-    $DateTime
-}
+end {}

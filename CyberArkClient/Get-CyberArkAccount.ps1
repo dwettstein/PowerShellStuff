@@ -11,9 +11,10 @@
 
     File-Name:  Get-CyberArkAccount.ps1
     Author:     David Wettstein
-    Version:    v1.2.2
+    Version:    v1.2.3
 
     Changelog:
+                v1.2.3, 2020-10-20, David Wettstein: Add function blocks.
                 v1.2.2, 2020-05-07, David Wettstein: Reorganize input params.
                 v1.2.1, 2020-04-09, David Wettstein: Improve path handling.
                 v1.2.0, 2020-03-19, David Wettstein: Implement get account by id.
@@ -77,127 +78,125 @@ param (
     [Switch] $ApproveAllCertificates
 )
 
-if (-not $PSCmdlet.MyInvocation.BoundParameters.ErrorAction) { $ErrorActionPreference = "Stop" }
-if (-not $PSCmdlet.MyInvocation.BoundParameters.WarningAction) { $WarningPreference = "SilentlyContinue" }
-# Use comma as output field separator (special variable $OFS).
-$private:OFS = ","
+begin {
+    if (-not $PSCmdlet.MyInvocation.BoundParameters.ErrorAction) { $ErrorActionPreference = "Stop" }
+    if (-not $PSCmdlet.MyInvocation.BoundParameters.WarningAction) { $WarningPreference = "SilentlyContinue" }
+    # Use comma as output field separator (special variable $OFS).
+    $private:OFS = ","
 
-#===============================================================================
-# Initialization and Functions
-#===============================================================================
-# Make sure the necessary modules are loaded.
-$Modules = @()
-$LoadedModules = Get-Module; $Modules | ForEach-Object {
-    if ($_ -notin $LoadedModules.Name) { Import-Module $_ -DisableNameChecking }
-}
+    $StartDate = [DateTime]::Now
+    $ExitCode = 0
 
-$StartDate = [DateTime]::Now
-
-[String] $FILE_NAME = $MyInvocation.MyCommand.Name
-if ($PSVersionTable.PSVersion.Major -lt 3 -or [String]::IsNullOrEmpty($PSScriptRoot)) {
-    # Join-Path with empty child path is used to append a path separator.
-    [String] $FILE_DIR = Join-Path (Split-Path -Parent $MyInvocation.MyCommand.Definition) ""
-} else {
-    [String] $FILE_DIR = Join-Path $PSScriptRoot ""
-}
-if ($MyInvocation.MyCommand.Module) {
-    $FILE_DIR = ""  # If this script is part of a module, we want to call module functions not files.
-}
-
-$ExitCode = 0
-$ErrorOut = ""
-$ScriptOut = ""
-
-Write-Verbose "$($FILE_NAME): CALL."
-
-#===============================================================================
-# Main
-#===============================================================================
-#trap { Write-Error $_; exit 1; break; }
-
-try {
-    $Safe = & "${FILE_DIR}Sync-CyberArkVariableCache" "Safe" $Safe
-
-    if (-not [String]::IsNullOrEmpty($Account)) {
-        if ($Account.GetType() -eq [String]) {
-            $AccountId = $Account
-        } else {
-            $AccountId = $Account.id
-        }
-        $Endpoint = "/PasswordVault/api/Accounts/$AccountId"
-        $Response = & "${FILE_DIR}Invoke-CyberArkRequest" -Server $Server -Method "GET" -Endpoint $Endpoint -AuthorizationToken $AuthorizationToken -ApproveAllCertificates:$ApproveAllCertificates
-        Write-Verbose "Account $AccountId successfully found: $($Response.StatusCode)"
-        $ResponseObj = ConvertFrom-Json $Response.Content
-        $Accounts = @()
-        $Accounts += $ResponseObj
+    [String] $FILE_NAME = $MyInvocation.MyCommand.Name
+    if ($PSVersionTable.PSVersion.Major -lt 3 -or [String]::IsNullOrEmpty($PSScriptRoot)) {
+        # Join-Path with empty child path is used to append a path separator.
+        [String] $FILE_DIR = Join-Path (Split-Path -Parent $MyInvocation.MyCommand.Definition) ""
     } else {
-        if ([String]::IsNullOrEmpty($Query)) {
-            throw "One of parameter Query or Account is mandatory!"
-        }
-        Add-Type -AssemblyName System.Web
-        $EncodedQuery = [System.Web.HttpUtility]::UrlEncode($Query)
-        $QueryEndpoint = "/PasswordVault/api/Accounts?search=$EncodedQuery"
-        if (-not [String]::IsNullOrEmpty($Safe)) {
-            $EncodedSafe = [System.Web.HttpUtility]::UrlEncode("safename eq $Safe")
-            $QueryEndpoint += "&filter=$EncodedSafe"
-        }
-        $Response = & "${FILE_DIR}Invoke-CyberArkRequest" -Server $Server -Method "GET" -Endpoint $QueryEndpoint -AuthorizationToken $AuthorizationToken -ApproveAllCertificates:$ApproveAllCertificates
-        $ResponseObj = ConvertFrom-Json $Response.Content
-        Write-Verbose "Found $($ResponseObj.count) account(s) matching the query '$Query'."
-        $Accounts = $ResponseObj.value
+        [String] $FILE_DIR = Join-Path $PSScriptRoot ""
+    }
+    if ($MyInvocation.MyCommand.Module) {
+        $FILE_DIR = ""  # If this script is part of a module, we want to call module functions not files.
     }
 
-    foreach ($Account in $Accounts) {
-        $RetrieveEndpoint = "/PasswordVault/api/Accounts/$($Account.id)/Password/Retrieve"
-        $RetrieveResponse = & "${FILE_DIR}Invoke-CyberArkRequest" -Server $Server -Method "POST" -Endpoint $RetrieveEndpoint -AuthorizationToken $AuthorizationToken -ApproveAllCertificates:$ApproveAllCertificates
-        $Password = $RetrieveResponse.Content.Trim('"')
+    Write-Verbose "$($FILE_NAME): CALL."
 
-        if ($AsPlainText) {
-            Add-Member -InputObject $Account -MemberType NoteProperty -Name "secretValue" -Value $Password -Force
-        } else {
-            if (-not [String]::IsNullOrEmpty($Password)) {
-                $PasswordSecureString = ConvertTo-SecureString -AsPlainText -Force $Password
+    # Make sure the necessary modules are loaded.
+    $Modules = @()
+    $LoadedModules = Get-Module; $Modules | ForEach-Object {
+        if ($_ -notin $LoadedModules.Name) { Import-Module $_ -DisableNameChecking }
+    }
+}
+
+process {
+    #trap { Write-Error "$($_.Exception)"; $ExitCode = 1; break; }
+    $ScriptOut = ""
+    $ErrorOut = ""
+
+    try {
+        $Safe = & "${FILE_DIR}Sync-CyberArkVariableCache" "Safe" $Safe
+
+        if (-not [String]::IsNullOrEmpty($Account)) {
+            if ($Account.GetType() -eq [String]) {
+                $AccountId = $Account
+            } else {
+                $AccountId = $Account.id
             }
-            Add-Member -InputObject $Account -MemberType NoteProperty -Name "secretValue" -Value (ConvertFrom-SecureString $PasswordSecureString) -Force
+            $Endpoint = "/PasswordVault/api/Accounts/$AccountId"
+            $Response = & "${FILE_DIR}Invoke-CyberArkRequest" -Server $Server -Method "GET" -Endpoint $Endpoint -AuthorizationToken $AuthorizationToken -ApproveAllCertificates:$ApproveAllCertificates
+            Write-Verbose "Account $AccountId successfully found: $($Response.StatusCode)"
+            $ResponseObj = ConvertFrom-Json $Response.Content
+            $Accounts = @()
+            $Accounts += $ResponseObj
+        } else {
+            if ([String]::IsNullOrEmpty($Query)) {
+                throw "One of parameter Query or Account is mandatory!"
+            }
+            Add-Type -AssemblyName System.Web
+            $EncodedQuery = [System.Web.HttpUtility]::UrlEncode($Query)
+            $QueryEndpoint = "/PasswordVault/api/Accounts?search=$EncodedQuery"
+            if (-not [String]::IsNullOrEmpty($Safe)) {
+                $EncodedSafe = [System.Web.HttpUtility]::UrlEncode("safename eq $Safe")
+                $QueryEndpoint += "&filter=$EncodedSafe"
+            }
+            $Response = & "${FILE_DIR}Invoke-CyberArkRequest" -Server $Server -Method "GET" -Endpoint $QueryEndpoint -AuthorizationToken $AuthorizationToken -ApproveAllCertificates:$ApproveAllCertificates
+            $ResponseObj = ConvertFrom-Json $Response.Content
+            Write-Verbose "Found $($ResponseObj.count) account(s) matching the query '$Query'."
+            $Accounts = $ResponseObj.value
         }
-    }
 
-    if ($AsJson) {
-        # Return the result object as a JSON string. The parameter depth is needed to convert all child objects.
-        $OutputJson = ConvertTo-Json $Accounts -Depth 10 -Compress
-        # Replace Unicode chars with UTF8
-        $ScriptOut = [Regex]::Unescape($OutputJson)
-    } else {
-        if ($AsCredential) {
-            $ScriptOut = @()
-            foreach ($Account in $Accounts) {
-                try {
-                    $PasswordSecureString = ConvertTo-SecureString -String $Account.secretValue
-                } catch [System.FormatException] {
-                    # Password was likely given as plain text, convert it to SecureString.
-                    $PasswordSecureString = ConvertTo-SecureString -AsPlainText -Force $Account.secretValue
+        foreach ($Account in $Accounts) {
+            $RetrieveEndpoint = "/PasswordVault/api/Accounts/$($Account.id)/Password/Retrieve"
+            $RetrieveResponse = & "${FILE_DIR}Invoke-CyberArkRequest" -Server $Server -Method "POST" -Endpoint $RetrieveEndpoint -AuthorizationToken $AuthorizationToken -ApproveAllCertificates:$ApproveAllCertificates
+            $Password = $RetrieveResponse.Content.Trim('"')
+
+            if ($AsPlainText) {
+                Add-Member -InputObject $Account -MemberType NoteProperty -Name "secretValue" -Value $Password -Force
+            } else {
+                if (-not [String]::IsNullOrEmpty($Password)) {
+                    $PasswordSecureString = ConvertTo-SecureString -AsPlainText -Force $Password
                 }
-                $Cred = New-Object System.Management.Automation.PSCredential ($Account.userName, $PasswordSecureString)
-                $ScriptOut += $Cred
+                Add-Member -InputObject $Account -MemberType NoteProperty -Name "secretValue" -Value (ConvertFrom-SecureString $PasswordSecureString) -Force
             }
+        }
+
+        if ($AsJson) {
+            # Return the result object as a JSON string. The parameter depth is needed to convert all child objects.
+            $OutputJson = ConvertTo-Json $Accounts -Depth 10 -Compress
+            # Replace Unicode chars with UTF8
+            $ScriptOut = [Regex]::Unescape($OutputJson)
         } else {
-            $ScriptOut = $Accounts
+            if ($AsCredential) {
+                $ScriptOut = @()
+                foreach ($Account in $Accounts) {
+                    try {
+                        $PasswordSecureString = ConvertTo-SecureString -String $Account.secretValue
+                    } catch [System.FormatException] {
+                        # Password was likely given as plain text, convert it to SecureString.
+                        $PasswordSecureString = ConvertTo-SecureString -AsPlainText -Force $Account.secretValue
+                    }
+                    $Cred = New-Object System.Management.Automation.PSCredential ($Account.userName, $PasswordSecureString)
+                    $ScriptOut += $Cred
+                }
+            } else {
+                $ScriptOut = $Accounts
+            }
+        }
+    } catch {
+        # Error in $_ or $Error[0] variable.
+        Write-Warning "Exception occurred at $($_.InvocationInfo.ScriptName):$($_.InvocationInfo.ScriptLineNumber)`n$($_.Exception)" -WarningAction Continue
+        $Ex = $_.Exception; while ($Ex.InnerException) { $Ex = $Ex.InnerException }
+        $ErrorOut = "$($Ex.Message)"
+        $ExitCode = 1
+    } finally {
+        if ([String]::IsNullOrEmpty($ErrorOut)) {
+            $ScriptOut  # Write ScriptOut to output stream.
+        } else {
+            Write-Error "$ErrorOut"  # Use Write-Error only here.
         }
     }
-} catch {
-    # Error in $_ or $Error[0] variable.
-    Write-Warning "Exception occurred at $($_.InvocationInfo.ScriptName):$($_.InvocationInfo.ScriptLineNumber)`n$($_.Exception)" -WarningAction Continue
-    $Ex = $_.Exception
-    while ($Ex.InnerException) { $Ex = $Ex.InnerException }
-    $ErrorOut = "$($Ex.Message)"
-    $ExitCode = 1
-} finally {
-    Write-Verbose ("$($FILE_NAME): ExitCode: {0}. Execution time: {1} ms. Started: {2}." -f $ExitCode, ([DateTime]::Now - $StartDate).TotalMilliseconds, $StartDate.ToString('yyyy-MM-dd HH:mm:ss.fffzzz'))
+}
 
-    if ($ExitCode -eq 0) {
-        $ScriptOut  # Write ScriptOut to output stream.
-    } else {
-        Write-Error "$ErrorOut"  # Use Write-Error only here.
-    }
+end {
+    Write-Verbose "$($FILE_NAME): ExitCode: $ExitCode. Execution time: $(([DateTime]::Now - $StartDate).TotalMilliseconds) ms. Started: $($StartDate.ToString('yyyy-MM-dd HH:mm:ss.fffzzz'))."
     # exit $ExitCode
 }

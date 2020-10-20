@@ -63,9 +63,10 @@
 
     File-Name:  Invoke-Terraform.ps1
     Author:     David Wettstein
-    Version:    v1.0.2
+    Version:    v1.0.3
 
     Changelog:
+                v1.0.3, 2020-10-20, David Wettstein: Add function blocks.
                 v1.0.2, 2020-05-17, David Wettstein: Improve command execution.
                 v1.0.1, 2020-04-09, David Wettstein: Improve path handling.
                 v1.0.0, 2020-03-21, David Wettstein: Refactor and improve credential handling.
@@ -152,152 +153,156 @@ param (
     [Switch] $Unsafe
 )
 
-if (-not $PSCmdlet.MyInvocation.BoundParameters.ErrorAction) { $ErrorActionPreference = "Stop" }
-if (-not $PSCmdlet.MyInvocation.BoundParameters.WarningAction) { $WarningPreference = "SilentlyContinue" }
-# Use comma as output field separator (special variable $OFS).
-$private:OFS = ","
+begin {
+    if (-not $PSCmdlet.MyInvocation.BoundParameters.ErrorAction) { $ErrorActionPreference = "Stop" }
+    if (-not $PSCmdlet.MyInvocation.BoundParameters.WarningAction) { $WarningPreference = "SilentlyContinue" }
+    # Use comma as output field separator (special variable $OFS).
+    $private:OFS = ","
 
-#===============================================================================
-# Initialization and Functions
-#===============================================================================
-# Make sure the necessary modules are loaded.
-$Modules = @()
-$LoadedModules = Get-Module; $Modules | ForEach-Object {
-    if ($_ -notin $LoadedModules.Name) { Import-Module $_ -DisableNameChecking }
-}
+    $StartDate = [DateTime]::Now
+    $ExitCode = 0
 
-$StartDate = [DateTime]::Now
-
-[String] $FILE_NAME = $MyInvocation.MyCommand.Name
-if ($PSVersionTable.PSVersion.Major -lt 3 -or [String]::IsNullOrEmpty($PSScriptRoot)) {
-    # Join-Path with empty child path is used to append a path separator.
-    [String] $FILE_DIR = Join-Path (Split-Path -Parent $MyInvocation.MyCommand.Definition) ""
-} else {
-    [String] $FILE_DIR = Join-Path $PSScriptRoot ""
-}
-# if ($MyInvocation.MyCommand.Module) {
-#     $FILE_DIR = ""  # If this script is part of a module, we want to call module functions not files.
-# }
-
-$ExitCode = 0
-$ErrorOut = ""
-# $ScriptOut = ""
-
-Write-Verbose "$($FILE_NAME): CALL."
-
-$CurrentLocation = Get-Location
-$CurrentTfVarUsername = [System.Environment]::GetEnvironmentVariable("TF_VAR_username")
-$CurrentTfVarPassword = [System.Environment]::GetEnvironmentVariable("TF_VAR_password")
-
-#===============================================================================
-# Main
-#===============================================================================
-#trap { Write-Error $_; exit 1; break; }
-
-try {
-    if ($CredAsCliArgs) {
-        if (-not [String]::IsNullOrEmpty($env:TF_LOG) -or -not [String]::IsNullOrEmpty($env:TF_LOG_PATH)) {
-            $Message = "ATTENTION: Environment variable(s) TF_LOG: '${env:TF_LOG}' and/or TF_LOG_PATH: '${env:TF_LOG_PATH}' are set. Your credentials might be exposed and logged to a file. Use the param -Unsafe to proceed anyway."
-            Write-Verbose $Message
-            if (-not $Unsafe) {
-                throw "$Message"
-            }
-        }
-    }
-
-    # Terraform just executes the `.tf` or `.tf.json` config file in the current dir.
-    if (-not [String]::IsNullOrEmpty($ConfigDir)) {
-        $null = Set-Location "$ConfigDir"
-    }
-
-    if (-not [String]::IsNullOrEmpty($BinaryDir)) {
-        if (-not (Test-Path $BinaryDir)) {
-            throw "Path $BinaryDir not found."
-        }
-        $BinaryDir = Join-Path -Path $BinaryDir -ChildPath ""
-    }
-
-    $Arguments = "$Action"
-    if (-not [String]::IsNullOrEmpty($Args)) {
-        $Arguments += " $Args"
-    }
-
-    if ($Action -eq "init") {
-        if (-not [String]::IsNullOrEmpty($BinaryDir)) {
-            # The plugin cache dir can also be specified with the `TF_PLUGIN_CACHE_DIR` environment variable.
-            # export TF_PLUGIN_CACHE_DIR="$HOME/.terraform.d/plugin-cache"
-            $Arguments += " -plugin-dir='${BinaryDir}plugin-cache'"
-        }
-    } elseif ($Action -eq "state") {
-        # Advanced (local) state management. No additional args needed.
+    [String] $FILE_NAME = $MyInvocation.MyCommand.Name
+    if ($PSVersionTable.PSVersion.Major -lt 3 -or [String]::IsNullOrEmpty($PSScriptRoot)) {
+        # Join-Path with empty child path is used to append a path separator.
+        [String] $FILE_DIR = Join-Path (Split-Path -Parent $MyInvocation.MyCommand.Definition) ""
     } else {
-        # Add Terraform input variables.
-        $Arguments += " -var 'server=$Server'"
-        if ($PSCmdlet.MyInvocation.BoundParameters.ApproveAllCertificates) {
-            $Arguments += " -var 'allow_unverified_ssl=$("$ApproveAllCertificates".ToLower())'"
-        }
+        [String] $FILE_DIR = Join-Path $PSScriptRoot ""
+    }
+    # if ($MyInvocation.MyCommand.Module) {
+    #     $FILE_DIR = ""  # If this script is part of a module, we want to call module functions not files.
+    # }
 
-        # Get credentials.
-        if (-not [String]::IsNullOrEmpty($env:TF_VAR_username) -and -not [String]::IsNullOrEmpty($env:TF_VAR_password)) {
-            # 1. Try with username and password from TF_ENV_ if available.
-            try {
-                $PasswordSecureString = ConvertTo-SecureString -String $env:TF_VAR_password
-            } catch {
-                # Password was likely given as plain text, convert it to SecureString.
-                $PasswordSecureString = ConvertTo-SecureString -AsPlainText -Force $env:TF_VAR_password
-            }
-            $Cred = New-Object System.Management.Automation.PSCredential ($env:TF_VAR_username, $PasswordSecureString)
-        } else {
-            $Cred = & "${FILE_DIR}Get-TerraformPSCredential" -Server $Server -Username $Username -Password $Password -Interactive:$Interactive -PswdDir $PswdDir -ErrorAction:Stop
-        }
+    Write-Verbose "$($FILE_NAME): CALL."
 
-        # Hand them over to Terraform, either as session ENV or CLI var.
+    # Make sure the necessary modules are loaded.
+    $Modules = @()
+    $LoadedModules = Get-Module; $Modules | ForEach-Object {
+        if ($_ -notin $LoadedModules.Name) { Import-Module $_ -DisableNameChecking }
+    }
+
+    $CurrentLocation = Get-Location
+    $CurrentTfVarUsername = [System.Environment]::GetEnvironmentVariable("TF_VAR_username")
+    $CurrentTfVarPassword = [System.Environment]::GetEnvironmentVariable("TF_VAR_password")
+}
+
+process {
+    #trap { Write-Error "$($_.Exception)"; $ExitCode = 1; break; }
+    # $ScriptOut = ""
+    $ErrorOut = ""
+
+    try {
         if ($CredAsCliArgs) {
-            $Arguments += " -var 'username=$($Cred.UserName)'"
-            $Arguments += " -var 'password=$($Cred.GetNetworkCredential().Password)'"
+            if (-not [String]::IsNullOrEmpty($env:TF_LOG) -or -not [String]::IsNullOrEmpty($env:TF_LOG_PATH)) {
+                $Message = "ATTENTION: Environment variable(s) TF_LOG: '${env:TF_LOG}' and/or TF_LOG_PATH: '${env:TF_LOG_PATH}' are set. Your credentials might be exposed and logged to a file. Use the param -Unsafe to proceed anyway."
+                Write-Verbose $Message
+                if (-not $Unsafe) {
+                    throw "$Message"
+                }
+            }
+        }
+
+        # Terraform just executes the `.tf` or `.tf.json` config file in the current dir.
+        if (-not [String]::IsNullOrEmpty($ConfigDir)) {
+            $null = Set-Location "$ConfigDir"
+        }
+
+        if (-not [String]::IsNullOrEmpty($BinaryDir)) {
+            if (-not (Test-Path $BinaryDir)) {
+                throw "Path $BinaryDir not found."
+            }
+            $BinaryDir = Join-Path -Path $BinaryDir -ChildPath ""
+        }
+
+        $Arguments = "$Action"
+        if (-not [String]::IsNullOrEmpty($Args)) {
+            $Arguments += " $Args"
+        }
+
+        if ($Action -eq "init") {
+            if (-not [String]::IsNullOrEmpty($BinaryDir)) {
+                # The plugin cache dir can also be specified with the `TF_PLUGIN_CACHE_DIR` environment variable.
+                # export TF_PLUGIN_CACHE_DIR="$HOME/.terraform.d/plugin-cache"
+                $Arguments += " -plugin-dir='${BinaryDir}plugin-cache'"
+            }
+        } elseif ($Action -eq "state") {
+            # Advanced (local) state management. No additional args needed.
         } else {
-            $env:TF_VAR_username = $Cred.UserName
-            $env:TF_VAR_password = $Cred.GetNetworkCredential().Password
+            # Add Terraform input variables.
+            $Arguments += " -var 'server=$Server'"
+            if ($PSCmdlet.MyInvocation.BoundParameters.ApproveAllCertificates) {
+                $Arguments += " -var 'allow_unverified_ssl=$("$ApproveAllCertificates".ToLower())'"
+            }
+
+            # Get credentials.
+            if (-not [String]::IsNullOrEmpty($env:TF_VAR_username) -and -not [String]::IsNullOrEmpty($env:TF_VAR_password)) {
+                # 1. Try with username and password from TF_ENV_ if available.
+                try {
+                    $PasswordSecureString = ConvertTo-SecureString -String $env:TF_VAR_password
+                } catch {
+                    # Password was likely given as plain text, convert it to SecureString.
+                    $PasswordSecureString = ConvertTo-SecureString -AsPlainText -Force $env:TF_VAR_password
+                }
+                $Cred = New-Object System.Management.Automation.PSCredential ($env:TF_VAR_username, $PasswordSecureString)
+            } else {
+                $Cred = & "${FILE_DIR}Get-TerraformPSCredential" -Server $Server -Username $Username -Password $Password -Interactive:$Interactive -PswdDir $PswdDir -ErrorAction:Stop
+            }
+
+            # Hand them over to Terraform, either as session ENV or CLI var.
+            if ($CredAsCliArgs) {
+                $Arguments += " -var 'username=$($Cred.UserName)'"
+                $Arguments += " -var 'password=$($Cred.GetNetworkCredential().Password)'"
+            } else {
+                $env:TF_VAR_username = $Cred.UserName
+                $env:TF_VAR_password = $Cred.GetNetworkCredential().Password
+            }
+
+            # Add other input variables.
+            $Vars = ConvertFrom-Json $VarsJson
+            foreach ($Var in (Get-Member -MemberType NoteProperty -InputObject $Vars)) {
+                $VarName = $Var.Name
+                $VarValue = $Vars."$VarName"
+                $Arguments += " -var '$VarName=$VarValue'"
+            }
+
+            if ($AutoApprove -and ($Action -eq "apply" -or $Action -eq "destroy")) {
+                $Arguments += " -auto-approve"
+            }
+
+            if ($NoRefresh) {
+                $Arguments += " -refresh=false"
+            }
+
+            foreach ($Target in $Targets) {
+                $Arguments += " -target=$Target"
+            }
         }
 
-        # Add other input variables.
-        $Vars = ConvertFrom-Json $VarsJson
-        foreach ($Var in (Get-Member -MemberType NoteProperty -InputObject $Vars)) {
-            $VarName = $Var.Name
-            $VarValue = $Vars."$VarName"
-            $Arguments += " -var '$VarName=$VarValue'"
+        if ($Action -eq "state") {
+            # Advanced (local) state management. Execute TF for each given target.
+            foreach ($Target in $Targets) {
+                Invoke-Expression -Command "${BinaryDir}terraform.exe $Arguments $Target"
+            }
+        } else  {
+            # & "${BinaryDir}terraform.exe" @Arguments
+            Invoke-Expression -Command "${BinaryDir}terraform.exe $Arguments"
         }
-
-        if ($AutoApprove -and ($Action -eq "apply" -or $Action -eq "destroy")) {
-            $Arguments += " -auto-approve"
-        }
-
-        if ($NoRefresh) {
-            $Arguments += " -refresh=false"
-        }
-
-        foreach ($Target in $Targets) {
-            $Arguments += " -target=$Target"
+    } catch {
+        # Error in $_ or $Error[0] variable.
+        Write-Warning "Exception occurred at $($_.InvocationInfo.ScriptName):$($_.InvocationInfo.ScriptLineNumber)`n$($_.Exception)" -WarningAction Continue
+        $Ex = $_.Exception; while ($Ex.InnerException) { $Ex = $Ex.InnerException }
+        $ErrorOut = "$($Ex.Message)"
+        $ExitCode = 1
+    } finally {
+        if ([String]::IsNullOrEmpty($ErrorOut)) {
+            # $ScriptOut  # Write ScriptOut to output stream.
+        } else {
+            Write-Error "$ErrorOut"  # Use Write-Error only here.
         }
     }
+}
 
-    if ($Action -eq "state") {
-        # Advanced (local) state management. Execute TF for each given target.
-        foreach ($Target in $Targets) {
-            Invoke-Expression -Command "${BinaryDir}terraform.exe $Arguments $Target"
-        }
-    } else  {
-        # & "${BinaryDir}terraform.exe" @Arguments
-        Invoke-Expression -Command "${BinaryDir}terraform.exe $Arguments"
-    }
-} catch {
-    # Error in $_ or $Error[0] variable.
-    Write-Warning "Exception occurred at $($_.InvocationInfo.ScriptName):$($_.InvocationInfo.ScriptLineNumber)`n$($_.Exception)" -WarningAction Continue
-    $Ex = $_.Exception
-    while ($Ex.InnerException) { $Ex = $Ex.InnerException }
-    $ErrorOut = "$($Ex.Message)"
-    $ExitCode = 1
-} finally {
+end {
     # Reset session
     $env:TF_VAR_username = $CurrentTfVarUsername
     $env:TF_VAR_password = $CurrentTfVarPassword
@@ -305,12 +310,6 @@ try {
         $null = Set-Location $CurrentLocation
     }
 
-    Write-Verbose ("$($FILE_NAME): ExitCode: {0}. Execution time: {1} ms. Started: {2}." -f $ExitCode, ([DateTime]::Now - $StartDate).TotalMilliseconds, $StartDate.ToString('yyyy-MM-dd HH:mm:ss.fffzzz'))
-
-    if ($ExitCode -eq 0) {
-        # $ScriptOut  # Write ScriptOut to output stream.
-    } else {
-        Write-Error "$ErrorOut"  # Use Write-Error only here.
-    }
+    Write-Verbose "$($FILE_NAME): ExitCode: $ExitCode. Execution time: $(([DateTime]::Now - $StartDate).TotalMilliseconds) ms. Started: $($StartDate.ToString('yyyy-MM-dd HH:mm:ss.fffzzz'))."
     # exit $ExitCode
 }
