@@ -36,7 +36,7 @@ param (
     [String] $EdgeId
     ,
     [Parameter(Mandatory = $true, Position = 1)]
-    [ValidatePattern("^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$")]
+    [ValidatePattern("^(?:[a-fA-F0-9]{2}([-:]))(?:[a-fA-F0-9]{2}\1){4}[a-fA-F0-9]{2}$")]
     [String] $MacAddress
     ,
     [Parameter(Mandatory = $true, Position = 2)]
