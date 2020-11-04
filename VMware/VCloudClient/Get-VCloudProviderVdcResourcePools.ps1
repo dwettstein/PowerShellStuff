@@ -29,7 +29,7 @@
 [OutputType([PSObject])]
 param (
     [Parameter(Mandatory = $true, ValueFromPipeline = $true, Position = 0)]
-    [ValidatePattern('.*[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}.*')]
+    [ValidatePattern(".*[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}.*")]
     [String] $ProviderVdc = $null
     ,
     [Parameter(Mandatory = $false, Position = 1)]

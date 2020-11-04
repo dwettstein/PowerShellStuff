@@ -70,7 +70,7 @@ process {
     $ErrorOut = ""
 
     try {
-        $AllModulesPath = $env:PSModulePath -split ';'
+        $AllModulesPath = $env:PSModulePath -split ";"
 
         if (& "${FILE_DIR}Utils\Test-Administrator") {
             Write-Verbose "PowerShell sessions has elevated permissions."

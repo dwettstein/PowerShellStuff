@@ -69,7 +69,7 @@ foreach ($Item in $ChildItems) {
 # NOTE: $MyInvocation.MyCommand.Module.PrivateData is not yet accessible here.
 # See also: https://stackoverflow.com/questions/22269275/accessing-privatedata-during-import-module
 [String] $ModuleName = (Get-Item $PSCommandPath).BaseName
-[String] $ModuleConfigVariableName = $ModuleName.Replace('.', '_')
+[String] $ModuleConfigVariableName = $ModuleName.Replace(".", "_")
 [String] $ModuleConfigPath = Join-Path -Path $FILE_DIR -ChildPath "$ModuleName.xml"
 
 if (-not (Test-Path Variable:\$($ModuleConfigVariableName))) {  # Don't overwrite the variable if it already exists.

@@ -122,7 +122,7 @@ public class ServerCertificate {
     }
 }
 '@
-        if (-not ([System.Management.Automation.PSTypeName]'ServerCertificate').Type) {
+        if (-not ([System.Management.Automation.PSTypeName]"ServerCertificate").Type) {
             Add-Type -TypeDefinition $CSSource
         }
         # Ignore self-signed SSL certificates.
@@ -130,7 +130,7 @@ public class ServerCertificate {
         # Disable certificate revocation check.
         [System.Net.ServicePointManager]::CheckCertificateRevocationList = $false;
         # Allow all security protocols.
-        [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]'Ssl3,Tls,Tls11,Tls12'
+        [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]"Ssl3,Tls,Tls11,Tls12"
     }
 }
 

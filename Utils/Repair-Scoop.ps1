@@ -107,7 +107,7 @@ process {
 
     try {
         if ($Install -and [String]::IsNullOrEmpty($UnzipFromPath)) {
-            Invoke-Expression (New-Object System.Net.WebClient).DownloadString('https://get.scoop.sh')
+            Invoke-Expression (New-Object System.Net.WebClient).DownloadString("https://get.scoop.sh")
         }
 
         if (-not [String]::IsNullOrEmpty($UnzipFromPath)) {

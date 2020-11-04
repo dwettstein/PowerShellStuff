@@ -42,7 +42,7 @@ param (
     [String] $Server
     ,
     [Parameter(Mandatory = $false, Position = 2)]
-    [ValidateSet('GET', 'POST', 'PUT', 'PATCH', 'UPDATE', 'DELETE')]
+    [ValidateSet("GET", "POST", "PUT", "PATCH", "UPDATE", "DELETE")]
     [String] $Method = "GET"
     ,
     [Parameter(Mandatory = $false, Position = 3)]
@@ -50,7 +50,7 @@ param (
     [String] $Body = $null
     ,
     [Parameter(Mandatory = $false, Position = 4)]
-    [ValidateSet('application/*', 'application/json', 'application/xml', 'application/*+xml', 'application/x-www-form-urlencoded', 'multipart/form-data', 'text/plain', 'text/xml', IgnoreCase = $false)]
+    [ValidateSet("application/*", "application/json", "application/xml", "application/*+xml", "application/x-www-form-urlencoded", "multipart/form-data", "text/plain", "text/xml", IgnoreCase = $false)]
     [String] $MediaType = "application/json"
     ,
     [Parameter(Mandatory = $false, Position = 5)]
@@ -61,7 +61,7 @@ param (
     [String] $AuthorizationToken = $null  # secure string or plain text (not recommended)
     ,
     [Parameter(Mandatory = $false, Position = 7)]
-    [ValidateSet('http', 'https', IgnoreCase = $false)]
+    [ValidateSet("http", "https", IgnoreCase = $false)]
     [String] $Protocol = "https"
     ,
     [Parameter(Mandatory = $false, Position = 8)]

@@ -34,11 +34,11 @@
 [OutputType([Hashtable])]
 param (
     [Parameter(Mandatory = $true, ValueFromPipeline = $true, Position = 0)]
-    [ValidatePattern('^(http[s]?)(:\/\/)([\S]+)$')]
+    [ValidatePattern("^(http[s]?)(:\/\/)([\S]+)$")]
     [String] $Uri
     ,
     [Parameter(Mandatory = $false, Position = 1)]
-    [ValidateSet('GET', 'POST', 'PUT', 'PATCH', 'UPDATE', 'DELETE', IgnoreCase = $true)]  # See also -Method here: https://technet.microsoft.com/en-us/library/hh849901%28v=wps.620%29.aspx
+    [ValidateSet("GET", "POST", "PUT", "PATCH", "UPDATE", "DELETE", IgnoreCase = $true)]  # See also -Method here: https://technet.microsoft.com/en-us/library/hh849901%28v=wps.620%29.aspx
     [String] $Method = "GET"
     ,
     [Parameter(Mandatory = $false, Position = 2)]
@@ -116,7 +116,7 @@ public class ServerCertificate {
     }
 }
 '@
-        if (-not ([System.Management.Automation.PSTypeName]'ServerCertificate').Type) {
+        if (-not ([System.Management.Automation.PSTypeName]"ServerCertificate").Type) {
             Add-Type -TypeDefinition $CSSource
         }
         # Ignore self-signed SSL certificates.
@@ -124,7 +124,7 @@ public class ServerCertificate {
         # Disable certificate revocation check.
         [System.Net.ServicePointManager]::CheckCertificateRevocationList = $false;
         # Allow all security protocols.
-        [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]'Ssl3,Tls,Tls11,Tls12'
+        [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]"Ssl3,Tls,Tls11,Tls12"
     }
 }
 

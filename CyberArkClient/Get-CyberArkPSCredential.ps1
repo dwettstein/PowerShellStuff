@@ -41,10 +41,10 @@
     https://github.com/dwettstein/PowerShellStuff
 
 .EXAMPLE
-    Get-PSCredential -Server '{{server}}'
+    Get-PSCredential -Server "{{server}}"
 
 .EXAMPLE
-    $Cred = & "$PSScriptRoot\Utils\Get-PSCredential" -Server '{{server}}'
+    $Cred = & "$PSScriptRoot\Utils\Get-PSCredential" -Server "{{server}}"
 #>
 [CmdletBinding()]
 [OutputType([PSCredential])]

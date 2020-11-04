@@ -30,7 +30,7 @@
 param (
     [Parameter(Mandatory = $true, ValueFromPipeline = $true, Position = 0)]
     [ValidateNotNullOrEmpty()]
-    # [ValidatePattern('.*[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}.*')]
+    # [ValidatePattern("[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}")]
     [String] $Param1
     ,
     [Parameter(Mandatory = $false, Position = 1)]

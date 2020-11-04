@@ -103,9 +103,9 @@ process {
             "Microsoft.PowerShell.Utility"
         )
         $AllowedModules += $Modules
-        $Cmdlets = $Command.Split(';').Split('|').Trim()
+        $Cmdlets = $Command.Split(";").Split("|").Trim()
         foreach ($Cmdlet in $Cmdlets) {
-            $Cmdlet = $Cmdlet.Split(' ')[0]
+            $Cmdlet = $Cmdlet.Split(" ")[0]
             $CmdletModule = (Get-Command $Cmdlet).ModuleName
             Write-Verbose "Given cmdlet '$Cmdlet' is from module '$CmdletModule'."
             if (-not $AllowedModules.Contains($CmdletModule)) {

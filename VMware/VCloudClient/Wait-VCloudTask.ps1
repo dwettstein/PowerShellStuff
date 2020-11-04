@@ -29,7 +29,7 @@
 [OutputType([String])]
 param (
     [Parameter(Mandatory=$true, ValueFromPipeline = $true, Position=0)]
-    [ValidatePattern('.*[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}.*')]
+    [ValidatePattern(".*[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}.*")]
     [String] $Task
     ,
     [Parameter(Mandatory=$false, Position=1)]
@@ -83,8 +83,8 @@ process {
     $ScriptOut = ""
     $ErrorOut = ""
 
-    $StatusRunning = @('queued', 'preRunning', 'running')
-    $StatusCompleted = @('success', 'error', 'canceled', 'aborted')
+    $StatusRunning = @("queued", "preRunning", "running")
+    $StatusCompleted = @("success", "error", "canceled", "aborted")
 
     try {
         $TaskId = & "${FILE_DIR}Split-VCloudId" -UrnOrHref $Task
