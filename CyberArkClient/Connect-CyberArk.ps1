@@ -49,7 +49,7 @@
 #>
 [CmdletBinding()]
 [OutputType([String])]
-[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingPlainTextForPassword', 'Password')]
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidUsingPlainTextForPassword", "Password")]
 param (
     [Parameter(Mandatory = $false, ValueFromPipeline = $true, Position = 0)]
     [String] $Server

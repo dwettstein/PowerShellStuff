@@ -93,7 +93,7 @@
 #>
 [CmdletBinding()]
 [OutputType([String])]
-[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingPlainTextForPassword', 'Password')]
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidUsingPlainTextForPassword", "Password")]
 param (
     [Parameter(Mandatory = $true, Position = 0)]
     [ValidateSet("init", "plan", "apply", "refresh", "state", "destroy")]
