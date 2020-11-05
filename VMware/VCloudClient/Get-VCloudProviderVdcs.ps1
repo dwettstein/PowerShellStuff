@@ -29,7 +29,7 @@
 [OutputType([PSObject])]
 param (
     [Parameter(Mandatory = $false, Position = 0)]
-    [Switch] $IncludeResourcePools = $false
+    [Switch] $IncludeResourcePools
     ,
     [Parameter(Mandatory = $false, Position = 1)]
     [String] $Server

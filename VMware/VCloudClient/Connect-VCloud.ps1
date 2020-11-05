@@ -63,7 +63,7 @@ param (
     [String] $AuthorizationHeader = "x-vcloud-authorization"
     ,
     [Parameter(Mandatory = $false, Position = 4)]
-    [Switch] $AsPlainText = $false
+    [Switch] $AsPlainText
     ,
     [Parameter(Mandatory = $false, Position = 5)]
     [ValidateNotNullOrEmpty()]
