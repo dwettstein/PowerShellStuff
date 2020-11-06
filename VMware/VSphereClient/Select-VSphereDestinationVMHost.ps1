@@ -44,6 +44,10 @@ param (
     ,
     [Parameter(Mandatory = $false, Position = 4)]
     [Switch] $Disconnect
+    ,
+    [Parameter(Mandatory = $false, Position = 5)]
+    [Alias("Insecure")]
+    [Switch] $ApproveAllCertificates
 )
 
 begin {

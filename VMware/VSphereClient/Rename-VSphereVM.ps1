@@ -32,6 +32,7 @@ param (
     [String] $Name
     ,
     [Parameter(Mandatory = $true, Position = 1)]
+    [ValidateNotNullOrEmpty()]
     [String] $NewName
     ,
     [Parameter(Mandatory = $false, Position = 2)]
