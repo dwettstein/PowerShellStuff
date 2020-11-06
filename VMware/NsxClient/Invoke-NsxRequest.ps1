@@ -107,7 +107,7 @@ process {
     try {
         $Server = & "${FILE_DIR}Sync-NsxVariableCache" "Server" $Server -IsMandatory
         $AuthorizationToken = & "${FILE_DIR}Sync-NsxVariableCache" "AuthorizationToken" $AuthorizationToken
-        $ApproveAllCertificates = & "${FILE_DIR}Sync-NsxVariableCache" "ApproveAllCertificates" $PSCmdlet.MyInvocation.BoundParameters.ApproveAllCertificates
+        $ApproveAllCertificates = [Boolean] (& "${FILE_DIR}Sync-NsxVariableCache" "ApproveAllCertificates" $PSCmdlet.MyInvocation.BoundParameters.ApproveAllCertificates)
 
         $BaseUrl = "${Protocol}://$Server"
         $EndpointUrl = "${BaseUrl}${Endpoint}"

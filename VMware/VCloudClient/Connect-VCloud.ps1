@@ -66,7 +66,6 @@ param (
     [Switch] $AsPlainText
     ,
     [Parameter(Mandatory = $false, Position = 5)]
-    [ValidateNotNullOrEmpty()]
     [String] $Username = "${env:USERNAME}"  # secure string or plain text (not recommended)
     ,
     [Parameter(Mandatory = $false, Position = 6)]
@@ -141,7 +140,7 @@ process {
 
     try {
         $Server = & "${FILE_DIR}Sync-VCloudVariableCache" "Server" $Server -IsMandatory
-        $ApproveAllCertificates = & "${FILE_DIR}Sync-VCloudVariableCache" "ApproveAllCertificates" $PSCmdlet.MyInvocation.BoundParameters.ApproveAllCertificates
+        $ApproveAllCertificates = [Boolean] (& "${FILE_DIR}Sync-VCloudVariableCache" "ApproveAllCertificates" $PSCmdlet.MyInvocation.BoundParameters.ApproveAllCertificates)
 
         if ($ApproveAllCertificates) {
             Approve-AllCertificates

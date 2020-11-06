@@ -106,7 +106,7 @@ process {
     try {
         $Server = & "${FILE_DIR}Sync-CyberArkVariableCache" "Server" $Server -IsMandatory
         $AuthorizationToken = & "${FILE_DIR}Sync-CyberArkVariableCache" "AuthorizationToken" $AuthorizationToken
-        $ApproveAllCertificates = & "${FILE_DIR}Sync-CyberArkVariableCache" "ApproveAllCertificates" $PSCmdlet.MyInvocation.BoundParameters.ApproveAllCertificates
+        $ApproveAllCertificates = [Boolean] (& "${FILE_DIR}Sync-CyberArkVariableCache" "ApproveAllCertificates" $PSCmdlet.MyInvocation.BoundParameters.ApproveAllCertificates)
 
         $BaseUrl = "${Protocol}://$Server"
         $EndpointUrl = "${BaseUrl}${Endpoint}"

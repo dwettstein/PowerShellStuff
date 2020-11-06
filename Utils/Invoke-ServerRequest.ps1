@@ -106,7 +106,7 @@ process {
     try {
         $Server = & "${FILE_DIR}Sync-VariableCache" "Server" $Server -VariableCachePrefix "Utils" -IsMandatory
         $AuthorizationToken = & "${FILE_DIR}Sync-VariableCache" "AuthorizationToken" $AuthorizationToken -VariableCachePrefix "Utils"
-        $ApproveAllCertificates = & "${FILE_DIR}Sync-VariableCache" "ApproveAllCertificates" $PSCmdlet.MyInvocation.BoundParameters.ApproveAllCertificates -VariableCachePrefix "Utils"
+        $ApproveAllCertificates = [Boolean] (& "${FILE_DIR}Sync-VariableCache" "ApproveAllCertificates" $PSCmdlet.MyInvocation.BoundParameters.ApproveAllCertificates -VariableCachePrefix "Utils")
 
         if ($ApproveAllCertificates) {
             & "${FILE_DIR}Approve-AllCertificates"

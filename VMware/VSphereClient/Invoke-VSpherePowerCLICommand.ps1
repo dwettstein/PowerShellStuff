@@ -95,7 +95,7 @@ process {
     try {
         $Server = & "${FILE_DIR}Sync-VSphereVariableCache" "Server" $Server -IsMandatory
         $VSphereConnection = & "${FILE_DIR}Sync-VSphereVariableCache" "VSphereConnection" $VSphereConnection
-        $ApproveAllCertificates = & "${FILE_DIR}Sync-VSphereVariableCache" "ApproveAllCertificates" $PSCmdlet.MyInvocation.BoundParameters.ApproveAllCertificates
+        $ApproveAllCertificates = [Boolean] (& "${FILE_DIR}Sync-VSphereVariableCache" "ApproveAllCertificates" $PSCmdlet.MyInvocation.BoundParameters.ApproveAllCertificates)
 
         # First check if all given commands are from allowed modules.
         $AllowedModules = @(

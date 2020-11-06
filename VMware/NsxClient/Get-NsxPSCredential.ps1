@@ -55,7 +55,6 @@ param (
     [String] $Server = "${env:USERDOMAIN}"
     ,
     [Parameter(Mandatory = $false, Position = 1)]
-    [ValidateNotNullOrEmpty()]
     [String] $Username = "${env:USERNAME}"  # secure string or plain text (not recommended)
     ,
     [Parameter(Mandatory = $false, Position = 2)]

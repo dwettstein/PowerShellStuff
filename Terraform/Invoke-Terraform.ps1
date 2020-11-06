@@ -129,7 +129,6 @@ param (
     [String] $BinaryDir = "${env:TF_HOME}"  # Dir for Terraform binary and plugins (subfolder `plugin-cache`)
     ,
     [Parameter(Mandatory = $false, Position = 9)]
-    [ValidateNotNullOrEmpty()]
     [String] $Username = "${env:USERNAME}"  # secure string or plain text (not recommended)
     ,
     [Parameter(Mandatory = $false, Position = 10)]

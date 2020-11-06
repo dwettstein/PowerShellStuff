@@ -53,7 +53,6 @@ param (
     [String] $Server
     ,
     [Parameter(Mandatory = $false, Position = 1)]
-    [ValidateNotNullOrEmpty()]
     [String] $Username = "${env:USERNAME}"  # secure string or plain text (not recommended)
     ,
     [Parameter(Mandatory = $false, Position = 2)]
@@ -109,7 +108,7 @@ process {
 
     try {
         $Server = & "${FILE_DIR}Sync-VSphereVariableCache" "Server" $Server -IsMandatory
-        $ApproveAllCertificates = & "${FILE_DIR}Sync-VSphereVariableCache" "ApproveAllCertificates" $PSCmdlet.MyInvocation.BoundParameters.ApproveAllCertificates
+        $ApproveAllCertificates = [Boolean] (& "${FILE_DIR}Sync-VSphereVariableCache" "ApproveAllCertificates" $PSCmdlet.MyInvocation.BoundParameters.ApproveAllCertificates)
 
         if ($ApproveAllCertificates) {
             $null = Set-PowerCLIConfiguration -InvalidCertificateAction "Ignore" -Confirm:$false

@@ -60,7 +60,6 @@ param (
     [Switch] $AsPlainText
     ,
     [Parameter(Mandatory = $false, Position = 3)]
-    [ValidateNotNullOrEmpty()]
     [String] $Username = "${env:USERNAME}"  # secure string or plain text (not recommended)
     ,
     [Parameter(Mandatory = $false, Position = 4)]
@@ -135,7 +134,7 @@ process {
 
     try {
         $Server = & "${FILE_DIR}Sync-NsxVariableCache" "Server" $Server -IsMandatory
-        $ApproveAllCertificates = & "${FILE_DIR}Sync-NsxVariableCache" "ApproveAllCertificates" $PSCmdlet.MyInvocation.BoundParameters.ApproveAllCertificates
+        $ApproveAllCertificates = [Boolean] (& "${FILE_DIR}Sync-NsxVariableCache" "ApproveAllCertificates" $PSCmdlet.MyInvocation.BoundParameters.ApproveAllCertificates)
 
         if ($ApproveAllCertificates) {
             Approve-AllCertificates
