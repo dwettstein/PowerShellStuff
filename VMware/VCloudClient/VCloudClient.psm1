@@ -13,9 +13,10 @@
         7. Delete the temporary file.
 
     Author:     David Wettstein
-    Version:    v1.1.2
+    Version:    v1.1.3
 
     Changelog:
+                v1.1.3, 2020-11-14, David Wettstein: Refactor variables.
                 v1.1.2, 2020-10-19, David Wettstein: Load ps1 files recursively.
                 v1.1.1, 2020-04-09, David Wettstein: Improve path handling.
                 v1.1.0, 2020-04-07, David Wettstein: Load module config from XML file.
@@ -43,26 +44,26 @@ if ($PSVersionTable.PSVersion.Major -lt 3 -or [String]::IsNullOrEmpty($PSScriptR
 }
 
 $ChildItems = Get-ChildItem -Path "${FILE_DIR}" -Recurse -File -Filter "*.ps1"
-
 foreach ($Item in $ChildItems) {
     $FunctionName = [System.IO.Path]::GetFileNameWithoutExtension($Item.FullName)
     if ($FunctionName -like $FILE_NAME) {
         continue
     }
     $ItemContent = Get-Content -Path $Item.FullName
-    $TempFileName = Join-Path -Path $env:TEMP -ChildPath "$FunctionName.tmp.ps1"
-    $TempFileContent = ""
-    $TempFileContent += "function $FunctionName {`n"
-    foreach ($Line in $ItemContent) {
-        $TempFileContent += "$Line`n"
-    }
-    $TempFileContent += "}"
 
-    Set-Content -Encoding UTF8 -Path $TempFileName -Value $TempFileContent
-    . $TempFileName
+    $FileContent = ""
+    $FileContent += "function $FunctionName {`n"
+    foreach ($Line in $ItemContent) {
+        $FileContent += "$Line`n"
+    }
+    $FileContent += "}"
+
+    $FileName = Join-Path -Path $env:TEMP -ChildPath "$FunctionName.ps1"
+    Set-Content -Encoding UTF8 -Path $FileName -Value $FileContent
+    . $FileName  # Dot-source the file to load the function into current scope.
 
     Export-ModuleMember -Function $FunctionName
-    Remove-Item -Path $TempFileName
+    Remove-Item -Path $FileName
 }
 
 # Load module config from an XML file and export it under the same variable name as in PrivateData section of *.psd1 file.
