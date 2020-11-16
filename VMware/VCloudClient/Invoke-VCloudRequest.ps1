@@ -1,11 +1,13 @@
 <#
 .SYNOPSIS
     Wrapper cmdlet for directly invoking any RESTful API request on the given server,
-    using the provided authorization token, e.g. "Basic username:password", or an existing PSCredential for authentication.
+    using the provided authorization token, e.g. "Basic username:password",
+    or an existing PSCredential for authentication.
 
 .DESCRIPTION
     Wrapper cmdlet for directly invoking any RESTful API request on the given server,
-    using the provided authorization token, e.g. "Basic username:password", or an existing PSCredential for authentication.
+    using the provided authorization token, e.g. "Basic username:password",
+    or an existing PSCredential for authentication.
 
     File-Name:  Invoke-ServerRequest.ps1
     Author:     David Wettstein

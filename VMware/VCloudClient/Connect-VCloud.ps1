@@ -1,13 +1,9 @@
 <#
 .SYNOPSIS
-    Login to a vCloud server using the following order and return an authorization token:
-        1. Try with username and password, if provided.
-        2. Try with PSCredential file "$Server-$Username.xml" in given directory (default "$HOME\.pscredentials").
-        3. If interactive, get credentials from user with a prompt.
-        4. If not interactive, try with PSCredential file "$Username.xml".
+    Login to a server and return an authorization token.
 
 .DESCRIPTION
-    Login to a vCloud server using the following order and return an authorization token:
+    Login to a server and return an authorization token using the following procedure:
         1. Try with username and password, if provided.
         2. Try with PSCredential file "$Server-$Username.xml" in given directory (default "$HOME\.pscredentials").
         3. If interactive, get credentials from user with a prompt.

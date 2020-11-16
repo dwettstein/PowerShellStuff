@@ -2,11 +2,6 @@
 .SYNOPSIS
     Save and/or load a variable from/to a global cache variable, available as long as the session exists.
 
-    If the variable is null or empty, the cmdlet tries to get it using the following order:
-        1. Get the variable from VariableCache.
-        2. Get the variable from ModuleConfig, if the cmdlet is part of a module.
-        3. Throw if the variable is mandatory but not found.
-
 .DESCRIPTION
     Save and/or load a variable from/to a global cache variable, available as long as the session exists.
 

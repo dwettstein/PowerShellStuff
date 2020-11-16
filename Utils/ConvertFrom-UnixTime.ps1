@@ -1,9 +1,11 @@
 <#
 .SYNOPSIS
-    Convert the given UnixTime (seconds since 01/01/1970) to a DateTime object by adding the given amount of seconds to a DateTime object refering to the 01/01/1970.
+    Convert the given UnixTime (seconds since 01/01/1970) to a DateTime object
+    by adding the given amount of seconds to a DateTime object refering to the 01/01/1970.
 
 .DESCRIPTION
-    Convert the given UnixTime (seconds since 01/01/1970) to a DateTime object by adding the given amount of seconds to a DateTime object refering to the 01/01/1970.
+    Convert the given UnixTime (seconds since 01/01/1970) to a DateTime object
+    by adding the given amount of seconds to a DateTime object refering to the 01/01/1970.
 
     File-Name:  ConvertFrom-UnixTime.ps1
     Author:     David Wettstein

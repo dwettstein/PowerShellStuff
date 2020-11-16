@@ -1,9 +1,11 @@
 <#
 .SYNOPSIS
-    Wrapper cmdlet for directly invoking any PowerCLI command using the provided credentials, an existing PSCredential or Windows SSPI for authentication.
+    Wrapper cmdlet for directly invoking any PowerCLI command using the
+    provided credentials, an existing PSCredential or Windows SSPI for authentication.
 
 .DESCRIPTION
-    Wrapper cmdlet for directly invoking any PowerCLI command using the provided credentials, an existing PSCredential or Windows SSPI for authentication.
+    Wrapper cmdlet for directly invoking any PowerCLI command using the
+    provided credentials, an existing PSCredential or Windows SSPI for authentication.
 
     File-Name:  Invoke-VSpherePowerCLICommand.ps1
     Author:     David Wettstein

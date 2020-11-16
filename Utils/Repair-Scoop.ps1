@@ -1,15 +1,12 @@
 <#
 .SYNOPSIS
-    Repair an existing scoop installation:
-    - 'current' symlink for scoop itself
-    - Reset all apps (re-creates 'current' symlinks too)
-    - Unzip archive from https://github.com/lukesampson/scoop
+    Repair an existing scoop installation.
 
 .DESCRIPTION
     Repair an existing scoop installation:
-    - 'current' symlink for scoop itself
-    - Reset all apps (re-creates 'current' symlinks too)
-    - Unzip archive from https://github.com/lukesampson/scoop
+        - 'current' symlink for scoop itself
+        - Reset all apps (re-creates 'current' symlinks too)
+        - Unzip archive from https://github.com/lukesampson/scoop
 
     File-Name:  Repair-Scoop.ps1
     Author:     David Wettstein

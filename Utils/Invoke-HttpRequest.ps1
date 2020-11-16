@@ -1,9 +1,11 @@
 <#
 .SYNOPSIS
-    Invoke a Net.HttpWebRequest with given parameters. Returns a hashtable with keys "StatusCode", "Headers", "Response".
+    Invoke a Net.HttpWebRequest with given parameters.
+    Returns a hashtable with keys "StatusCode", "Headers", "Response".
 
 .DESCRIPTION
-    Invoke a Net.HttpWebRequest with given parameters. Returns a hashtable with keys "StatusCode", "Headers", "Response".
+    Invoke a Net.HttpWebRequest with given parameters.
+    Returns a hashtable with keys "StatusCode", "Headers", "Response".
 
     File-Name:  Invoke-HttpRequest.ps1
     Author:     David Wettstein

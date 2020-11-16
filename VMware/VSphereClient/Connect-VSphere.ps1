@@ -1,14 +1,9 @@
 <#
 .SYNOPSIS
-    Login to a vSphere server using the following order and return a PowerCLI connection:
-        1. Try with username and password, if provided.
-        2. Try with PSCredential file "$Server-$Username.xml" in given directory (default "$HOME\.pscredentials").
-        3. If interactive, get credentials from user with a prompt.
-        4. If not interactive, try with PSCredential file "$Username.xml".
-        5. If nothing provided from above, try with PowerCLI and Windows SSPI authentication.
+    Login to a server and return an authorization token.
 
 .DESCRIPTION
-    Login to a vSphere server using the following order and return a PowerCLI connection:
+    Login to a server and return an authorization token using the following procedure:
         1. Try with username and password, if provided.
         2. Try with PSCredential file "$Server-$Username.xml" in given directory (default "$HOME\.pscredentials").
         3. If interactive, get credentials from user with a prompt.

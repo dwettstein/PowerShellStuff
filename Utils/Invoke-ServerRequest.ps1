@@ -1,20 +1,22 @@
 <#
 .SYNOPSIS
     Wrapper cmdlet for directly invoking any RESTful API request on the given server,
-    using the provided authorization token, e.g. "Basic username:password", or an existing PSCredential for authentication.
+    using the provided authorization token, e.g. "Basic username:password",
+    or an existing PSCredential for authentication.
 
 .DESCRIPTION
     Wrapper cmdlet for directly invoking any RESTful API request on the given server,
-    using the provided authorization token, e.g. "Basic username:password", or an existing PSCredential for authentication.
+    using the provided authorization token, e.g. "Basic username:password",
+    or an existing PSCredential for authentication.
 
     File-Name:  Invoke-ServerRequest.ps1
     Author:     David Wettstein
-    Version:    v1.1.1
+    Version:    v1.1.2
 
     Changelog:
-                v1.1.1, 2020-10-20, David Wettstein: Add function blocks.
-                v1.1.0, 2020-05-15, David Wettstein: Sync input variables with cache.
-                v1.0.2, 2020-04-09, David Wettstein: Improve path handling.
+                v1.1.2, 2020-10-20, David Wettstein: Add function blocks.
+                v1.1.1, 2020-04-09, David Wettstein: Improve path handling.
+                v1.1.0, 2020-04-07, David Wettstein: Sync input variables with cache.
                 v1.0.1, 2020-03-13, David Wettstein: Refactor and generalize cmdlet.
                 v1.0.0, 2019-05-30, David Wettstein: First implementation.
 

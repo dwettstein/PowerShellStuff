@@ -2,23 +2,6 @@
 .SYNOPSIS
     Invokes Terraform and executes the given action in the current or given folder.
 
-    Login to given server using the following order:
-        1. Try with username and password, if provided.
-        2. Try with PSCredential file "$Server-$Username.xml" in given directory (default "$HOME\.pscredentials").
-        3. If interactive, get credentials from user with a prompt.
-        4. If not interactive, try with `TF_VAR_username` and `TF_VAR_password` env vars.
-        5. If not interactive, try with PSCredential file "$Username.xml".
-
-    Setup of Terraform binaries on Windows:
-        1. Download Terrform from https://releases.hashicorp.com/
-        2. Extract the archive to a location of your choice.
-        3. Create an environment variable `TF_HOME` with that location, add that variable to the `PATH` variable by appending `;%TF_HOME%` to it.
-        4. Create another environment variable `TF_PLUGIN_CACHE_DIR` with the value `%TF_HOME%\plugin-cache`.
-        5. Download additionally needed plugins.
-        6. Extract them into the subfolder with name `plugin-cache`.
-
-    ATTENTION: Be aware that the `TF_LOG` and especially `TF_LOG_PATH` environment variables are not set, otherwise your credentials might be exposed and logged to a file.
-
 .DESCRIPTION
     Invokes Terraform and executes the given action in the current or given folder.
 

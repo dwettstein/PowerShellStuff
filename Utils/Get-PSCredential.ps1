@@ -1,13 +1,9 @@
 <#
 .SYNOPSIS
-    Get a PSCredential using the following order:
-        1. Try with username and password, if provided.
-        2. Try with PSCredential file "$Server-$Username.xml" in given directory (default "$HOME\.pscredentials").
-        3. If interactive, get credentials from user with a prompt.
-        4. If not interactive, try with PSCredential file "$Username.xml".
+    Get a PSCredential for authentication.
 
 .DESCRIPTION
-    Get a PSCredential using the following order:
+    Get a PSCredential for authentication using the following order:
         1. Try with username and password, if provided.
         2. Try with PSCredential file "$Server-$Username.xml" in given directory (default "$HOME\.pscredentials").
         3. If interactive, get credentials from user with a prompt.
