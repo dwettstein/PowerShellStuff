@@ -37,10 +37,14 @@
     The message to write into a file and display in the console.
 
 .EXAMPLE
+    Write-Log Host "Message"
+
+.EXAMPLE
+    & "$PSScriptRoot\Utils\Write-Log" Host "Message"
 #>
 [CmdletBinding()]
 param (
-    [Parameter(Mandatory = $false, Position = 0)]
+    [Parameter(Mandatory = $true, Position = 0)]
     [ValidateSet("Host", "Output", "Verbose", "Warning", "Error", "Debug")]
     [String] $Stream
     ,

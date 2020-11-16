@@ -1,9 +1,9 @@
 <#
 .SYNOPSIS
-    Short description
+    Get all DHCP leases of a NSX edge.
 
 .DESCRIPTION
-    Long description
+    Get all DHCP leases of a NSX edge.
 
     File-Name:  Get-NsxEdgeDhcpLeases.ps1
     Author:     David Wettstein
@@ -26,7 +26,7 @@
     https://github.com/dwettstein/PowerShellStuff
 
 .EXAMPLE
-    Example of how to use this cmdlet
+    $Result = & "Get-NsxEdgeDhcpLeases" -Server "example.com" -EdgeId "edge-1" -AsXml
 #>
 [CmdletBinding()]
 [OutputType([Object])]

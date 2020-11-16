@@ -1,9 +1,9 @@
 <#
 .SYNOPSIS
-    Short description
+    Add a DHCP binding to a NSX edge.
 
 .DESCRIPTION
-    Long description
+    Add a DHCP binding to a NSX edge.
 
     File-Name:  Add-NsxEdgeDhcpBinding.ps1
     Author:     David Wettstein
