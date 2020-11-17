@@ -85,7 +85,7 @@ process {
             }
         }
 
-        if (-not ($Path -in $AllModulesPath)) {
+        if (-not ($Path -in $AllModulesPath -or $Path.Trim("\") -in $AllModulesPath)) {
             Write-Warning "$Path is not in `$env:PSModulePath:`n$($env:PSModulePath)"
         }
 
