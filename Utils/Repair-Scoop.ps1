@@ -10,9 +10,10 @@
 
     File-Name:  Repair-Scoop.ps1
     Author:     David Wettstein
-    Version:    v1.1.1
+    Version:    v1.2.0
 
     Changelog:
+                v1.2.0, 2020-11-23, David Wettstein: Allow non-standard home dirs.
                 v1.1.1, 2020-10-20, David Wettstein: Add function blocks.
                 v1.1.0, 2020-10-17, David Wettstein: Add switch to install Scoop as usual.
                 v1.0.0, 2020-05-13, David Wettstein: First implementation.
@@ -56,16 +57,23 @@ param (
     [PSCredential] $ProxyCredential = $null
     ,
     [Parameter(Mandatory = $false, Position = 6)]
-    [ValidateNotNullOrEmpty()]
-    [String] $ScoopHome = "$HOME\scoop\apps\scoop\"
+    [Switch] $SetScoopHomeEnv
     ,
     [Parameter(Mandatory = $false, Position = 7)]
     [ValidateNotNullOrEmpty()]
-    [String] $ScoopVersion = "master"
+    [String] $ScoopHome = $(if (-not [String]::IsNullOrEmpty($env:SCOOP)) { $env:SCOOP } else { "$HOME\scoop\" })
     ,
     [Parameter(Mandatory = $false, Position = 8)]
     [ValidateNotNullOrEmpty()]
-    [String] $ScoopVersionPrefix = "scoop-"
+    [String] $ScoopAppHome = "$ScoopHome\apps\scoop\"
+    ,
+    [Parameter(Mandatory = $false, Position = 9)]
+    [ValidateNotNullOrEmpty()]
+    [String] $ScoopAppVersion = "master"
+    ,
+    [Parameter(Mandatory = $false, Position = 10)]
+    [ValidateNotNullOrEmpty()]
+    [String] $ScoopAppVersionPrefix = "scoop-"
 )
 
 begin {
@@ -103,29 +111,38 @@ process {
     $ErrorOut = ""
 
     try {
+        if ($SetScoopHomeEnv) {
+            $env:SCOOP = $ScoopHome
+            [System.Environment]::SetEnvironmentVariable("SCOOP", $ScoopHome, "User")
+        }
+
+        if ($Proxy -or $ProxyCredential) {
+            $null = & "${FILE_DIR}Set-DefaultWebProxy" -Proxy $Proxy -Credential $ProxyCredential
+        }
+
         if ($Install -and [String]::IsNullOrEmpty($UnzipFromPath)) {
             Invoke-Expression (New-Object System.Net.WebClient).DownloadString("https://get.scoop.sh")
         }
 
         if (-not [String]::IsNullOrEmpty($UnzipFromPath)) {
-            Write-Verbose "Unzip from '$UnzipFromPath' to '$ScoopHome'."
+            Write-Verbose "Unzip from '$UnzipFromPath' to '$ScoopAppHome'."
             Add-Type -Assembly "System.IO.Compression.FileSystem"
-            [IO.Compression.ZipFile]::ExtractToDirectory($UnzipFromPath, $ScoopHome)
+            [IO.Compression.ZipFile]::ExtractToDirectory($UnzipFromPath, $ScoopAppHome)
         }
 
         if ($Symlink) {
             Write-Verbose "Try to find existing version folder:"
-            $VersionDir = Join-Path $ScoopHome $ScoopVersion
+            $VersionDir = Join-Path $ScoopAppHome $ScoopAppVersion
             Write-Verbose "$VersionDir"
             if (-not (Test-Path $VersionDir)) {
-                $VersionDir = Join-Path $ScoopHome "${ScoopVersionPrefix}${ScoopVersion}"
+                $VersionDir = Join-Path $ScoopAppHome "${ScoopAppVersionPrefix}${ScoopAppVersion}"
                 Write-Verbose "$VersionDir"
                 if (-not (Test-Path $VersionDir)) {
-                    throw "Unknown version folder under '$ScoopHome', use param '-ScoopVersion' or '-UnzipFromPath' with a ZIP from: https://github.com/lukesampson/scoop"
+                    throw "Unknown version folder under '$ScoopAppHome', use param '-ScoopAppVersion' or '-UnzipFromPath' with a ZIP from: https://github.com/lukesampson/scoop"
                 }
             }
 
-            $CurrentDir = Join-Path $ScoopHome "current"
+            $CurrentDir = Join-Path $ScoopAppHome "current"
             if (Test-Path $CurrentDir) {
                 Write-Verbose "Remove existing current folder '$CurrentDir'."
                 Remove-Item $CurrentDir -Force -Recurse
@@ -137,8 +154,6 @@ process {
         }
 
         if ($ResetAll) {
-            $null = & "${FILE_DIR}Set-DefaultWebProxy" -Proxy $Proxy -Credential $ProxyCredential
-
             Write-Verbose "Reset all existing scoop apps."
             $ErrorActionPreference = "Continue"
             & "$env:COMSPEC" /c scoop reset *
