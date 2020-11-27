@@ -86,45 +86,46 @@ begin {
         [Boolean] $IsVerboseGiven = $VerbosePreference -ne "SilentlyContinue"
         [Boolean] $IsDebugGiven = $DebugPreference -ne "SilentlyContinue"
 
+        $Text = "$LogDate | $FILE_NAME | $PID | $($Stream.ToUpper()) | $Message"
+        $DoWriteFile = $true
         switch ($Stream) {
             Host {
-                Write-Output "$LogDate | $FILE_NAME | $PID | HOST | $Message" | Out-File -FilePath $LogFileName -Append
                 Write-Host $Message
                 break
             }
             Output {
-                Write-Output "$LogDate | $FILE_NAME | $PID | OUTPUT | $Message" | Out-File -FilePath $LogFileName -Append
                 Write-Output $Message
                 break
             }
             Verbose {
-                if ($IsVerboseGiven) {
-                    Write-Output "$LogDate | $FILE_NAME | $PID | VERBOSE | $Message" | Out-File -FilePath $LogFileName -Append
+                if (-not $IsVerboseGiven) {
+                    $DoWriteFile = $false
                 }
                 Write-Verbose $Message
                 break
             }
             Warning {
-                Write-Output "$LogDate | $FILE_NAME | $PID | WARNING | $Message" | Out-File -FilePath $LogFileName -Append -Force
                 Write-Warning $Message -WarningAction Continue
                 break
             }
             Error {
-                Write-Output "$LogDate | $FILE_NAME | $PID | ERROR | $Message" | Out-File -FilePath $LogFileName -Append -Force
                 Write-Error $Message
                 break
             }
             Debug {
-                if ($IsDebugGiven) {
-                    Write-Output "$LogDate | $FILE_NAME | $PID | DEBUG | $Message" | Out-File -FilePath $LogFileName -Append -Force
+                if (-not $IsDebugGiven) {
+                    $DoWriteFile = $false
                 }
                 Write-Debug $Message
                 break
             }
             default {
-                Write-Output "$LogDate | $FILE_NAME | $PID | DEFAULT | $Message" | Out-File -FilePath $LogFileName -Append
                 break
             }
+        }
+        if ($DoWriteFile) {
+            # Write-Output $Text | Out-File -Encoding UTF8 -FilePath $LogFileName -Append -Force  # ! Writes UTF8 with BOM
+            [System.IO.File]::AppendAllText($LogFileName, "$Text`n")
         }
 
         Remove-Variable IsVerboseGiven, IsDebugGiven
