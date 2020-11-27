@@ -200,12 +200,16 @@ Read the full page [Naming Conventions](https://poshcode.gitbooks.io/powershell-
 # Tips and Common Pitfalls
 
 - When creating a new file, ensure that the encoding is _UTF-8_. Be aware that PowerShell creates files with encoding _UTF-8 with BOM_ by default. See also [What's the difference between UTF-8 and UTF-8 without BOM?](https://stackoverflow.com/questions/2223882/whats-the-difference-between-utf-8-and-utf-8-without-bom) and [Using PowerShell to write a file in UTF-8 without the BOM](https://stackoverflow.com/questions/5596982/using-powershell-to-write-a-file-in-utf-8-without-the-bom).
+    ```powershell
+    # Attention: Out-File writes UTF8 with BOM!
+    Write-Output $Text | Out-File -Encoding UTF8 -FilePath $Path -Append
+    # As an alternative use:
+    [System.IO.File]::AppendAllText($Path, "$Text`n")
+    ```
 - See `Get-Verb` to list all approved PowerShell verbs, always use one of them for your functions.
 - `$ErrorActionPreference` is set to `Continue` by default, thus the script continues to run even after an error happens. Add the following code at the beginning of your script to change the default behavior:
     ```powershell
-    if (-not $PSCmdlet.MyInvocation.BoundParameters.ErrorAction) {
-        $ErrorActionPreference = "Stop"
-    }
+    if (-not $PSCmdlet.MyInvocation.BoundParameters.ErrorAction) { $ErrorActionPreference = "Stop" }
     ```
 - The results of each statement are added to the output stream and thus returned as script output, not only the ones containing the `return` keyword.
     - Use `$null = {{statement}}` or `{{statement}} | Out-Null`, to ignore certain results.

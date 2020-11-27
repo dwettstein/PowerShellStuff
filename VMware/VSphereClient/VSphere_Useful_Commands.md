@@ -83,5 +83,5 @@ Get-VMHost | where { $_.ExtensionData.AlarmActionsEnabled -eq $False } | sort Na
 Just append the following code to your command:
 
 ```powershell
-| ConvertTo-Json -Depth 100 | Out-File "export.json"
+| ConvertTo-Json -Depth 100 | Out-File -Encoding UTF8 "export.json"
 ```
