@@ -137,7 +137,7 @@ process {
                 $State = "already unmounted"
             } else {
                 try {
-                    $Result = Remove-Datastore -Server $Server -VMHost $CurrentHost -Datastore $Datastore -Confirm:$false -WarningAction SilentlyContinue
+                    $Result = Remove-Datastore -Server $Server -VMHost $CurrentHost -Datastore $Datastore -Confirm:$false -WarningAction:SilentlyContinue
                     Write-Verbose "$Result"
                     $IsSuccess = $true
                     $State = "successfully unmounted"
@@ -182,7 +182,7 @@ process {
         }
     } catch {
         # Error in $_ or $Error[0] variable.
-        Write-Warning "Exception occurred at $($_.InvocationInfo.ScriptName):$($_.InvocationInfo.ScriptLineNumber)`n$($_.Exception)" -WarningAction Continue
+        Write-Warning "Exception occurred at $($_.InvocationInfo.ScriptName):$($_.InvocationInfo.ScriptLineNumber)`n$($_.Exception)" -WarningAction:Continue
         $Ex = $_.Exception; while ($Ex.InnerException) { $Ex = $Ex.InnerException }
         $ErrorOut = "$($Ex.Message)"
         $ExitCode = 1

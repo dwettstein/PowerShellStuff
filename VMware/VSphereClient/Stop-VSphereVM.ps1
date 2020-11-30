@@ -135,7 +135,7 @@ process {
                                 break
                             }
                             # Gracefully shut down VM
-                            $Result = Shutdown-VMGuest -Server $Server -VM $VM -Confirm:$false -ErrorAction Stop
+                            $Result = Shutdown-VMGuest -Server $Server -VM $VM -Confirm:$false -ErrorAction:Stop
                             Write-Verbose "$Result"
                             break
                         } catch {
@@ -163,7 +163,7 @@ process {
                 } catch {
                     Write-Verbose "Failed to shut down VM (try force stop? $Force):`n$($_.Exception)"
                     if ($Force) {
-                        $Result = Stop-VM -Server $Server -VM $VM -Confirm:$false -ErrorAction SilentlyContinue
+                        $Result = Stop-VM -Server $Server -VM $VM -Confirm:$false -ErrorAction:SilentlyContinue
                         Write-Verbose "$Result"
                     }
                     $VM = Get-VM -Server $Server -Name $Name
@@ -172,7 +172,7 @@ process {
                     }
                 }
             } else {
-                $Result = Stop-VM -Server $Server -VM $VM -Confirm:$false -ErrorAction SilentlyContinue
+                $Result = Stop-VM -Server $Server -VM $VM -Confirm:$false -ErrorAction:SilentlyContinue
                 Write-Verbose "$Result"
                 $VM = Get-VM -Server $Server -Name $Name
             }
@@ -180,7 +180,7 @@ process {
         $ScriptOut = $VM.PowerState
     } catch {
         # Error in $_ or $Error[0] variable.
-        Write-Warning "Exception occurred at $($_.InvocationInfo.ScriptName):$($_.InvocationInfo.ScriptLineNumber)`n$($_.Exception)" -WarningAction Continue
+        Write-Warning "Exception occurred at $($_.InvocationInfo.ScriptName):$($_.InvocationInfo.ScriptLineNumber)`n$($_.Exception)" -WarningAction:Continue
         $Ex = $_.Exception; while ($Ex.InnerException) { $Ex = $Ex.InnerException }
         $ErrorOut = "$($Ex.Message)"
         $ExitCode = 1

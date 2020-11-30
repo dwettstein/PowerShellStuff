@@ -108,7 +108,7 @@ process {
 
         $VM = Get-VM -Server $vCenter -Name $Name
 
-        $Snapshot = New-Snapshot -Server $Server -VM $VM -Name $SnapshotName -Description $Description -Memory:$Memory -Quiesce:$Quiesce -RunAsync:$RunAsync -Confirm:$false -WarningAction SilentlyContinue
+        $Snapshot = New-Snapshot -Server $Server -VM $VM -Name $SnapshotName -Description $Description -Memory:$Memory -Quiesce:$Quiesce -RunAsync:$RunAsync -Confirm:$false -WarningAction:SilentlyContinue
 
         $ResultObj = @{
             "VMName" = $VM.Name
@@ -131,7 +131,7 @@ process {
         $ScriptOut = ConvertTo-Json $ResultObj -Depth 10 -Compress
     } catch {
         # Error in $_ or $Error[0] variable.
-        Write-Warning "Exception occurred at $($_.InvocationInfo.ScriptName):$($_.InvocationInfo.ScriptLineNumber)`n$($_.Exception)" -WarningAction Continue
+        Write-Warning "Exception occurred at $($_.InvocationInfo.ScriptName):$($_.InvocationInfo.ScriptLineNumber)`n$($_.Exception)" -WarningAction:Continue
         $Ex = $_.Exception; while ($Ex.InnerException) { $Ex = $Ex.InnerException }
         $ErrorOut = "$($Ex.Message)"
         $ExitCode = 1

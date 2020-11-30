@@ -121,7 +121,7 @@ process {
                             if ($VMCopied) {
                                 $Option = "button.uuid.copiedTheVM"
                             }
-                            $Result = ($VM | Get-VMQuestion | Set-VMQuestion -Option $Option -Confirm:$false -WarningAction SilentlyContinue)
+                            $Result = ($VM | Get-VMQuestion | Set-VMQuestion -Option $Option -Confirm:$false -WarningAction:SilentlyContinue)
                             Write-Verbose "$Result"
                         } catch {
                             Write-Verbose "Failed to answer VMQuestion:`n$($_.Exception)"
@@ -130,7 +130,7 @@ process {
                         Write-Verbose "Sleep $SLEEP_IN_SEC seconds before retrying again."
                         $null = Start-Sleep -Seconds $SLEEP_IN_SEC
                         try {
-                            $Result = Start-VM -Server $Server -VM $VM -Confirm:$false -WarningAction SilentlyContinue
+                            $Result = Start-VM -Server $Server -VM $VM -Confirm:$false -WarningAction:SilentlyContinue
                             Write-Verbose "$Result"
                         } catch {
                             Write-Verbose "Failed to start VM:`n$($_.Exception)"
@@ -175,7 +175,7 @@ process {
         $ScriptOut = $VM.PowerState
     } catch {
         # Error in $_ or $Error[0] variable.
-        Write-Warning "Exception occurred at $($_.InvocationInfo.ScriptName):$($_.InvocationInfo.ScriptLineNumber)`n$($_.Exception)" -WarningAction Continue
+        Write-Warning "Exception occurred at $($_.InvocationInfo.ScriptName):$($_.InvocationInfo.ScriptLineNumber)`n$($_.Exception)" -WarningAction:Continue
         $Ex = $_.Exception; while ($Ex.InnerException) { $Ex = $Ex.InnerException }
         $ErrorOut = "$($Ex.Message)"
         $ExitCode = 1

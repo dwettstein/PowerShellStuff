@@ -112,10 +112,10 @@ process {
         $Cred = & "${FILE_DIR}Get-VSpherePSCredential" -Server $Server -Username $Username -Password $Password -Interactive:$Interactive -PswdDir $PswdDir -ErrorAction:Continue
 
         if ($Cred -and -not [String]::IsNullOrEmpty($Cred.GetNetworkCredential().Password)) {
-            $VSphereConnection = Connect-VIServer -Server $Server -Credential $Cred -WarningAction SilentlyContinue
+            $VSphereConnection = Connect-VIServer -Server $Server -Credential $Cred -WarningAction:SilentlyContinue
         } else {
             # If no credentials provided, try with PowerCLI and Windows SSPI authentication.
-            $VSphereConnection = Connect-VIServer -Server $Server -WarningAction SilentlyContinue
+            $VSphereConnection = Connect-VIServer -Server $Server -WarningAction:SilentlyContinue
         }
 
         $null = & "${FILE_DIR}Sync-VSphereVariableCache" "VSphereConnection" $VSphereConnection
@@ -123,7 +123,7 @@ process {
         $ScriptOut = $VSphereConnection
     } catch {
         # Error in $_ or $Error[0] variable.
-        Write-Warning "Exception occurred at $($_.InvocationInfo.ScriptName):$($_.InvocationInfo.ScriptLineNumber)`n$($_.Exception)" -WarningAction Continue
+        Write-Warning "Exception occurred at $($_.InvocationInfo.ScriptName):$($_.InvocationInfo.ScriptLineNumber)`n$($_.Exception)" -WarningAction:Continue
         $Ex = $_.Exception; while ($Ex.InnerException) { $Ex = $Ex.InnerException }
         $ErrorOut = "$($Ex.Message)"
         $ExitCode = 1

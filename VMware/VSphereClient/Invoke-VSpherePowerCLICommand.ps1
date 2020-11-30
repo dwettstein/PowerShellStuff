@@ -128,13 +128,13 @@ process {
             try {
                 $ScriptOut = ConvertTo-Json $CommandResult -Depth 10 -Compress
             } catch {
-                Write-Verbose "Exception occurred at $($_.InvocationInfo.ScriptName):$($_.InvocationInfo.ScriptLineNumber)`n$($_.Exception)" -WarningAction Continue
+                Write-Verbose "Exception occurred at $($_.InvocationInfo.ScriptName):$($_.InvocationInfo.ScriptLineNumber)`n$($_.Exception)" -WarningAction:Continue
                 try {
                     # Try again with depth 1, as the exception was likely the following:
                     # System.ArgumentException: An item with the same key has already been added.
                     $ScriptOut = ConvertTo-Json $CommandResult -Depth 1 -Compress
                 } catch {
-                    Write-Verbose "Exception occurred at $($_.InvocationInfo.ScriptName):$($_.InvocationInfo.ScriptLineNumber)`n$($_.Exception)" -WarningAction Continue
+                    Write-Verbose "Exception occurred at $($_.InvocationInfo.ScriptName):$($_.InvocationInfo.ScriptLineNumber)`n$($_.Exception)" -WarningAction:Continue
                     $ResultObj = @{
                         "Name" = $CommandResult.Name
                         "Id" = $CommandResult.Id
@@ -147,7 +147,7 @@ process {
         }
     } catch {
         # Error in $_ or $Error[0] variable.
-        Write-Warning "Exception occurred at $($_.InvocationInfo.ScriptName):$($_.InvocationInfo.ScriptLineNumber)`n$($_.Exception)" -WarningAction Continue
+        Write-Warning "Exception occurred at $($_.InvocationInfo.ScriptName):$($_.InvocationInfo.ScriptLineNumber)`n$($_.Exception)" -WarningAction:Continue
         $Ex = $_.Exception; while ($Ex.InnerException) { $Ex = $Ex.InnerException }
         $ErrorOut = "$($Ex.Message)"
         $ExitCode = 1

@@ -138,7 +138,7 @@ process {
                 $State = "already mounted"
             } else {
                 try {
-                    $Result = New-Datastore -Server $Server -VMHost $CurrentHost -Nfs -Name $Name -Path $RemotePath -NfsHost $RemoteHost -Confirm:$false -WarningAction SilentlyContinue
+                    $Result = New-Datastore -Server $Server -VMHost $CurrentHost -Nfs -Name $Name -Path $RemotePath -NfsHost $RemoteHost -Confirm:$false -WarningAction:SilentlyContinue
                     Write-Verbose "$Result"
                     $IsSuccess = $true
                     $State = "successfully mounted"
@@ -189,7 +189,7 @@ process {
         }
     } catch {
         # Error in $_ or $Error[0] variable.
-        Write-Warning "Exception occurred at $($_.InvocationInfo.ScriptName):$($_.InvocationInfo.ScriptLineNumber)`n$($_.Exception)" -WarningAction Continue
+        Write-Warning "Exception occurred at $($_.InvocationInfo.ScriptName):$($_.InvocationInfo.ScriptLineNumber)`n$($_.Exception)" -WarningAction:Continue
         $Ex = $_.Exception; while ($Ex.InnerException) { $Ex = $Ex.InnerException }
         $ErrorOut = "$($Ex.Message)"
         $ExitCode = 1

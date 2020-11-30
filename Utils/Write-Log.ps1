@@ -110,7 +110,7 @@ process {
             break
         }
         Warning {
-            Write-Warning $Message -WarningAction Continue
+            Write-Warning $Message -WarningAction:Continue
             break
         }
         Error {

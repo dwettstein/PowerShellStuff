@@ -103,7 +103,7 @@ process {
 
         # Parse snapshots from inputs
         if ([String]::IsNullOrEmpty($Snapshot)) {
-            $SnapshotList = Get-Snapshot -Server $Server -VM $VM -WarningAction SilentlyContinue
+            $SnapshotList = Get-Snapshot -Server $Server -VM $VM -WarningAction:SilentlyContinue
         } else {
             $SnapshotList = $Snapshot | ConvertFrom-Json
         }
@@ -159,7 +159,7 @@ process {
         $ScriptOut = ConvertTo-Json $ResultObj -Depth 10 -Compress
     } catch {
         # Error in $_ or $Error[0] variable.
-        Write-Warning "Exception occurred at $($_.InvocationInfo.ScriptName):$($_.InvocationInfo.ScriptLineNumber)`n$($_.Exception)" -WarningAction Continue
+        Write-Warning "Exception occurred at $($_.InvocationInfo.ScriptName):$($_.InvocationInfo.ScriptLineNumber)`n$($_.Exception)" -WarningAction:Continue
         $Ex = $_.Exception; while ($Ex.InnerException) { $Ex = $Ex.InnerException }
         $ErrorOut = "$($Ex.Message)"
         $ExitCode = 1

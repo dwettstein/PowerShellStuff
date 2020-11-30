@@ -102,12 +102,12 @@ process {
         if ([String]::IsNullOrEmpty($NetworkName)) {
             $Nics = Get-NetworkAdapter -Server $Server -VM $VM
             foreach ($Nic in $Nics) {
-                $RemoveResult = Remove-NetworkAdapter -NetworkAdapter $Nic -Confirm:$false -WarningAction SilentlyContinue
+                $RemoveResult = Remove-NetworkAdapter -NetworkAdapter $Nic -Confirm:$false -WarningAction:SilentlyContinue
                 Write-Verbose "$RemoveResult"
             }
         } else {
             $Nic = Get-NetworkAdapter -Server $Server -VM $VM -Name $NetworkName
-            $RemoveResult = Remove-NetworkAdapter -NetworkAdapter $Nic -Confirm:$false -WarningAction SilentlyContinue
+            $RemoveResult = Remove-NetworkAdapter -NetworkAdapter $Nic -Confirm:$false -WarningAction:SilentlyContinue
             Write-Verbose "$RemoveResult"
         }
 
@@ -135,7 +135,7 @@ process {
         $ScriptOut = ConvertTo-Json $ResultObj -Depth 10 -Compress
     } catch {
         # Error in $_ or $Error[0] variable.
-        Write-Warning "Exception occurred at $($_.InvocationInfo.ScriptName):$($_.InvocationInfo.ScriptLineNumber)`n$($_.Exception)" -WarningAction Continue
+        Write-Warning "Exception occurred at $($_.InvocationInfo.ScriptName):$($_.InvocationInfo.ScriptLineNumber)`n$($_.Exception)" -WarningAction:Continue
         $Ex = $_.Exception; while ($Ex.InnerException) { $Ex = $Ex.InnerException }
         $ErrorOut = "$($Ex.Message)"
         $ExitCode = 1
