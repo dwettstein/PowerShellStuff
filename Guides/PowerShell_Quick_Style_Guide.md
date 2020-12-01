@@ -3,7 +3,7 @@
 This guide is intended to be a short overview of [The PowerShell Best Practices and Style Guide](https://poshcode.gitbooks.io/powershell-practice-and-style/).
 
 Author: David Wettstein<br/>
-Version: v1.1.0, 2020-05-08<br/>
+Version: v1.2.0, 2020-12-01<br/>
 License: Copyright (c) 2019-2020 David Wettstein, http://wettste.in, licensed under the [Creative Commons Attribution-ShareAlike 4.0 International License](https://creativecommons.org/licenses/by-sa/4.0/).<br/>
 All attributions and credits for [The PowerShell Best Practices and Style Guide](https://poshcode.gitbooks.io/powershell-practice-and-style/) go to Don Jones, Matt Penny, Carlos Perez, Joel Bennett and the PowerShell Community.
 
@@ -207,10 +207,12 @@ Read the full page [Naming Conventions](https://poshcode.gitbooks.io/powershell-
     [System.IO.File]::AppendAllText($Path, "$Text`n")
     ```
 - See `Get-Verb` to list all approved PowerShell verbs, always use one of them for your functions.
-- `$ErrorActionPreference` is set to `Continue` by default, thus the script continues to run even after an error happens. Add the following code at the beginning of your script to change the default behavior:
+- `$ErrorActionPreference` is set to `Continue` by default, thus the script continues to run even after an error happens. Additionally, `$WarningActionPreference` is set to `Continue` as well, and thus unwanted output might be in the standard output of your script. Add the following code at the beginning of your script to change the default behavior:
     ```powershell
     if (-not $PSCmdlet.MyInvocation.BoundParameters.ErrorAction) { $ErrorActionPreference = "Stop" }
+    if (-not $PSCmdlet.MyInvocation.BoundParameters.WarningAction) { $WarningPreference = "SilentlyContinue" }
     ```
+- Even when you add `-ErrorAction:SilentlyContinue`, the errors are written to the error stream (but not displayed). To ignore all error output use `-ErrorAction:Ignore` or stream redirection and append ` 2>$null`.
 - The results of each statement are added to the output stream and thus returned as script output, not only the ones containing the `return` keyword.
     - Use `$null = {{statement}}` or `{{statement}} | Out-Null`, to ignore certain results.
 - When invoking other scripts within your script, use explicit not relative paths.
@@ -238,4 +240,11 @@ Read the full page [Naming Conventions](https://poshcode.gitbooks.io/powershell-
     } else {
         $Result  # $Result is an array anyway.
     }
+    ```
+- When using a `exit $ExitCode` statement in a script or function, be aware that if you dot-source and execute it (also when importing as module), the current console will be exited. To set an exit code, but not close the console, use the following code:
+    ```powershell
+    # Set the script/function exit code. Can be accessed with `$LASTEXITCODE` automatic variable.
+    & "powershell.exe" "-NoLogo" "-NoProfile" "-NonInteractive" "-Command" "exit $ExitCode"
+
+    Write-Host $LASTEXITCODE
     ```

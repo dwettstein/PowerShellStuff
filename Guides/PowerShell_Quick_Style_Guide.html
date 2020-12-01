@@ -27,7 +27,7 @@
         <h1 id="powershell-quick-style-guide">PowerShell Quick Style Guide</h1>
 <p>This guide is intended to be a short overview of <a href="https://poshcode.gitbooks.io/powershell-practice-and-style/">The PowerShell Best Practices and Style Guide</a>.</p>
 <p>Author: David Wettstein<br/>
-Version: v1.1.0, 2020-05-08<br/>
+Version: v1.2.0, 2020-12-01<br/>
 License: Copyright (c) 2019-2020 David Wettstein, <a href="http://wettste.in">http://wettste.in</a>, licensed under the <a href="https://creativecommons.org/licenses/by-sa/4.0/">Creative Commons Attribution-ShareAlike 4.0 International License</a>.<br/>
 All attributions and credits for <a href="https://poshcode.gitbooks.io/powershell-practice-and-style/">The PowerShell Best Practices and Style Guide</a> go to Don Jones, Matt Penny, Carlos Perez, Joel Bennett and the PowerShell Community.</p>
 <p>If you rather search a cheat sheet, I recommend the PDF from Warren Frame: <a href="powershell-cheat-sheet.pdf">PowerShell Cheat Sheet</a>
@@ -229,9 +229,11 @@ insert_final_newline = true
 </div></code></pre>
 </li>
 <li>See <code>Get-Verb</code> to list all approved PowerShell verbs, always use one of them for your functions.</li>
-<li><code>$ErrorActionPreference</code> is set to <code>Continue</code> by default, thus the script continues to run even after an error happens. Add the following code at the beginning of your script to change the default behavior:<pre><code class="language-powershell"><div><span class="hljs-keyword">if</span> (<span class="hljs-operator">-not</span> <span class="hljs-variable">$PSCmdlet</span>.MyInvocation.BoundParameters.ErrorAction) { <span class="hljs-variable">$ErrorActionPreference</span> = <span class="hljs-string">&quot;Stop&quot;</span> }
+<li><code>$ErrorActionPreference</code> is set to <code>Continue</code> by default, thus the script continues to run even after an error happens. Additionally, <code>$WarningActionPreference</code> is set to <code>Continue</code> as well, and thus unwanted output might be in the standard output of your script. Add the following code at the beginning of your script to change the default behavior:<pre><code class="language-powershell"><div><span class="hljs-keyword">if</span> (<span class="hljs-operator">-not</span> <span class="hljs-variable">$PSCmdlet</span>.MyInvocation.BoundParameters.ErrorAction) { <span class="hljs-variable">$ErrorActionPreference</span> = <span class="hljs-string">&quot;Stop&quot;</span> }
+<span class="hljs-keyword">if</span> (<span class="hljs-operator">-not</span> <span class="hljs-variable">$PSCmdlet</span>.MyInvocation.BoundParameters.WarningAction) { <span class="hljs-variable">$WarningPreference</span> = <span class="hljs-string">&quot;SilentlyContinue&quot;</span> }
 </div></code></pre>
 </li>
+<li>Even when you add <code>-ErrorAction:SilentlyContinue</code>, the errors are written to the error stream (but not displayed). To ignore all error output use <code>-ErrorAction:Ignore</code> or stream redirection and append <code> 2&gt;$null</code>.</li>
 <li>The results of each statement are added to the output stream and thus returned as script output, not only the ones containing the <code>return</code> keyword.
 <ul>
 <li>Use <code>$null = {{statement}}</code> or <code>{{statement}} | Out-Null</code>, to ignore certain results.</li>
@@ -264,6 +266,12 @@ insert_final_newline = true
 } <span class="hljs-keyword">else</span> {
     <span class="hljs-variable">$Result</span>  <span class="hljs-comment"># $Result is an array anyway.</span>
 }
+</div></code></pre>
+</li>
+<li>When using a <code>exit $ExitCode</code> statement in a script or function, be aware that if you dot-source and execute it (also when importing as module), the current console will be exited. To set an exit code, but not close the console, use the following code:<pre><code class="language-powershell"><div><span class="hljs-comment"># Set the script/function exit code. Can be accessed with `$LASTEXITCODE` automatic variable.</span>
+&amp; <span class="hljs-string">&quot;powershell.exe&quot;</span> <span class="hljs-string">&quot;-NoLogo&quot;</span> <span class="hljs-string">&quot;-NoProfile&quot;</span> <span class="hljs-string">&quot;-NonInteractive&quot;</span> <span class="hljs-string">&quot;-Command&quot;</span> <span class="hljs-string">&quot;exit <span class="hljs-variable">$ExitCode</span>&quot;</span>
+
+<span class="hljs-built_in">Write-Host</span> <span class="hljs-variable">$LASTEXITCODE</span>
 </div></code></pre>
 </li>
 </ul>
