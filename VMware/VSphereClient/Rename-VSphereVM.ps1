@@ -7,9 +7,10 @@
 
     File-Name:  Rename-VSphereVM.ps1
     Author:     David Wettstein
-    Version:    v1.0.0
+    Version:    v1.0.1
 
     Changelog:
+                v1.0.1, 2020-12-01, David Wettstein: Refactor error handling.
                 v1.0.0, 2020-11-04, David Wettstein: Refactor script and release.
                 v0.0.1, 2018-03-22, David Wettstein: First implementation.
 
@@ -58,6 +59,7 @@ begin {
 
     $StartDate = [DateTime]::Now
     $ExitCode = 0
+    $ErrorOut = ""
 
     [String] $FILE_NAME = $MyInvocation.MyCommand.Name
     if ($PSVersionTable.PSVersion.Major -lt 3 -or [String]::IsNullOrEmpty($PSScriptRoot)) {
@@ -84,8 +86,6 @@ begin {
 process {
     #trap { Write-Error "$($_.Exception)"; $ExitCode = 1; break; }
     $ScriptOut = ""
-    $ErrorOut = ""
-
     try {
         $Server = & "${FILE_DIR}Sync-VSphereVariableCache" "Server" $Server -IsMandatory
         $VSphereConnection = & "${FILE_DIR}Sync-VSphereVariableCache" "VSphereConnection" $VSphereConnection
@@ -111,26 +111,28 @@ process {
 
         # Return the result object as a JSON string. The parameter depth is needed to convert all child objects.
         $ScriptOut = ConvertTo-Json $ResultObj -Depth 10 -Compress
+
+        $ScriptOut  # Write $ScriptOut to output stream.
     } catch {
         # Error in $_ or $Error[0] variable.
         Write-Warning "Exception occurred at $($_.InvocationInfo.ScriptName):$($_.InvocationInfo.ScriptLineNumber)`n$($_.Exception)" -WarningAction:Continue
         $Ex = $_.Exception; while ($Ex.InnerException) { $Ex = $Ex.InnerException }
-        $ErrorOut = "$($Ex.Message)"
+        # Add error to $ErrorOut and continue with next item to process or end block.
+        $ErrorOut += if ($ErrorOut) { "`n$($Ex.Message)" } else { "$($Ex.Message)" }
         $ExitCode = 1
     } finally {
         if ($Disconnect -and $VSphereConnection) {
             $null = Disconnect-VIServer -Server $VSphereConnection -Confirm:$false
-        }
-
-        if ([String]::IsNullOrEmpty($ErrorOut)) {
-            $ScriptOut  # Write ScriptOut to output stream.
-        } else {
-            Write-Error "$ErrorOut"  # Use Write-Error only here.
         }
     }
 }
 
 end {
     Write-Verbose "$($FILE_NAME): ExitCode: $ExitCode. Execution time: $(([DateTime]::Now - $StartDate).TotalMilliseconds) ms. Started: $($StartDate.ToString('yyyy-MM-dd HH:mm:ss.fffzzz'))."
-    # exit $ExitCode
+    # Set the script/function exit code. Can be accessed with `$LASTEXITCODE` automatic variable.
+    # Don't use `exit $ExitCode` as it also exits the console itself when invoked as module function.
+    & "powershell.exe" "-NoLogo" "-NoProfile" "-NonInteractive" "-Command" "exit $ExitCode"
+    if ((-not [String]::IsNullOrEmpty($ErrorOut)) -or $ExitCode -ne 0) {
+        Write-Error "$ErrorOut"
+    }
 }
