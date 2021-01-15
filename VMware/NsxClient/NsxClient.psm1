@@ -7,20 +7,21 @@
         1. Use the file name without extension as function name.
         2. Read the content of the file.
         3. Add function wrapper lines.
-        4. Save as temporary file in $env:TEMP.
+        4. Save as temporary file in system temp path.
         5. Dot-source it.
         6. Export function as module member.
         7. Delete the temporary file.
 
     Author:     David Wettstein
-    Version:    v1.1.3
+    Version:    v1.1.4
 
     Changelog:
+                v1.1.4, 2021-01-15, David Wettstein: Make script cross-platform.
                 v1.1.3, 2020-11-14, David Wettstein: Refactor variables.
                 v1.1.2, 2020-10-19, David Wettstein: Load ps1 files recursively.
                 v1.1.1, 2020-04-09, David Wettstein: Improve path handling.
                 v1.1.0, 2020-04-07, David Wettstein: Load module config from XML file.
-                v1.0.1, 2020-03-13, David Wettstein: Use $env:TEMP.
+                v1.0.1, 2020-03-13, David Wettstein: Use system temp path.
                 v1.0.0, 2018-08-03, David Wettstein: First implementation.
 
 .NOTES
@@ -58,7 +59,7 @@ foreach ($Item in $ChildItems) {
     }
     $FileContent += "}"
 
-    $FileName = Join-Path -Path $env:TEMP -ChildPath "$FunctionName.ps1"
+    $FileName = Join-Path -Path ([System.IO.Path]::GetTempPath()) -ChildPath "$FunctionName.ps1"
     Set-Content -Encoding UTF8 -Path $FileName -Value $FileContent
     . $FileName  # Dot-source the file to load the function into current scope.
 

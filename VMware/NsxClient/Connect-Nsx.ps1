@@ -13,9 +13,10 @@
 
     File-Name:  Connect-Nsx.ps1
     Author:     David Wettstein
-    Version:    v2.0.3
+    Version:    v2.0.4
 
     Changelog:
+                v2.0.4, 2021-01-15, David Wettstein: Make script cross-platform.
                 v2.0.3, 2020-12-01, David Wettstein: Refactor error handling.
                 v2.0.2, 2020-10-20, David Wettstein: Add function blocks.
                 v2.0.1, 2020-05-07, David Wettstein: Reorganize input params.
@@ -57,7 +58,7 @@ param (
     [Switch] $AsPlainText
     ,
     [Parameter(Mandatory = $false, Position = 3)]
-    [String] $Username = "${env:USERNAME}"  # secure string or plain text (not recommended)
+    [String] $Username = "$([System.Environment]::UserName)"  # secure string or plain text (not recommended)
     ,
     [Parameter(Mandatory = $false, Position = 4)]
     [String] $Password = $null  # secure string or plain text (not recommended)

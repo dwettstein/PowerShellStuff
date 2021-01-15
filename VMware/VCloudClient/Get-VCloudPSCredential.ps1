@@ -10,7 +10,7 @@
         4. If not interactive, try with PSCredential file "$Username.xml".
 
     A manual export could also be done with:
-    Get-Credential "${env:USERNAME}" | Export-Clixml "$HOME\.pscredentials\${env:USERNAME}.xml"
+    Get-Credential "$([System.Environment]::UserName)" | Export-Clixml "$HOME\.pscredentials\$([System.Environment]::UserName).xml"
 
     NOTE: To export a credential file under the Local System Account, run the script Get-PSCredential.ps1 as a
     Scheduled Task using the account "SYSTEM" once:
@@ -19,9 +19,10 @@
 
     File-Name:  Get-PSCredential.ps1
     Author:     David Wettstein
-    Version:    v2.0.2
+    Version:    v2.0.3
 
     Changelog:
+                v2.0.3, 2021-01-15, David Wettstein: Make script cross-platform.
                 v2.0.2, 2020-10-20, David Wettstein: Add function blocks.
                 v2.0.1, 2020-04-09, David Wettstein: Improve path handling.
                 v2.0.0, 2020-03-12, David Wettstein: Refactor credential handling, merge duplicated script.
@@ -51,7 +52,7 @@ param (
     [String] $Server = "${env:USERDOMAIN}"
     ,
     [Parameter(Mandatory = $false, Position = 1)]
-    [String] $Username = "${env:USERNAME}"  # secure string or plain text (not recommended)
+    [String] $Username = "$([System.Environment]::UserName)"  # secure string or plain text (not recommended)
     ,
     [Parameter(Mandatory = $false, Position = 2)]
     [String] $Password = $null  # secure string or plain text (not recommended)

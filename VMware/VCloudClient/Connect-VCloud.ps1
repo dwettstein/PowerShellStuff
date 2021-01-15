@@ -11,9 +11,10 @@
 
     File-Name:  Connect-VCloud.ps1
     Author:     David Wettstein
-    Version:    v1.2.5
+    Version:    v1.2.6
 
     Changelog:
+                v1.2.6, 2021-01-15, David Wettstein: Make script cross-platform.
                 v1.2.5, 2020-12-01, David Wettstein: Refactor error handling.
                 v1.2.4, 2020-10-20, David Wettstein: Add function blocks.
                 v1.2.3, 2020-10-05, David Wettstein: Add param AuthorizationHeader.
@@ -63,7 +64,7 @@ param (
     [Switch] $AsPlainText
     ,
     [Parameter(Mandatory = $false, Position = 5)]
-    [String] $Username = "${env:USERNAME}"  # secure string or plain text (not recommended)
+    [String] $Username = "$([System.Environment]::UserName)"  # secure string or plain text (not recommended)
     ,
     [Parameter(Mandatory = $false, Position = 6)]
     [String] $Password = $null  # secure string or plain text (not recommended)

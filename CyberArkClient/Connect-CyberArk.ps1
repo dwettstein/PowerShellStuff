@@ -13,9 +13,10 @@
 
     File-Name:  Connect-CyberArk.ps1
     Author:     David Wettstein
-    Version:    v1.1.4
+    Version:    v1.1.5
 
     Changelog:
+                v1.1.5, 2021-01-15, David Wettstein: Make script cross-platform.
                 v1.1.4, 2020-12-01, David Wettstein: Refactor error handling.
                 v1.1.3, 2020-10-20, David Wettstein: Add function blocks.
                 v1.1.2, 2020-05-07, David Wettstein: Reorganize input params.
@@ -55,7 +56,7 @@ param (
     [Switch] $AsPlainText
     ,
     [Parameter(Mandatory = $false, Position = 2)]
-    [String] $Username = "${env:USERNAME}"  # secure string or plain text (not recommended)
+    [String] $Username = "$([System.Environment]::UserName)"  # secure string or plain text (not recommended)
     ,
     [Parameter(Mandatory = $false, Position = 3)]
     [String] $Password = $null  # secure string or plain text (not recommended)

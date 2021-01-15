@@ -46,9 +46,10 @@
 
     File-Name:  Invoke-Terraform.ps1
     Author:     David Wettstein
-    Version:    v1.0.4
+    Version:    v1.0.5
 
     Changelog:
+                v1.0.5, 2021-01-15, David Wettstein: Make script cross-platform.
                 v1.0.4, 2020-12-01, David Wettstein: Refactor error handling.
                 v1.0.3, 2020-10-20, David Wettstein: Add function blocks.
                 v1.0.2, 2020-05-17, David Wettstein: Improve command execution.
@@ -113,7 +114,7 @@ param (
     [String] $BinaryDir = "${env:TF_HOME}"  # Dir for Terraform binary and plugins (subfolder `plugin-cache`)
     ,
     [Parameter(Mandatory = $false, Position = 9)]
-    [String] $Username = "${env:USERNAME}"  # secure string or plain text (not recommended)
+    [String] $Username = "$([System.Environment]::UserName)"  # secure string or plain text (not recommended)
     ,
     [Parameter(Mandatory = $false, Position = 10)]
     [String] $Password = $null  # secure string or plain text (not recommended)
