@@ -9,7 +9,7 @@
 
     File-Name:  Invoke-HttpRequest.ps1
     Author:     David Wettstein
-    Version:    v1.1.3
+    Version:    1.1.3
 
     Changelog:
                 v1.1.3, 2020-12-01, David Wettstein: Refactor error handling.

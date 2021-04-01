@@ -13,7 +13,7 @@
         7. Delete the temporary file.
 
     Author:     David Wettstein
-    Version:    v1.1.4
+    Version:    1.1.4
 
     Changelog:
                 v1.1.4, 2021-01-15, David Wettstein: Make script cross-platform.

@@ -19,7 +19,7 @@
 
     File-Name:  Get-PSCredential.ps1
     Author:     David Wettstein
-    Version:    v2.0.3
+    Version:    2.0.3
 
     Changelog:
                 v2.0.3, 2021-01-15, David Wettstein: Make script cross-platform.

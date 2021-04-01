@@ -7,7 +7,7 @@
 
     File-Name:  TemplateWithLog.ps1
     Author:     David Wettstein
-    Version:    v0.0.1
+    Version:    0.0.1
 
     Changelog:
                 v0.0.1, yyyy-mm-dd, David Wettstein: First implementation.

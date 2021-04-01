@@ -10,7 +10,7 @@
 
     File-Name:  Repair-Scoop.ps1
     Author:     David Wettstein
-    Version:    v1.2.1
+    Version:    1.2.1
 
     Changelog:
                 v1.2.1, 2020-12-01, David Wettstein: Refactor error handling.

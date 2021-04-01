@@ -11,7 +11,7 @@
 
     File-Name:  Update-CyberArkAccountPassword.ps1
     Author:     David Wettstein
-    Version:    v1.0.4
+    Version:    1.0.4
 
     Changelog:
                 v1.0.4, 2020-12-01, David Wettstein: Refactor error handling.

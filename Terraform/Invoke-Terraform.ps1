@@ -46,7 +46,7 @@
 
     File-Name:  Invoke-Terraform.ps1
     Author:     David Wettstein
-    Version:    v1.0.5
+    Version:    1.0.5
 
     Changelog:
                 v1.0.5, 2021-01-15, David Wettstein: Make script cross-platform.

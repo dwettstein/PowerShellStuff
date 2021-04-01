@@ -12,7 +12,7 @@
 
     File-Name:  Connect-VSphere.ps1
     Author:     David Wettstein
-    Version:    v2.0.4
+    Version:    2.0.4
 
     Changelog:
                 v2.0.4, 2021-01-15, David Wettstein: Make script cross-platform.

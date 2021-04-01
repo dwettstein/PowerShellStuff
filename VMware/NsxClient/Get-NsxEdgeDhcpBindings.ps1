@@ -7,7 +7,7 @@
 
     File-Name:  Get-NsxEdgeDhcpBindings.ps1
     Author:     David Wettstein
-    Version:    v2.0.3
+    Version:    2.0.3
 
     Changelog:
                 v2.0.3, 2020-12-01, David Wettstein: Refactor error handling.

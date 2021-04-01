@@ -12,7 +12,7 @@
 
     File-Name:  Sync-VariableCache.ps1
     Author:     David Wettstein
-    Version:    v1.1.1
+    Version:    1.1.1
 
     Changelog:
                 v1.1.1, 2020-10-20, David Wettstein: Add function blocks.

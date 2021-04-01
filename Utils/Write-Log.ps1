@@ -15,7 +15,7 @@
 
     File-Name:  Write-Log.ps1
     Author:     David Wettstein
-    Version:    v1.0.3
+    Version:    1.0.3
 
     Changelog:
                 v1.0.3, 2020-11-27, David Wettstein: Refactor and use System.IO.File.
@@ -57,8 +57,8 @@ param (
 )
 
 begin {
-    if (-not $PSCmdlet.MyInvocation.BoundParameters.ErrorAction) { $ErrorActionPreference = "Stop" }
-    if (-not $PSCmdlet.MyInvocation.BoundParameters.WarningAction) { $WarningPreference = "SilentlyContinue" }
+    if (-not $PSBoundParameters["ErrorAction"]) { $ErrorActionPreference = "Stop" }
+    if (-not $PSBoundParameters["WarningAction"]) { $WarningPreference = "SilentlyContinue" }
     # Use comma as output field separator (special variable $OFS).
     $private:OFS = ","
 
@@ -86,8 +86,9 @@ begin {
     }
     $LogDate = Get-Date -Format "yyyy-MM-ddTHH:mm:ss.fffzzz"  # ISO8601
 
-    [Boolean] $IsVerboseGiven = $VerbosePreference -ne "SilentlyContinue"
+    [Boolean] $IsVerboseGiven = $PSBoundParameters["Verbose"] -or ($VerbosePreference -ne "SilentlyContinue")
     [Boolean] $IsDebugGiven = $DebugPreference -ne "SilentlyContinue"
+    Write-Host "IsVerboseGiven: $IsVerboseGiven"
 }
 
 process {

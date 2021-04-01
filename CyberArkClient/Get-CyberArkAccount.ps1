@@ -11,7 +11,7 @@
 
     File-Name:  Get-CyberArkAccount.ps1
     Author:     David Wettstein
-    Version:    v1.2.4
+    Version:    1.2.4
 
     Changelog:
                 v1.2.4, 2020-12-01, David Wettstein: Refactor error handling.

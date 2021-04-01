@@ -13,7 +13,7 @@
 
     File-Name:  Connect-CyberArk.ps1
     Author:     David Wettstein
-    Version:    v1.1.5
+    Version:    1.1.5
 
     Changelog:
                 v1.1.5, 2021-01-15, David Wettstein: Make script cross-platform.

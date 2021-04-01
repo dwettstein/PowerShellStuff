@@ -7,7 +7,7 @@
 
     File-Name:  ConvertTo-EncryptedString.ps1
     Author:     David Wettstein
-    Version:    v1.0.1
+    Version:    1.0.1
 
     Changelog:
                 v1.0.1, 2020-10-20, David Wettstein: Add function blocks.

@@ -11,7 +11,7 @@
 
     File-Name:  Invoke-ServerRequest.ps1
     Author:     David Wettstein
-    Version:    v2.0.2
+    Version:    2.0.2
 
     Changelog:
                 v2.0.2, 2020-12-01, David Wettstein: Refactor error handling.
@@ -142,7 +142,6 @@ process {
         } else {
             $Response = Invoke-WebRequest -Method $Method -Headers $Headers -Uri $EndpointUrl
         }
-
         $ScriptOut = $Response
 
         $ScriptOut  # Write $ScriptOut to output stream.

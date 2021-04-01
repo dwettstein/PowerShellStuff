@@ -11,7 +11,7 @@
 
     File-Name:  Connect-VCloud.ps1
     Author:     David Wettstein
-    Version:    v1.2.6
+    Version:    1.2.6
 
     Changelog:
                 v1.2.6, 2021-01-15, David Wettstein: Make script cross-platform.

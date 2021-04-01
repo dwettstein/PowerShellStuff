@@ -9,7 +9,7 @@
 
     File-Name:  Approve-AllCertificates.ps1
     Author:     David Wettstein
-    Version:    v1.0.2
+    Version:    1.0.2
 
     Changelog:
                 v1.0.2, 2020-10-20, David Wettstein: Add function blocks.
