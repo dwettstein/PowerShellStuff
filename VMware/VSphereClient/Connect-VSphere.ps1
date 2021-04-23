@@ -68,8 +68,8 @@ param (
 )
 
 begin {
-    if (-not $PSCmdlet.MyInvocation.BoundParameters.ErrorAction) { $ErrorActionPreference = "Stop" }
-    if (-not $PSCmdlet.MyInvocation.BoundParameters.WarningAction) { $WarningPreference = "SilentlyContinue" }
+    if (-not $PSBoundParameters.ErrorAction) { $ErrorActionPreference = "Stop" }
+    if (-not $PSBoundParameters.WarningAction) { $WarningPreference = "SilentlyContinue" }
     # Use comma as output field separator (special variable $OFS).
     $private:OFS = ","
 
@@ -104,7 +104,7 @@ process {
     $ScriptOut = ""
     try {
         $Server = & "${FILE_DIR}Sync-VSphereVariableCache" "Server" $Server -IsMandatory
-        $ApproveAllCertificates = [Boolean] (& "${FILE_DIR}Sync-VSphereVariableCache" "ApproveAllCertificates" $PSCmdlet.MyInvocation.BoundParameters.ApproveAllCertificates)
+        $ApproveAllCertificates = [Boolean] (& "${FILE_DIR}Sync-VSphereVariableCache" "ApproveAllCertificates" $PSBoundParameters.ApproveAllCertificates)
 
         if ($ApproveAllCertificates) {
             $null = Set-PowerCLIConfiguration -InvalidCertificateAction "Ignore" -Confirm:$false

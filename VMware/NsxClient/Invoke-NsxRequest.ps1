@@ -74,8 +74,8 @@ param (
 )
 
 begin {
-    if (-not $PSCmdlet.MyInvocation.BoundParameters.ErrorAction) { $ErrorActionPreference = "Stop" }
-    if (-not $PSCmdlet.MyInvocation.BoundParameters.WarningAction) { $WarningPreference = "SilentlyContinue" }
+    if (-not $PSBoundParameters.ErrorAction) { $ErrorActionPreference = "Stop" }
+    if (-not $PSBoundParameters.WarningAction) { $WarningPreference = "SilentlyContinue" }
     # Use comma as output field separator (special variable $OFS).
     $private:OFS = ","
 
@@ -109,7 +109,7 @@ process {
     try {
         $Server = & "${FILE_DIR}Sync-NsxVariableCache" "Server" $Server -IsMandatory
         $AuthorizationToken = & "${FILE_DIR}Sync-NsxVariableCache" "AuthorizationToken" $AuthorizationToken
-        $ApproveAllCertificates = [Boolean] (& "${FILE_DIR}Sync-NsxVariableCache" "ApproveAllCertificates" $PSCmdlet.MyInvocation.BoundParameters.ApproveAllCertificates)
+        $ApproveAllCertificates = [Boolean] (& "${FILE_DIR}Sync-NsxVariableCache" "ApproveAllCertificates" $PSBoundParameters.ApproveAllCertificates)
 
         $BaseUrl = "${Protocol}://$Server"
         $EndpointUrl = "${BaseUrl}${Endpoint}"

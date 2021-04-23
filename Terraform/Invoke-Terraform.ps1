@@ -138,8 +138,8 @@ param (
 )
 
 begin {
-    if (-not $PSCmdlet.MyInvocation.BoundParameters.ErrorAction) { $ErrorActionPreference = "Stop" }
-    if (-not $PSCmdlet.MyInvocation.BoundParameters.WarningAction) { $WarningPreference = "SilentlyContinue" }
+    if (-not $PSBoundParameters.ErrorAction) { $ErrorActionPreference = "Stop" }
+    if (-not $PSBoundParameters.WarningAction) { $WarningPreference = "SilentlyContinue" }
     # Use comma as output field separator (special variable $OFS).
     $private:OFS = ","
 
@@ -213,7 +213,7 @@ process {
         } else {
             # Add Terraform input variables.
             $Arguments += " -var 'server=$Server'"
-            if ($PSCmdlet.MyInvocation.BoundParameters.ApproveAllCertificates) {
+            if ($PSBoundParameters.ApproveAllCertificates) {
                 $Arguments += " -var 'allow_unverified_ssl=$("$ApproveAllCertificates".ToLower())'"
             }
 

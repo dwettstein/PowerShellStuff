@@ -1,29 +1,24 @@
 # PowerShell Quick Style Guide
 
-This guide is intended to be a short overview of [The PowerShell Best Practices and Style Guide](https://poshcode.gitbooks.io/powershell-practice-and-style/).
+This guide is intended to be a short overview of [The PowerShell Best Practices and Style Guide](https://poshcode.gitbooks.io/powershell-practice-and-style/) and some additional tips based on my experience.
 
 Author: David Wettstein<br/>
-Version: v1.2.0, 2020-12-01<br/>
-License: Copyright (c) 2019-2020 David Wettstein, http://wettste.in, licensed under the [Creative Commons Attribution-ShareAlike 4.0 International License](https://creativecommons.org/licenses/by-sa/4.0/).<br/>
+Version: 1.3.0, 2021-04-23<br/>
+License: Copyright (c) 2019-2021 David Wettstein, http://wettste.in, licensed under the [Creative Commons Attribution-ShareAlike 4.0 International License (CC BY-SA 4.0)](https://creativecommons.org/licenses/by-sa/4.0/).<br/>
 All attributions and credits for [The PowerShell Best Practices and Style Guide](https://poshcode.gitbooks.io/powershell-practice-and-style/) go to Don Jones, Matt Penny, Carlos Perez, Joel Bennett and the PowerShell Community.
 
 If you rather search a cheat sheet, I recommend the PDF from Warren Frame: [PowerShell Cheat Sheet](powershell-cheat-sheet.pdf)
 <br/>(Source: [PowerShell Cheat Sheet](http://ramblingcookiemonster.github.io/images/Cheat-Sheets/powershell-cheat-sheet.pdf), all credits go to [Warren Frame](http://ramblingcookiemonster.github.io/).)
 
 
-## Table of Contents
+**Table of Contents**
 
 - [PowerShell Quick Style Guide](#powershell-quick-style-guide)
-  - [Table of Contents](#table-of-contents)
-- [Style Guide](#style-guide)
   - [Code Layout and Formatting](#code-layout-and-formatting)
   - [Function Structure](#function-structure)
   - [Documentation and Comments](#documentation-and-comments)
   - [Naming Conventions](#naming-conventions)
-- [Tips and Common Pitfalls](#tips-and-common-pitfalls)
-
-
-# Style Guide
+  - [Tips and Common Pitfalls](#tips-and-common-pitfalls)
 
 
 ## Code Layout and Formatting
@@ -192,12 +187,12 @@ Read the full page [Documentation and Comments](https://poshcode.gitbooks.io/pow
     # Good
     $Result = & "$PSScriptRoot\Invoke-AnotherScript.ps1" -Param1 "Value"
     ```
-- Avoid using `~`, instead use `$env:USERPROFILE` or `$HOME`.
+- Avoid using `~`, instead use `$HOME` or `$env:USERPROFILE`.
 
 Read the full page [Naming Conventions](https://poshcode.gitbooks.io/powershell-practice-and-style/Style-Guide/Naming-Conventions.html) for more information.
 
 
-# Tips and Common Pitfalls
+## Tips and Common Pitfalls
 
 - When creating a new file, ensure that the encoding is _UTF-8_. Be aware that PowerShell creates files with encoding _UTF-8 with BOM_ by default. See also [What's the difference between UTF-8 and UTF-8 without BOM?](https://stackoverflow.com/questions/2223882/whats-the-difference-between-utf-8-and-utf-8-without-bom) and [Using PowerShell to write a file in UTF-8 without the BOM](https://stackoverflow.com/questions/5596982/using-powershell-to-write-a-file-in-utf-8-without-the-bom).
     ```powershell
@@ -207,10 +202,11 @@ Read the full page [Naming Conventions](https://poshcode.gitbooks.io/powershell-
     [System.IO.File]::AppendAllText($Path, "$Text`n")
     ```
 - See `Get-Verb` to list all approved PowerShell verbs, always use one of them for your functions.
+- Directly use the [automatic variables](https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_automatic_variables), e.g. `$MyInvocation` or `$PSBoundParameters`, instead of the `$PSCmdlet.MyInvocation.*` variants, as the $PSCmdlet variable is only available when the `[CmdletBinding()]` attribute is given. See also [Any difference or drawback of using $MyInvocation instead of $PSCmdlet.MyInvocation](https://stackoverflow.com/questions/66060418/any-difference-or-drawback-of-using-myinvocation-instead-of-pscmdlet-myinvocat).
 - `$ErrorActionPreference` is set to `Continue` by default, thus the script continues to run even after an error happens. Additionally, `$WarningActionPreference` is set to `Continue` as well, and thus unwanted output might be in the standard output of your script. Add the following code at the beginning of your script to change the default behavior:
     ```powershell
-    if (-not $PSCmdlet.MyInvocation.BoundParameters.ErrorAction) { $ErrorActionPreference = "Stop" }
-    if (-not $PSCmdlet.MyInvocation.BoundParameters.WarningAction) { $WarningPreference = "SilentlyContinue" }
+    if (-not $PSBoundParameters.ErrorAction) { $ErrorActionPreference = "Stop" }
+    if (-not $PSBoundParameters.WarningAction) { $WarningPreference = "SilentlyContinue" }
     ```
 - Even when you add `-ErrorAction:SilentlyContinue`, the errors are written to the error stream (but not displayed). To ignore all error output use `-ErrorAction:Ignore` or stream redirection and append ` 2>$null`.
 - The results of each statement are added to the output stream and thus returned as script output, not only the ones containing the `return` keyword.

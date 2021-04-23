@@ -37,8 +37,8 @@ param (
 )
 
 begin {
-    if (-not $PSCmdlet.MyInvocation.BoundParameters.ErrorAction) { $ErrorActionPreference = "Stop" }
-    if (-not $PSCmdlet.MyInvocation.BoundParameters.WarningAction) { $WarningPreference = "Continue" }
+    if (-not $PSBoundParameters.ErrorAction) { $ErrorActionPreference = "Stop" }
+    if (-not $PSBoundParameters.WarningAction) { $WarningPreference = "Continue" }
     # Use comma as output field separator (special variable $OFS).
     $private:OFS = ","
 
@@ -74,7 +74,7 @@ process {
 
         if (& "${FILE_DIR}Utils\Test-Administrator") {
             Write-Verbose "PowerShell sessions has elevated permissions."
-            if (-not $PSCmdlet.MyInvocation.BoundParameters.Path) {
+            if (-not $PSBoundParameters.Path) {
                 # Get path "C:\Program Files\WindowsPowerShell\Modules\" or similar,
                 # if path is not explicitly given as input.
                 $Path = $AllModulesPath | Where-Object { $_ -match ".*Program[ a-zA-Z]*\\WindowsPowerShell\\Modules"}

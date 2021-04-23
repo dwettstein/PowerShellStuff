@@ -73,8 +73,8 @@ param (
 )
 
 begin {
-    if (-not $PSCmdlet.MyInvocation.BoundParameters.ErrorAction) { $ErrorActionPreference = "Stop" }
-    if (-not $PSCmdlet.MyInvocation.BoundParameters.WarningAction) { $WarningPreference = "SilentlyContinue" }
+    if (-not $PSBoundParameters.ErrorAction) { $ErrorActionPreference = "Stop" }
+    if (-not $PSBoundParameters.WarningAction) { $WarningPreference = "SilentlyContinue" }
     # Use comma as output field separator (special variable $OFS).
     $private:OFS = ","
 
@@ -108,7 +108,7 @@ process {
     try {
         $Server = & "${FILE_DIR}Sync-VariableCache" "Server" $Server -VariableCachePrefix "Utils" -IsMandatory
         $AuthorizationToken = & "${FILE_DIR}Sync-VariableCache" "AuthorizationToken" $AuthorizationToken -VariableCachePrefix "Utils"
-        $ApproveAllCertificates = [Boolean] (& "${FILE_DIR}Sync-VariableCache" "ApproveAllCertificates" $PSCmdlet.MyInvocation.BoundParameters.ApproveAllCertificates -VariableCachePrefix "Utils")
+        $ApproveAllCertificates = [Boolean] (& "${FILE_DIR}Sync-VariableCache" "ApproveAllCertificates" $PSBoundParameters.ApproveAllCertificates -VariableCachePrefix "Utils")
 
         if ($ApproveAllCertificates) {
             & "${FILE_DIR}Approve-AllCertificates"
