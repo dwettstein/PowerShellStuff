@@ -10,9 +10,10 @@
 
     File-Name:  Repair-Scoop.ps1
     Author:     David Wettstein
-    Version:    1.2.1
+    Version:    1.3.0
 
     Changelog:
+                v1.3.0, 2021-04-23, David Wettstein: Add switch to change Scoop to Shovel.
                 v1.2.1, 2020-12-01, David Wettstein: Refactor error handling.
                 v1.2.0, 2020-11-23, David Wettstein: Allow non-standard home dirs.
                 v1.1.1, 2020-10-20, David Wettstein: Add function blocks.
@@ -20,7 +21,7 @@
                 v1.0.0, 2020-05-13, David Wettstein: First implementation.
 
 .NOTES
-    Copyright (c) 2018-2020 David Wettstein,
+    Copyright (c) 2018-2021 David Wettstein,
     licensed under the MIT License (https://dwettstein.mit-license.org/)
 
 .LINK
@@ -42,39 +43,47 @@ param (
     [Switch] $Install
     ,
     [Parameter(Mandatory = $false, Position = 1)]
-    [Switch] $Symlink
+    # Change Scoop to Shovel (see https://github.com/Ash258/Scoop-Core)
+    [Switch] $InstallShovel
     ,
     [Parameter(Mandatory = $false, Position = 2)]
-    [Switch] $ResetAll
+    [Switch] $Symlink
     ,
     [Parameter(Mandatory = $false, Position = 3)]
+    [Switch] $ResetAll
+    ,
+    [Parameter(Mandatory = $false, Position = 4)]
     [ValidateNotNullOrEmpty()]
     [String] $UnzipFromPath = $null
     ,
-    [Parameter(Mandatory = $false, Position = 4)]
+    [Parameter(Mandatory = $false, Position = 5)]
     [String] $Proxy = $null
     ,
-    [Parameter(Mandatory = $false, Position = 5)]
+    [Parameter(Mandatory = $false, Position = 6)]
     [PSCredential] $ProxyCredential = $null
     ,
-    [Parameter(Mandatory = $false, Position = 6)]
-    [Switch] $SetScoopHomeEnv
-    ,
     [Parameter(Mandatory = $false, Position = 7)]
-    [ValidateNotNullOrEmpty()]
-    [String] $ScoopHome = $(if (-not [String]::IsNullOrEmpty($env:SCOOP)) { $env:SCOOP } else { "$HOME\scoop\" })
+    [Switch] $SetScoopHomeEnv
     ,
     [Parameter(Mandatory = $false, Position = 8)]
     [ValidateNotNullOrEmpty()]
-    [String] $ScoopAppHome = "$ScoopHome\apps\scoop\"
+    [String] $ScoopHome = $(if (-not [String]::IsNullOrEmpty($env:SCOOP)) { $env:SCOOP } else { "$HOME\scoop\" })
     ,
     [Parameter(Mandatory = $false, Position = 9)]
     [ValidateNotNullOrEmpty()]
-    [String] $ScoopAppVersion = "master"
+    [String] $ScoopAppHome = "$ScoopHome\apps\scoop\"
     ,
     [Parameter(Mandatory = $false, Position = 10)]
     [ValidateNotNullOrEmpty()]
+    [String] $ScoopAppVersion = "master"
+    ,
+    [Parameter(Mandatory = $false, Position = 11)]
+    [ValidateNotNullOrEmpty()]
     [String] $ScoopAppVersionPrefix = "scoop-"
+    ,
+    [Parameter(Mandatory = $false, Position = 12)]
+    [Alias("Insecure")]
+    [Switch] $ApproveAllCertificates
 )
 
 begin {
@@ -116,12 +125,24 @@ process {
             [System.Environment]::SetEnvironmentVariable("SCOOP", $ScoopHome, "User")
         }
 
+        if ($ApproveAllCertificates) {
+            $null = & "${FILE_DIR}Approve-AllCertificates"
+        }
+
         if ($Proxy -or $ProxyCredential) {
             $null = & "${FILE_DIR}Set-DefaultWebProxy" -Proxy $Proxy -Credential $ProxyCredential
         }
 
         if ($Install -and [String]::IsNullOrEmpty($UnzipFromPath)) {
             Invoke-Expression (New-Object System.Net.WebClient).DownloadString("https://get.scoop.sh")
+        }
+
+        if ($InstallShovel) {
+            # Change Scoop to Shovel (see https://github.com/Ash258/Scoop-Core)
+            & "$env:COMSPEC" /c scoop install 7zip
+            & "$env:COMSPEC" /c scoop config SCOOP_REPO "https://github.com/Ash258/Scoop-Core"
+            & "$env:COMSPEC" /c scoop update
+            Get-ChildItem "$env:SCOOP\shims" -Filter "scoop.*" | Copy-Item -Destination { Join-Path $_.Directory.FullName (($_.BaseName -replace "scoop", "shovel") + $_.Extension) }
         }
 
         if (-not [String]::IsNullOrEmpty($UnzipFromPath)) {
