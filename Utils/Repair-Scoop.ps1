@@ -10,9 +10,10 @@
 
     File-Name:  Repair-Scoop.ps1
     Author:     David Wettstein
-    Version:    1.3.0
+    Version:    1.3.1
 
     Changelog:
+                v1.3.1, 2021-04-29, David Wettstein: Do -UnzipFromPath earlier.
                 v1.3.0, 2021-04-23, David Wettstein: Add switch to change Scoop to Shovel.
                 v1.2.1, 2020-12-01, David Wettstein: Refactor error handling.
                 v1.2.0, 2020-11-23, David Wettstein: Allow non-standard home dirs.
@@ -34,7 +35,7 @@
     Repair-Scoop -Symlink -ResetAll -Proxy "http://proxy.example.com:8080"
 
 .EXAMPLE
-    Repair-Scoop -Symlink -ResetAll -UnzipFromPath "$HOME\scoop-master.zip" -Proxy "http://proxy.example.com:8080"
+    Repair-Scoop -Install -InstallShovel -UnzipFromPath "$HOME\scoop-master.zip" -Proxy "http://proxy.example.com:8080" -ApproveAllCertificates
 #>
 [CmdletBinding()]
 [OutputType([String])]
@@ -133,7 +134,12 @@ process {
             $null = & "${FILE_DIR}Set-DefaultWebProxy" -Proxy $Proxy -Credential $ProxyCredential
         }
 
-        if ($Install -and [String]::IsNullOrEmpty($UnzipFromPath)) {
+        if (-not [String]::IsNullOrEmpty($UnzipFromPath)) {
+            Write-Verbose "Unzip from '$UnzipFromPath' to '$ScoopAppHome'."
+            Add-Type -Assembly "System.IO.Compression.FileSystem"
+            [IO.Compression.ZipFile]::ExtractToDirectory($UnzipFromPath, $ScoopAppHome)
+        } elseif ($Install) {
+            # If -UnzipFromPath is given, don't do -Install.
             Invoke-Expression (New-Object System.Net.WebClient).DownloadString("https://get.scoop.sh")
         }
 
@@ -143,12 +149,6 @@ process {
             & "$env:COMSPEC" /c scoop config SCOOP_REPO "https://github.com/Ash258/Scoop-Core"
             & "$env:COMSPEC" /c scoop update
             Get-ChildItem "$env:SCOOP\shims" -Filter "scoop.*" | Copy-Item -Destination { Join-Path $_.Directory.FullName (($_.BaseName -replace "scoop", "shovel") + $_.Extension) }
-        }
-
-        if (-not [String]::IsNullOrEmpty($UnzipFromPath)) {
-            Write-Verbose "Unzip from '$UnzipFromPath' to '$ScoopAppHome'."
-            Add-Type -Assembly "System.IO.Compression.FileSystem"
-            [IO.Compression.ZipFile]::ExtractToDirectory($UnzipFromPath, $ScoopAppHome)
         }
 
         if ($Symlink) {
