@@ -4,9 +4,10 @@
 
 .DESCRIPTION
     Repair an existing scoop installation:
-        - 'current' symlink for scoop itself
-        - Reset all apps (re-creates 'current' symlinks too)
+        - Re-create 'current' symlink for scoop itself
+        - Reset and cleanup all apps (re-creates 'current' symlinks for apps too)
         - Unzip archive from https://github.com/lukesampson/scoop
+        - Change Scoop to Shovel (see https://github.com/Ash258/Scoop-Core)
 
     File-Name:  Repair-Scoop.ps1
     Author:     David Wettstein
@@ -175,9 +176,10 @@ process {
         }
 
         if ($ResetAll) {
-            Write-Verbose "Reset all existing scoop apps."
+            Write-Verbose "Reset and cleanup all existing scoop apps."
             $ErrorActionPreference = "Continue"
             & "$env:COMSPEC" /c scoop reset *
+            & "$env:COMSPEC" /c scoop cleanup --cache *
         }
 
         #$ScriptOut  # Write $ScriptOut to output stream.
