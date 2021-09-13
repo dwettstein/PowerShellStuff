@@ -9,15 +9,16 @@
 
     File-Name:  Approve-AllCertificates.ps1
     Author:     David Wettstein
-    Version:    1.0.2
+    Version:    1.0.3
 
     Changelog:
+                v1.0.3, 2021-09-13, David Wettstein: Remove deprecated Ssl3 protocol.
                 v1.0.2, 2020-10-20, David Wettstein: Add function blocks.
                 v1.0.1, 2019-12-17, David Wettstein: Disable certificate revocation check.
                 v1.0.0, 2018-08-01, David Wettstein: First implementation.
 
 .NOTES
-    Copyright (c) 2018-2020 David Wettstein,
+    Copyright (c) 2018-2021 David Wettstein,
     licensed under the MIT License (https://dwettstein.mit-license.org/)
 
 .LINK
@@ -63,7 +64,7 @@ public class ServerCertificate {
     [System.Net.ServicePointManager]::CheckCertificateRevocationList = $false;
 
     # Allow all security protocols.
-    [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]"Ssl3,Tls,Tls11,Tls12"
+    [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]"Tls,Tls11,Tls12"
 }
 
 end {}
