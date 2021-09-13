@@ -1,4 +1,5 @@
 # Useful commands for vSphere
+
 - [Useful commands for vSphere](#useful-commands-for-vsphere)
   - [Capacity Management](#capacity-management)
     - [Get a list of all clusters containing the name, memory usage in MB, memory capacity in MB and total memory usage in percent, sorted by highest memory usage in percent](#get-a-list-of-all-clusters-containing-the-name-memory-usage-in-mb-memory-capacity-in-mb-and-total-memory-usage-in-percent-sorted-by-highest-memory-usage-in-percent)
@@ -51,6 +52,12 @@ Use the command above, remove the -Descending at the end, append the following c
 | ? {$_.Name -match "ssd"}
 ```
 
+### Get a list of all NFS datastore disconnects during a given time
+
+```powershell
+Get-VIEvent -MaxSamples 100000 -Start (Get-Date).AddHours(-12) -Finish (Get-Date).AddHours(-0) | where { $_.EventTypeId -eq "esx.problem.vmfs.nfs.server.disconnect" } | select CreatedTime, @{N="HostName"; E={$_.Host.Name}}, @{N="Datastore"; E={[regex]::Match($_.FullFormattedMessage, "\(.*\)").Value.Trim("()")}}, @{N="DatastoreIP"; E={[regex]::Match($_.FullFormattedMessage, "((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)").Value}}, FullFormattedMessage | sort CreatedTime
+```
+
 ## Compute
 
 ### Get all VMs of a host with mounted VMware Tools Installer or connected CD drive
@@ -74,6 +81,12 @@ Get-VMHost | select Parent, Name, Version, @{N="NumDatastores"; E={$_.DatastoreI
 
 ```powershell
 Get-VMHost | where { $_.ExtensionData.AlarmActionsEnabled -eq $False } | sort Name
+```
+
+### Get all hosts with enabled SSH
+
+```powershell
+Get-VMHost | where { $_ | Get-VMHostService | where { $_.Key -eq "TSM-SSH" -and $_.Policy -eq "on" } } | sort Name
 ```
 
 ## Others
