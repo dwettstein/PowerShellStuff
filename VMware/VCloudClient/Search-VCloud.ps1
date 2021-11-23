@@ -7,9 +7,10 @@
 
     File-Name:  Search-VCloud.ps1
     Author:     David Wettstein
-    Version:    1.0.4
+    Version:    1.0.5
 
     Changelog:
+                v1.0.5, 2021-11-23, David Wettstein: Fix endpoint URL.
                 v1.0.4, 2020-12-01, David Wettstein: Refactor error handling.
                 v1.0.3, 2020-10-20, David Wettstein: Add function blocks.
                 v1.0.2, 2020-05-07, David Wettstein: Reorganize input params.
@@ -92,7 +93,7 @@ process {
         $Results = @()
         $Page = 1
         do {
-            $Endpoint = "/query?type=$Type"
+            $Endpoint = "/api/query?type=$Type"
             if (-not [String]::IsNullOrEmpty($Filter)) {
                 $Endpoint += "&filter=$Filter"
             }
