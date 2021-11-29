@@ -7,14 +7,14 @@
     Convert a given IP address in CIDR notation to its IP address, subnet mask,
     network address and gateway address.
 
-    File-Name:  ConvertFrom-Cidr.ps1
+    Filename:   ConvertFrom-Cidr.ps1
     Author:     David Wettstein
     Version:    1.0.2
 
     Changelog:
-                v1.0.2, 2020-10-20, David Wettstein: Add function blocks.
-                v1.0.1, 2020-03-13, David Wettstein: Change AsObj to AsJson.
-                v1.0.0, 2020-01-03, David Wettstein: First implementation.
+    - v1.0.2, 2020-10-20, David Wettstein: Add function blocks.
+    - v1.0.1, 2020-03-13, David Wettstein: Change AsObj to AsJson.
+    - v1.0.0, 2020-01-03, David Wettstein: First implementation.
 
 .NOTES
     Copyright (c) 2020 David Wettstein,

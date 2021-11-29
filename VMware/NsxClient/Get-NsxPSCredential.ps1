@@ -17,21 +17,21 @@
     - Program: powershell.exe
     - Arguments: -File "C:\Get-PSCredential.ps1" -Server "{{server}}" -Username "{{username}}" -Password "{{password}}"
 
-    File-Name:  Get-PSCredential.ps1
+    Filename:   Get-PSCredential.ps1
     Author:     David Wettstein
     Version:    2.0.3
 
     Changelog:
-                v2.0.3, 2021-01-15, David Wettstein: Make script cross-platform.
-                v2.0.2, 2020-10-20, David Wettstein: Add function blocks.
-                v2.0.1, 2020-04-09, David Wettstein: Improve path handling.
-                v2.0.0, 2020-03-12, David Wettstein: Refactor credential handling, merge duplicated script.
-                v1.0.2, 2019-12-17, David Wettstein: Improve parameter validation and documentation.
-                v1.0.1, 2019-12-13, David Wettstein: Improve credential handling.
-                v1.0.0, 2019-07-26, David Wettstein: First implementation.
+    - v2.0.3, 2021-01-15, David Wettstein: Make script cross-platform.
+    - v2.0.2, 2020-10-20, David Wettstein: Add function blocks.
+    - v2.0.1, 2020-04-09, David Wettstein: Improve path handling.
+    - v2.0.0, 2020-03-12, David Wettstein: Refactor credential handling, merge duplicated script.
+    - v1.0.2, 2019-12-17, David Wettstein: Improve parameter validation and documentation.
+    - v1.0.1, 2019-12-13, David Wettstein: Improve credential handling.
+    - v1.0.0, 2019-07-26, David Wettstein: First implementation.
 
 .NOTES
-    Copyright (c) 2018-2020 David Wettstein,
+    Copyright (c) 2018-2021 David Wettstein,
     licensed under the MIT License (https://dwettstein.mit-license.org/)
 
 .LINK

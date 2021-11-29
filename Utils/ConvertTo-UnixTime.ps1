@@ -7,16 +7,16 @@
     Create a timestamp with current universal time or convert the given DateTime object to UnixTime (seconds since 01/01/1970)
     by creating a time span from 01/01/1970 to the given date and calculate the elapsed seconds.
 
-    File-Name:  ConvertTo-UnixTime.ps1
+    Filename:   ConvertTo-UnixTime.ps1
     Author:     David Wettstein
     Version:    1.0.1
 
     Changelog:
-                v1.0.1, 2020-10-20, David Wettstein: Add function blocks.
-                v1.0.0, 2018-08-01, David Wettstein: First implementation.
+    - v1.0.1, 2020-10-20, David Wettstein: Add function blocks.
+    - v1.0.0, 2018-08-01, David Wettstein: First implementation.
 
 .NOTES
-    Copyright (c) 2018-2020 David Wettstein,
+    Copyright (c) 2018-2021 David Wettstein,
     licensed under the MIT License (https://dwettstein.mit-license.org/)
 
 .LINK

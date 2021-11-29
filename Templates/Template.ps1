@@ -5,15 +5,15 @@
 .DESCRIPTION
     Long description
 
-    File-Name:  Template.ps1
+    Filename:   Template.ps1
     Author:     David Wettstein
     Version:    0.0.1
 
     Changelog:
-                v0.0.1, yyyy-mm-dd, David Wettstein: First implementation.
+    - v0.0.1, yyyy-mm-dd, David Wettstein: First implementation.
 
 .NOTES
-    Copyright (c) 2018-2020 David Wettstein,
+    Copyright (c) 2018-2021 David Wettstein,
     licensed under the MIT License (https://dwettstein.mit-license.org/)
 
 .LINK
@@ -63,10 +63,9 @@ begin {
     Write-Verbose "$($FILE_NAME): CALL."
 
     # Make sure the necessary modules are loaded.
+    # By default, this will load the latest version. Else, add the full path of *.psd1 to the list.
     $Modules = @()
-    $LoadedModules = Get-Module; $Modules | ForEach-Object {
-        if ($_ -notin $LoadedModules.Name) { Import-Module $_ -DisableNameChecking }
-    }
+    $Modules | ForEach-Object { Get-Module $_ -ListAvailable | Import-Module -DisableNameChecking }
 }
 
 process {

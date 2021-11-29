@@ -5,20 +5,20 @@
 .DESCRIPTION
     Query objects of a certain type in a vCloud server.
 
-    File-Name:  Search-VCloud.ps1
+    Filename:   Search-VCloud.ps1
     Author:     David Wettstein
     Version:    1.0.5
 
     Changelog:
-                v1.0.5, 2021-11-23, David Wettstein: Fix endpoint URL.
-                v1.0.4, 2020-12-01, David Wettstein: Refactor error handling.
-                v1.0.3, 2020-10-20, David Wettstein: Add function blocks.
-                v1.0.2, 2020-05-07, David Wettstein: Reorganize input params.
-                v1.0.1, 2020-04-09, David Wettstein: Improve path handling.
-                v1.0.0, 2019-05-30, David Wettstein: First implementation.
+    - v1.0.5, 2021-11-23, David Wettstein: Fix endpoint URL.
+    - v1.0.4, 2020-12-01, David Wettstein: Refactor error handling.
+    - v1.0.3, 2020-10-20, David Wettstein: Add function blocks.
+    - v1.0.2, 2020-05-07, David Wettstein: Reorganize input params.
+    - v1.0.1, 2020-04-09, David Wettstein: Improve path handling.
+    - v1.0.0, 2019-05-30, David Wettstein: First implementation.
 
 .NOTES
-    Copyright (c) 2019-2020 David Wettstein,
+    Copyright (c) 2019-2021 David Wettstein,
     licensed under the MIT License (https://dwettstein.mit-license.org/)
 
 .LINK
@@ -80,10 +80,9 @@ begin {
     Write-Verbose "$($FILE_NAME): CALL."
 
     # Make sure the necessary modules are loaded.
+    # By default, this will load the latest version. Else, add the full path of *.psd1 to the list.
     $Modules = @()
-    $LoadedModules = Get-Module; $Modules | ForEach-Object {
-        if ($_ -notin $LoadedModules.Name) { Import-Module $_ -DisableNameChecking }
-    }
+    $Modules | ForEach-Object { Get-Module $_ -ListAvailable | Import-Module -DisableNameChecking }
 }
 
 process {

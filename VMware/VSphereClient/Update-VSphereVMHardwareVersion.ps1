@@ -5,17 +5,17 @@
 .DESCRIPTION
     Update the hardware version of a VM.
 
-    File-Name:  Update-VSphereVMHardwareVersion.ps1
+    Filename:   Update-VSphereVMHardwareVersion.ps1
     Author:     David Wettstein
     Version:    1.0.1
 
     Changelog:
-                v1.0.1, 2020-12-01, David Wettstein: Refactor error handling.
-                v1.0.0, 2020-11-04, David Wettstein: Refactor script and release.
-                v0.0.1, 2018-03-22, David Wettstein: First implementation.
+    - v1.0.1, 2020-12-01, David Wettstein: Refactor error handling.
+    - v1.0.0, 2020-11-04, David Wettstein: Refactor script and release.
+    - v0.0.1, 2018-03-22, David Wettstein: First implementation.
 
 .NOTES
-    Copyright (c) 2018-2020 David Wettstein,
+    Copyright (c) 2018-2021 David Wettstein,
     licensed under the MIT License (https://dwettstein.mit-license.org/)
 
 .LINK
@@ -75,16 +75,13 @@ begin {
     Write-Verbose "$($FILE_NAME): CALL."
 
     # Make sure the necessary modules are loaded.
+    # By default, this will load the latest version. Else, add the full path of *.psd1 to the list.
     if ([Int]::Parse($Version.Replace("v", "")) -ge 13) {
         # HWVersion v13 or higher needs a recent PowerCLI module version.
         Import-Module "VMware.VimAutomation.Core" -MinimumVersion "11.0.0"
     }
-    $Modules = @(
-        "VMware.VimAutomation.Core"
-    )
-    $LoadedModules = Get-Module; $Modules | ForEach-Object {
-        if ($_ -notin $LoadedModules.Name) { Import-Module $_ -DisableNameChecking }
-    }
+    $Modules = @("VMware.VimAutomation.Core")
+    $Modules | ForEach-Object { Get-Module $_ -ListAvailable | Import-Module -DisableNameChecking }
 }
 
 process {

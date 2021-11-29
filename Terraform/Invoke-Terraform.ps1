@@ -44,21 +44,21 @@
 
     If Terraform `init` is run with the `-plugin-dir=<PATH>` option, it overrides the default plugin locations and searches only the specified path.
 
-    File-Name:  Invoke-Terraform.ps1
+    Filename:   Invoke-Terraform.ps1
     Author:     David Wettstein
     Version:    1.0.5
 
     Changelog:
-                v1.0.5, 2021-01-15, David Wettstein: Make script cross-platform.
-                v1.0.4, 2020-12-01, David Wettstein: Refactor error handling.
-                v1.0.3, 2020-10-20, David Wettstein: Add function blocks.
-                v1.0.2, 2020-05-17, David Wettstein: Improve command execution.
-                v1.0.1, 2020-04-09, David Wettstein: Improve path handling.
-                v1.0.0, 2020-03-21, David Wettstein: Refactor and improve credential handling.
-                v0.0.1, 2018-10-03, David Wettstein: First implementation.
+    - v1.0.5, 2021-01-15, David Wettstein: Make script cross-platform.
+    - v1.0.4, 2020-12-01, David Wettstein: Refactor error handling.
+    - v1.0.3, 2020-10-20, David Wettstein: Add function blocks.
+    - v1.0.2, 2020-05-17, David Wettstein: Improve command execution.
+    - v1.0.1, 2020-04-09, David Wettstein: Improve path handling.
+    - v1.0.0, 2020-03-21, David Wettstein: Refactor and improve credential handling.
+    - v0.0.1, 2018-10-03, David Wettstein: First implementation.
 
 .NOTES
-    Copyright (c) 2018-2020 David Wettstein,
+    Copyright (c) 2018-2021 David Wettstein,
     licensed under the MIT License (https://dwettstein.mit-license.org/)
 
 .LINK
@@ -161,10 +161,9 @@ begin {
     Write-Verbose "$($FILE_NAME): CALL."
 
     # Make sure the necessary modules are loaded.
+    # By default, this will load the latest version. Else, add the full path of *.psd1 to the list.
     $Modules = @()
-    $LoadedModules = Get-Module; $Modules | ForEach-Object {
-        if ($_ -notin $LoadedModules.Name) { Import-Module $_ -DisableNameChecking }
-    }
+    $Modules | ForEach-Object { Get-Module $_ -ListAvailable | Import-Module -DisableNameChecking }
 
     $CurrentLocation = Get-Location
     $CurrentTfVarUsername = [System.Environment]::GetEnvironmentVariable("TF_VAR_username")

@@ -27,7 +27,7 @@ Author = 'David Wettstein'
 # CompanyName = ''
 
 # Copyright statement for this module
-Copyright = 'Copyright (c) 2019-2020 David Wettstein, licensed under the MIT License (https://dwettstein.mit-license.org/)'
+Copyright = 'Copyright (c) 2019-2021 David Wettstein, licensed under the MIT License (https://dwettstein.mit-license.org/)'
 
 # Description of the functionality provided by this module
 Description = 'A PowerShell client for NSX API.'

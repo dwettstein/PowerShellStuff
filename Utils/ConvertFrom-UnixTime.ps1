@@ -7,16 +7,16 @@
     Convert the given UnixTime (seconds since 01/01/1970) to a DateTime object
     by adding the given amount of seconds to a DateTime object refering to the 01/01/1970.
 
-    File-Name:  ConvertFrom-UnixTime.ps1
+    Filename:   ConvertFrom-UnixTime.ps1
     Author:     David Wettstein
     Version:    1.0.1
 
     Changelog:
-                v1.0.1, 2020-10-20, David Wettstein: Add function blocks.
-                v1.0.0, 2018-08-01, David Wettstein: First implementation.
+    - v1.0.1, 2020-10-20, David Wettstein: Add function blocks.
+    - v1.0.0, 2018-08-01, David Wettstein: First implementation.
 
 .NOTES
-    Copyright (c) 2018-2020 David Wettstein,
+    Copyright (c) 2018-2021 David Wettstein,
     licensed under the MIT License (https://dwettstein.mit-license.org/)
 
 .LINK

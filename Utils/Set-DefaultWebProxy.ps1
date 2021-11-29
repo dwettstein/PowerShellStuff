@@ -7,16 +7,16 @@
     Set the default web proxy and credentials to default Internet Options
     values, or given custom values.
 
-    File-Name:  Set-DefaultWebProxy.ps1
+    Filename:   Set-DefaultWebProxy.ps1
     Author:     David Wettstein
     Version:    1.0.1
 
     Changelog:
-                v1.0.1, 2020-10-20, David Wettstein: Add function blocks.
-                v1.0.0, 2020-05-13, David Wettstein: First implementation.
+    - v1.0.1, 2020-10-20, David Wettstein: Add function blocks.
+    - v1.0.0, 2020-05-13, David Wettstein: First implementation.
 
 .NOTES
-    Copyright (c) 2018-2020 David Wettstein,
+    Copyright (c) 2018-2021 David Wettstein,
     licensed under the MIT License (https://dwettstein.mit-license.org/)
 
 .LINK

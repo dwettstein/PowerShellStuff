@@ -9,21 +9,21 @@
     using the provided authorization token, e.g. "Basic username:password",
     or an existing PSCredential for authentication.
 
-    File-Name:  Invoke-ServerRequest.ps1
+    Filename:   Invoke-ServerRequest.ps1
     Author:     David Wettstein
     Version:    2.0.2
 
     Changelog:
-                v2.0.2, 2020-12-01, David Wettstein: Refactor error handling.
-                v2.0.1, 2020-10-20, David Wettstein: Add function blocks.
-                v2.0.0, 2020-04-23, David Wettstein: Refactor and get rid of PowerNSX.
-                v1.1.1, 2020-04-09, David Wettstein: Improve path handling.
-                v1.1.0, 2020-04-07, David Wettstein: Sync input variables with cache.
-                v1.0.1, 2020-03-13, David Wettstein: Refactor and generalize cmdlet.
-                v1.0.0, 2019-05-30, David Wettstein: First implementation.
+    - v2.0.2, 2020-12-01, David Wettstein: Refactor error handling.
+    - v2.0.1, 2020-10-20, David Wettstein: Add function blocks.
+    - v2.0.0, 2020-04-23, David Wettstein: Refactor and get rid of PowerNSX.
+    - v1.1.1, 2020-04-09, David Wettstein: Improve path handling.
+    - v1.1.0, 2020-04-07, David Wettstein: Sync input variables with cache.
+    - v1.0.1, 2020-03-13, David Wettstein: Refactor and generalize cmdlet.
+    - v1.0.0, 2019-05-30, David Wettstein: First implementation.
 
 .NOTES
-    Copyright (c) 2019-2020 David Wettstein,
+    Copyright (c) 2019-2021 David Wettstein,
     licensed under the MIT License (https://dwettstein.mit-license.org/)
 
 .LINK
@@ -97,10 +97,9 @@ begin {
     Write-Verbose "$($FILE_NAME): CALL."
 
     # Make sure the necessary modules are loaded.
+    # By default, this will load the latest version. Else, add the full path of *.psd1 to the list.
     $Modules = @()
-    $LoadedModules = Get-Module; $Modules | ForEach-Object {
-        if ($_ -notin $LoadedModules.Name) { Import-Module $_ -DisableNameChecking }
-    }
+    $Modules | ForEach-Object { Get-Module $_ -ListAvailable | Import-Module -DisableNameChecking }
 }
 
 process {

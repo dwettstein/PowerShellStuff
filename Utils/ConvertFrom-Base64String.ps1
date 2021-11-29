@@ -5,16 +5,16 @@
 .DESCRIPTION
     Convert the given Base64 encoded string to username and password strings (hashtable).
 
-    File-Name:  ConvertFrom-Base64String.ps1
+    Filename:   ConvertFrom-Base64String.ps1
     Author:     David Wettstein
     Version:    1.0.1
 
     Changelog:
-                v1.0.1, 2020-10-20, David Wettstein: Add function blocks.
-                v1.0.0, 2018-08-01, David Wettstein: First implementation.
+    - v1.0.1, 2020-10-20, David Wettstein: Add function blocks.
+    - v1.0.0, 2018-08-01, David Wettstein: First implementation.
 
 .NOTES
-    Copyright (c) 2018-2020 David Wettstein,
+    Copyright (c) 2018-2021 David Wettstein,
     licensed under the MIT License (https://dwettstein.mit-license.org/)
 
 .LINK

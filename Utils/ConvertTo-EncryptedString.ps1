@@ -5,16 +5,16 @@
 .DESCRIPTION
     Encrypt the given string with either the given key or default Windows Data Protection API (DPAPI).
 
-    File-Name:  ConvertTo-EncryptedString.ps1
+    Filename:   ConvertTo-EncryptedString.ps1
     Author:     David Wettstein
     Version:    1.0.1
 
     Changelog:
-                v1.0.1, 2020-10-20, David Wettstein: Add function blocks.
-                v1.0.0, 2018-09-05, David Wettstein: First implementation.
+    - v1.0.1, 2020-10-20, David Wettstein: Add function blocks.
+    - v1.0.0, 2018-09-05, David Wettstein: First implementation.
 
 .NOTES
-    Copyright (c) 2018-2020 David Wettstein,
+    Copyright (c) 2018-2021 David Wettstein,
     licensed under the MIT License (https://dwettstein.mit-license.org/)
 
 .LINK

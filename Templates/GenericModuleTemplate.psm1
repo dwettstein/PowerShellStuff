@@ -12,20 +12,21 @@
         6. Export function as module member.
         7. Delete the temporary file.
 
+    Filename:   GenericModuleTemplate.psm1
     Author:     David Wettstein
     Version:    1.1.4
 
     Changelog:
-                v1.1.4, 2021-01-15, David Wettstein: Make script cross-platform.
-                v1.1.3, 2020-11-14, David Wettstein: Refactor variables.
-                v1.1.2, 2020-10-19, David Wettstein: Load ps1 files recursively.
-                v1.1.1, 2020-04-09, David Wettstein: Improve path handling.
-                v1.1.0, 2020-04-07, David Wettstein: Load module config from XML file.
-                v1.0.1, 2020-03-13, David Wettstein: Use system temp path.
-                v1.0.0, 2018-08-03, David Wettstein: First implementation.
+    - v1.1.4, 2021-01-15, David Wettstein: Make script cross-platform.
+    - v1.1.3, 2020-11-14, David Wettstein: Refactor variables.
+    - v1.1.2, 2020-10-19, David Wettstein: Load ps1 files recursively.
+    - v1.1.1, 2020-04-09, David Wettstein: Improve path handling.
+    - v1.1.0, 2020-04-07, David Wettstein: Load module config from XML file.
+    - v1.0.1, 2020-03-13, David Wettstein: Use system temp path.
+    - v1.0.0, 2018-08-03, David Wettstein: First implementation.
 
 .NOTES
-    Copyright (c) 2018-2020 David Wettstein,
+    Copyright (c) 2018-2021 David Wettstein,
     licensed under the MIT License (https://dwettstein.mit-license.org/)
 
 .LINK

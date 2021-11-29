@@ -7,21 +7,21 @@
     Invoke a Net.HttpWebRequest with given parameters.
     Returns a hashtable with keys "StatusCode", "Headers", "Response".
 
-    File-Name:  Invoke-HttpRequest.ps1
+    Filename:   Invoke-HttpRequest.ps1
     Author:     David Wettstein
     Version:    1.1.3
 
     Changelog:
-                v1.1.3, 2020-12-01, David Wettstein: Refactor error handling.
-                v1.1.2, 2020-10-20, David Wettstein: Add function blocks.
-                v1.1.1, 2020-04-09, David Wettstein: Improve path handling.
-                v1.1.0, 2019-01-10, David Wettstein: Add switch for enabling all security protocols.
-                v1.0.2, 2018-08-01, David Wettstein: Update code formatting.
-                v1.0.1, 2016-10-17, David Wettstein: Add minor improvements.
-                v1.0.0, 2016-04-13, David Wettstein: First implementation.
+    - v1.1.3, 2020-12-01, David Wettstein: Refactor error handling.
+    - v1.1.2, 2020-10-20, David Wettstein: Add function blocks.
+    - v1.1.1, 2020-04-09, David Wettstein: Improve path handling.
+    - v1.1.0, 2019-01-10, David Wettstein: Add switch for enabling all security protocols.
+    - v1.0.2, 2018-08-01, David Wettstein: Update code formatting.
+    - v1.0.1, 2016-10-17, David Wettstein: Add minor improvements.
+    - v1.0.0, 2016-04-13, David Wettstein: First implementation.
 
 .NOTES
-    Copyright (c) 2016-2020 David Wettstein,
+    Copyright (c) 2016-2021 David Wettstein,
     licensed under the MIT License (https://dwettstein.mit-license.org/)
 
 .LINK

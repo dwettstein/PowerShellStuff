@@ -13,15 +13,15 @@
     Use the -Verbose option to see the Write-Verbose outputs in the console.
     Use the -Debug option to see the Write-Debug outputs in the console.
 
-    File-Name:  Write-Log.ps1
+    Filename:   Write-Log.ps1
     Author:     David Wettstein
     Version:    1.0.3
 
     Changelog:
-                v1.0.3, 2020-11-27, David Wettstein: Refactor and use System.IO.File.
-                v1.0.2, 2020-10-20, David Wettstein: Add function blocks.
-                v1.0.1, 2020-04-09, David Wettstein: Improve path handling.
-                v1.0.0, 2020-01-03, David Wettstein: First implementation, based on my old Logger module.
+    - v1.0.3, 2020-11-27, David Wettstein: Refactor and use System.IO.File.
+    - v1.0.2, 2020-10-20, David Wettstein: Add function blocks.
+    - v1.0.1, 2020-04-09, David Wettstein: Improve path handling.
+    - v1.0.0, 2020-01-03, David Wettstein: First implementation, based on my old Logger module.
 
 .NOTES
     Copyright (c) 2020 David Wettstein,

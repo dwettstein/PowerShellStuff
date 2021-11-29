@@ -7,13 +7,13 @@
     Convert a given IP address and subnet mask to its equal CIDR notation.
     Default subnet mask is 255.255.255.0 or /24.
 
-    File-Name:  ConvertTo-Cidr.ps1
+    Filename:   ConvertTo-Cidr.ps1
     Author:     David Wettstein
     Version:    1.0.1
 
     Changelog:
-                v1.0.1, 2020-10-20, David Wettstein: Add function blocks.
-                v1.0.0, 2020-01-03, David Wettstein: First implementation.
+    - v1.0.1, 2020-10-20, David Wettstein: Add function blocks.
+    - v1.0.0, 2020-01-03, David Wettstein: First implementation.
 
 .NOTES
     Copyright (c) 2020 David Wettstein,

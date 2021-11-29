@@ -10,14 +10,14 @@
         2. Get the variable from ModuleConfig, if the cmdlet is part of a module.
         3. Throw if the variable is mandatory but not found.
 
-    File-Name:  Sync-VariableCache.ps1
+    Filename:   Sync-VariableCache.ps1
     Author:     David Wettstein
     Version:    1.1.1
 
     Changelog:
-                v1.1.1, 2020-10-20, David Wettstein: Add function blocks.
-                v1.1.0, 2020-05-07, David Wettstein: Always update cache if not null.
-                v1.0.0, 2020-04-07, David Wettstein: First implementation.
+    - v1.1.1, 2020-10-20, David Wettstein: Add function blocks.
+    - v1.1.0, 2020-05-07, David Wettstein: Always update cache if not null.
+    - v1.0.0, 2020-04-07, David Wettstein: First implementation.
 
 .NOTES
     Copyright (c) 2020 David Wettstein,

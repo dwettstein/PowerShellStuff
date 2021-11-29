@@ -10,27 +10,27 @@
         4. If not interactive, try with PSCredential file "$Username.xml".
         5. If nothing provided from above, try with PowerCLI and Windows SSPI authentication.
 
-    File-Name:  Connect-VSphere.ps1
+    Filename:   Connect-VSphere.ps1
     Author:     David Wettstein
     Version:    2.0.4
 
     Changelog:
-                v2.0.4, 2021-01-15, David Wettstein: Make script cross-platform.
-                v2.0.3, 2020-12-01, David Wettstein: Refactor error handling.
-                v2.0.2, 2020-10-20, David Wettstein: Add function blocks.
-                v2.0.1, 2020-10-02, David Wettstein: Add param ApproveAllCertificates.
-                v2.0.0, 2020-07-20, David Wettstein: Rename script and variables.
-                v1.2.2, 2020-05-07, David Wettstein: Reorganize input params.
-                v1.2.1, 2020-04-09, David Wettstein: Improve path handling.
-                v1.2.0, 2020-04-07, David Wettstein: Sync input variables with cache.
-                v1.1.3, 2020-03-12, David Wettstein: Refactor and improve credential handling.
-                v1.1.2, 2019-12-17, David Wettstein: Improve parameter validation.
-                v1.1.1, 2019-12-13, David Wettstein: Improve credential handling.
-                v1.1.0, 2019-07-26, David Wettstein: Prompt for credentials and ask to save them.
-                v1.0.0, 2019-03-10, David Wettstein: First implementation.
+    - v2.0.4, 2021-01-15, David Wettstein: Make script cross-platform.
+    - v2.0.3, 2020-12-01, David Wettstein: Refactor error handling.
+    - v2.0.2, 2020-10-20, David Wettstein: Add function blocks.
+    - v2.0.1, 2020-10-02, David Wettstein: Add param ApproveAllCertificates.
+    - v2.0.0, 2020-07-20, David Wettstein: Rename script and variables.
+    - v1.2.2, 2020-05-07, David Wettstein: Reorganize input params.
+    - v1.2.1, 2020-04-09, David Wettstein: Improve path handling.
+    - v1.2.0, 2020-04-07, David Wettstein: Sync input variables with cache.
+    - v1.1.3, 2020-03-12, David Wettstein: Refactor and improve credential handling.
+    - v1.1.2, 2019-12-17, David Wettstein: Improve parameter validation.
+    - v1.1.1, 2019-12-13, David Wettstein: Improve credential handling.
+    - v1.1.0, 2019-07-26, David Wettstein: Prompt for credentials and ask to save them.
+    - v1.0.0, 2019-03-10, David Wettstein: First implementation.
 
 .NOTES
-    Copyright (c) 2019-2020 David Wettstein,
+    Copyright (c) 2019-2021 David Wettstein,
     licensed under the MIT License (https://dwettstein.mit-license.org/)
 
 .LINK
@@ -91,12 +91,9 @@ begin {
     Write-Verbose "$($FILE_NAME): CALL."
 
     # Make sure the necessary modules are loaded.
-    $Modules = @(
-        "VMware.VimAutomation.Core"
-    )
-    $LoadedModules = Get-Module; $Modules | ForEach-Object {
-        if ($_ -notin $LoadedModules.Name) { Import-Module $_ -DisableNameChecking }
-    }
+    # By default, this will load the latest version. Else, add the full path of *.psd1 to the list.
+    $Modules = @("VMware.VimAutomation.Core")
+    $Modules | ForEach-Object { Get-Module $_ -ListAvailable | Import-Module -DisableNameChecking }
 }
 
 process {

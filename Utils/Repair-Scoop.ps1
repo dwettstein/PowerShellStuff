@@ -9,18 +9,18 @@
         - Unzip archive from https://github.com/lukesampson/scoop
         - Change Scoop to Shovel (see https://github.com/Ash258/Scoop-Core)
 
-    File-Name:  Repair-Scoop.ps1
+    Filename:   Repair-Scoop.ps1
     Author:     David Wettstein
     Version:    1.3.1
 
     Changelog:
-                v1.3.1, 2021-04-29, David Wettstein: Do -UnzipFromPath earlier.
-                v1.3.0, 2021-04-23, David Wettstein: Add switch to change Scoop to Shovel.
-                v1.2.1, 2020-12-01, David Wettstein: Refactor error handling.
-                v1.2.0, 2020-11-23, David Wettstein: Allow non-standard home dirs.
-                v1.1.1, 2020-10-20, David Wettstein: Add function blocks.
-                v1.1.0, 2020-10-17, David Wettstein: Add switch to install Scoop as usual.
-                v1.0.0, 2020-05-13, David Wettstein: First implementation.
+    - v1.3.1, 2021-04-29, David Wettstein: Do -UnzipFromPath earlier.
+    - v1.3.0, 2021-04-23, David Wettstein: Add switch to change Scoop to Shovel.
+    - v1.2.1, 2020-12-01, David Wettstein: Refactor error handling.
+    - v1.2.0, 2020-11-23, David Wettstein: Allow non-standard home dirs.
+    - v1.1.1, 2020-10-20, David Wettstein: Add function blocks.
+    - v1.1.0, 2020-10-17, David Wettstein: Add switch to install Scoop as usual.
+    - v1.0.0, 2020-05-13, David Wettstein: First implementation.
 
 .NOTES
     Copyright (c) 2018-2021 David Wettstein,
@@ -112,10 +112,9 @@ begin {
     Write-Verbose "$($FILE_NAME): CALL."
 
     # Make sure the necessary modules are loaded.
+    # By default, this will load the latest version. Else, add the full path of *.psd1 to the list.
     $Modules = @()
-    $LoadedModules = Get-Module; $Modules | ForEach-Object {
-        if ($_ -notin $LoadedModules.Name) { Import-Module $_ -DisableNameChecking }
-    }
+    $Modules | ForEach-Object { Get-Module $_ -ListAvailable | Import-Module -DisableNameChecking }
 }
 
 process {
