@@ -30,7 +30,7 @@
     https://github.com/dwettstein/PowerShellStuff
 
 .LINK
-    https://github.com/lukesampson/scoop
+    https://github.com/ScoopInstaller/Scoop
 
 .EXAMPLE
     Repair-Scoop -Symlink -ResetAll -Proxy "http://proxy.example.com:8080"
@@ -145,7 +145,9 @@ process {
 
         if ($InstallShovel) {
             # Change Scoop to Shovel (see https://github.com/Ash258/Scoop-Core)
-            & "$env:COMSPEC" /c scoop install 7zip
+            if ((& "$env:COMSPEC" /c scoop config 7ZIPEXTRACT_USE_EXTERNAL) -ne $true) {
+                & "$env:COMSPEC" /c scoop install 7zip
+            }
             & "$env:COMSPEC" /c scoop config SCOOP_REPO "https://github.com/Ash258/Scoop-Core"
             & "$env:COMSPEC" /c scoop update
             Get-ChildItem "$env:SCOOP\shims" -Filter "scoop.*" | Copy-Item -Destination { Join-Path $_.Directory.FullName (($_.BaseName -replace "scoop", "shovel") + $_.Extension) }
