@@ -8,10 +8,12 @@
     - [Get a list of all storage tags and assigned datastores, sorted by tag](#get-a-list-of-all-storage-tags-and-assigned-datastores-sorted-by-tag)
     - [Get a list of all datastores containing the name and overprovisioning factor, sorted by highest overprovisioning factor](#get-a-list-of-all-datastores-containing-the-name-and-overprovisioning-factor-sorted-by-highest-overprovisioning-factor)
     - [Get a datastore recommendation for relocating VMs](#get-a-datastore-recommendation-for-relocating-vms)
+    - [Get a list of all NFS datastore disconnects during a given time](#get-a-list-of-all-nfs-datastore-disconnects-during-a-given-time)
   - [Compute](#compute)
     - [Get all VMs of a host with mounted VMware Tools Installer or connected CD drive](#get-all-vms-of-a-host-with-mounted-vmware-tools-installer-or-connected-cd-drive)
     - [Get a report of all host ESXi versions and number of attached datastores, sorted by cluster](#get-a-report-of-all-host-esxi-versions-and-number-of-attached-datastores-sorted-by-cluster)
     - [Get all hosts with disabled alarm actions](#get-all-hosts-with-disabled-alarm-actions)
+    - [Get all hosts with enabled SSH](#get-all-hosts-with-enabled-ssh)
   - [Others](#others)
     - [Export any command result as JSON](#export-any-command-result-as-json)
 
@@ -69,6 +71,7 @@ Get-VMHost $VMHostName | Get-VM | ? {$_.ExtensionData.Runtime.ToolsInstallerMoun
 # To just get all VMs with mounted VMware Tools Installer, the following command is much faster.
 Get-View -ViewType VirtualMachine -Filter @{"Runtime.ToolsInstallerMounted"="True"} -SearchRoot (Get-VMHost $VMHostName).Id
 ```
+
 If you rather want all VMs and not only the ones from a certain host, just remove the first or last part with `Get-VMHost`.
 
 ### Get a report of all host ESXi versions and number of attached datastores, sorted by cluster
