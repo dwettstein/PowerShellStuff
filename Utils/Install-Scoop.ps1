@@ -1,26 +1,19 @@
 <#
 .SYNOPSIS
-    Repair an existing Scoop installation.
+    Install Scoop.
 
 .DESCRIPTION
-    Repair an existing Scoop installation:
-    - Re-create 'current' symlink for Scoop itself
-    - Reset and cleanup all apps (re-creates 'current' symlinks for apps too)
-    - Unzip archive from https://github.com/ScoopInstaller/Scoop offline
+    Install Scoop.
+    - Set a proxy or proxy credentials if needed
+    - Install to default or custom location
+    - Change existing Scoop installation to Shovel fork (see https://github.com/Ash258/Scoop-Core)
 
-    Filename:   Repair-Scoop.ps1
+    Filename:   Install-Scoop.ps1
     Author:     David Wettstein
-    Version:    2.0.0
+    Version:    1.0.0
 
     Changelog:
-    - v2.0.0, 2021-12-11, David Wettstein: Refactor out installation parts.
-    - v1.3.1, 2021-04-29, David Wettstein: Do -UnzipFromPath earlier.
-    - v1.3.0, 2021-04-23, David Wettstein: Add switch to change Scoop to Shovel.
-    - v1.2.1, 2020-12-01, David Wettstein: Refactor error handling.
-    - v1.2.0, 2020-11-23, David Wettstein: Allow non-standard home dirs.
-    - v1.1.1, 2020-10-20, David Wettstein: Add function blocks.
-    - v1.1.0, 2020-10-17, David Wettstein: Add switch to install Scoop as usual.
-    - v1.0.0, 2020-05-13, David Wettstein: First implementation.
+    - v1.0.0, 2021-12-11, David Wettstein: First implementation.
 
 .NOTES
     Copyright (c) 2018-2021 David Wettstein,
@@ -33,23 +26,29 @@
     https://github.com/ScoopInstaller/Scoop
 
 .EXAMPLE
-    Repair-Scoop -UnzipFromPath "$HOME\scoop-master.zip"
+    Install-Scoop
 
 .EXAMPLE
-    Repair-Scoop -Symlink -ResetAll
+    Install-Scoop -ScoopAppVersion "develop" -SetScoopHomeEnv -ScoopHome "D:\Applications\Scoop"
+
+.EXAMPLE
+    Install-Scoop -Proxy "http://proxy.example.com:8080" -ApproveAllCertificates
+
+.EXAMPLE
+    Install-Scoop -InstallShovel  # Existing Scoop installation needed
 #>
 [CmdletBinding()]
 [OutputType([String])]
 param (
     [Parameter(Mandatory = $false, Position = 0)]
-    [ValidateNotNullOrEmpty()]
-    [String] $UnzipFromPath = $null
+    # Change existing Scoop installation to Shovel fork (see https://github.com/Ash258/Scoop-Core)
+    [Switch] $InstallShovel
     ,
     [Parameter(Mandatory = $false, Position = 1)]
-    [Switch] $Symlink
+    [String] $Proxy = $null
     ,
     [Parameter(Mandatory = $false, Position = 2)]
-    [Switch] $ResetAll
+    [PSCredential] $ProxyCredential = $null
     ,
     [Parameter(Mandatory = $false, Position = 3)]
     [Switch] $SetScoopHomeEnv
@@ -60,15 +59,12 @@ param (
     ,
     [Parameter(Mandatory = $false, Position = 5)]
     [ValidateNotNullOrEmpty()]
-    [String] $ScoopAppHome = "$ScoopHome\apps\scoop\"
-    ,
-    [Parameter(Mandatory = $false, Position = 6)]
-    [ValidateNotNullOrEmpty()]
+    # Set a Git branch to install from, e. g. master or develop
     [String] $ScoopAppVersion = "master"
     ,
-    [Parameter(Mandatory = $false, Position = 7)]
-    [ValidateNotNullOrEmpty()]
-    [String] $ScoopAppVersionPrefix = "scoop-"
+    [Parameter(Mandatory = $false, Position = 6)]
+    [Alias("Insecure")]
+    [Switch] $ApproveAllCertificates
 )
 
 begin {
@@ -109,40 +105,25 @@ process {
             [System.Environment]::SetEnvironmentVariable("SCOOP", $ScoopHome, "User")
         }
 
-        if (-not [String]::IsNullOrEmpty($UnzipFromPath)) {
-            Write-Verbose "Unzip from '$UnzipFromPath' to '$ScoopAppHome'."
-            Add-Type -Assembly "System.IO.Compression.FileSystem"
-            [IO.Compression.ZipFile]::ExtractToDirectory($UnzipFromPath, $ScoopAppHome)
+        if ($ApproveAllCertificates) {
+            $null = & "${FILE_DIR}Approve-AllCertificates"
         }
 
-        if ($Symlink) {
-            Write-Verbose "Try to find existing version folder:"
-            $VersionDir = Join-Path $ScoopAppHome $ScoopAppVersion
-            Write-Verbose "$VersionDir"
-            if (-not (Test-Path $VersionDir)) {
-                $VersionDir = Join-Path $ScoopAppHome "${ScoopAppVersionPrefix}${ScoopAppVersion}"
-                Write-Verbose "$VersionDir"
-                if (-not (Test-Path $VersionDir)) {
-                    throw "Unknown version folder under '$ScoopAppHome', use param '-ScoopAppVersion' or '-UnzipFromPath' with a downloaded ZIP from: https://github.com/ScoopInstaller/Scoop."
-                }
-            }
-
-            $CurrentDir = Join-Path $ScoopAppHome "current"
-            if (Test-Path $CurrentDir) {
-                Write-Verbose "Remove existing current folder '$CurrentDir'."
-                Remove-Item $CurrentDir -Force -Recurse
-            }
-
-            Write-Verbose "Create new symlink from '$CurrentDir' to '$VersionDir'."
-            & "$env:COMSPEC" /c mklink /j $CurrentDir $VersionDir
-            $null = attrib $CurrentDir +R /L
+        if ($Proxy -or $ProxyCredential) {
+            $null = & "${FILE_DIR}Set-DefaultWebProxy" -Proxy $Proxy -Credential $ProxyCredential
         }
 
-        if ($ResetAll) {
-            Write-Verbose "Reset and cleanup all existing scoop apps."
-            $ErrorActionPreference = "Continue"
-            & "$env:COMSPEC" /c scoop reset *
-            & "$env:COMSPEC" /c scoop cleanup --cache *
+        if ($InstallShovel) {
+            # Change existing Scoop installation to Shovel fork (see https://github.com/Ash258/Scoop-Core)
+            if ((& "$env:COMSPEC" /c scoop config 7ZIPEXTRACT_USE_EXTERNAL) -ne $true) {
+                & "$env:COMSPEC" /c scoop install 7zip
+            }
+            & "$env:COMSPEC" /c scoop config SCOOP_REPO "https://github.com/Ash258/Scoop-Core"
+            & "$env:COMSPEC" /c scoop update
+            Get-ChildItem "$env:SCOOP\shims" -Filter "scoop.*" | Copy-Item -Destination { Join-Path $_.Directory.FullName (($_.BaseName -replace "scoop", "shovel") + $_.Extension) }
+        } else {
+            # Install original Scoop from web: https://get.scoop.sh
+            Invoke-Expression (New-Object System.Net.WebClient).DownloadString("https://raw.githubusercontent.com/ScoopInstaller/Scoop/$ScoopAppVersion/bin/install.ps1")
         }
 
         #$ScriptOut  # Write $ScriptOut to output stream.
