@@ -10,9 +10,10 @@
 
     Filename:   Install-Scoop.ps1
     Author:     David Wettstein
-    Version:    1.0.0
+    Version:    1.0.1
 
     Changelog:
+    - v1.0.1, 2021-12-15, David Wettstein: Set SCOOP_BRANCH.
     - v1.0.0, 2021-12-11, David Wettstein: First implementation.
 
 .NOTES
@@ -60,7 +61,7 @@ param (
     [Parameter(Mandatory = $false, Position = 5)]
     [ValidateNotNullOrEmpty()]
     # Set a Git branch to install from, e. g. master or develop
-    [String] $ScoopAppVersion = "master"
+    [String] $ScoopBranch = "master"
     ,
     [Parameter(Mandatory = $false, Position = 6)]
     [Alias("Insecure")]
@@ -101,6 +102,7 @@ process {
     # $ScriptOut = ""
     try {
         if ($SetScoopHomeEnv) {
+            Write-Verbose "Setting 'SCOOP' environment variable to '$ScoopHome' ..."
             $env:SCOOP = $ScoopHome
             [System.Environment]::SetEnvironmentVariable("SCOOP", $ScoopHome, "User")
         }
@@ -110,20 +112,32 @@ process {
         }
 
         if ($Proxy -or $ProxyCredential) {
+            Write-Verbose "Setting proxy to '$Proxy' ..."
             $null = & "${FILE_DIR}Set-DefaultWebProxy" -Proxy $Proxy -Credential $ProxyCredential
         }
 
         if ($InstallShovel) {
             # Change existing Scoop installation to Shovel fork (see https://github.com/Ash258/Scoop-Core)
+            # Prerequisites: 7-Zip, Git
             if ((& "$env:COMSPEC" /c scoop config 7ZIPEXTRACT_USE_EXTERNAL) -ne $true) {
+                Write-Verbose "7ZIPEXTRACT_USE_EXTERNAL is not true. Installing 7-Zip ..."
                 & "$env:COMSPEC" /c scoop install 7zip
             }
+            if ($null -eq (Get-Command "git" -ErrorAction:SilentlyContinue)) {
+                Write-Verbose "Git not found on PATH. Installing Git ..."
+                & "$env:COMSPEC" /c scoop install git
+            }
+
+            Write-Verbose "Setting 'SCOOP_REPO' to 'https://github.com/Ash258/Scoop-Core' ..."
             & "$env:COMSPEC" /c scoop config SCOOP_REPO "https://github.com/Ash258/Scoop-Core"
+            & "$env:COMSPEC" /c scoop config SCOOP_BRANCH "$ScoopBranch"
             & "$env:COMSPEC" /c scoop update
             Get-ChildItem "$env:SCOOP\shims" -Filter "scoop.*" | Copy-Item -Destination { Join-Path $_.Directory.FullName (($_.BaseName -replace "scoop", "shovel") + $_.Extension) }
         } else {
-            # Install original Scoop from web: https://get.scoop.sh
-            Invoke-Expression (New-Object System.Net.WebClient).DownloadString("https://raw.githubusercontent.com/ScoopInstaller/Scoop/$ScoopAppVersion/bin/install.ps1")
+            Write-Verbose "Installing Scoop (branch $ScoopBranch) from web: https://get.scoop.sh ..."
+            Invoke-Expression (New-Object System.Net.WebClient).DownloadString("https://get.scoop.sh/")
+            & "$env:COMSPEC" /c scoop config SCOOP_BRANCH "$ScoopBranch"
+            & "$env:COMSPEC" /c scoop update
         }
 
         #$ScriptOut  # Write $ScriptOut to output stream.
